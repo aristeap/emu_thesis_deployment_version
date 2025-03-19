@@ -34,7 +34,7 @@ let EmuWebAppComponent = {
 			<div class="printTitle">
 				EMU-webApp : {{$ctrl.LoadedMetaDataService.getCurBndlName()}}
 			</div>
-
+<!-- I am making this change so i can view it on github -->
 			<!-- start: top menu bar -->
 			<div class="emuwebapp-top-menu">
 				<button class="emuwebapp-button-icon" 
@@ -512,41 +512,41 @@ let EmuWebAppComponent = {
 							</div>								
 
 							<!-- Image Viewer Block ------------------------------------------------------------------------------------>
-<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay"
-  ng-controller="ImageController as imgCtrl"
-  style="width: 100%; height: 100%; position: relative;">
+							<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay"
+							ng-controller="ImageController as imgCtrl"
+							style="width: 100%; height: 100%; position: relative;">
 
-  <!-- 1) A relatively positioned container that fills the entire top pane -->
-  <div style="position: relative; width: 100%; height: 100%;">
+							<!-- 1) A relatively positioned container that fills the entire top pane -->
+							<div style="position: rel	ative; width: 100%; height: 100%;">
 
-    <!-- 2) Absolutely positioned zoom buttons inside this container -->
-    <div style="position: absolute; top: 10px; left: 10px; z-index: 9999; display: flex; gap: 8px;">
-      <button ng-click="imgCtrl.imgState.zoomIn()"
-              style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff;
-                     border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer;
-                     display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
-        +
-      </button>
-      <button ng-click="imgCtrl.imgState.zoomOut()"
-              style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff;
-                     border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer;
-                     display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
-        -
-      </button>
-    </div>
+								<!-- 2) Absolutely positioned zoom buttons inside this container -->
+								<div style="position: absolute; top: 10px; left: 10px; z-index: 9999; display: flex; gap: 8px;">
+								<button ng-click="imgCtrl.imgState.zoomIn()"
+										style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff;
+												border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer;
+												display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
+									+
+								</button>
+								<button ng-click="imgCtrl.imgState.zoomOut()"
+										style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff;
+												border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer;
+												display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
+									-
+								</button>
+								</div>
 
-    <!-- 3) Scrollable area for the image -->
-    <div style="width: 100%; height: 100%; overflow: auto;">
-      <image-selectable
-        base64-img="imgCtrl.imgSrc"
-        zoom-scale="imgCtrl.imgState.imageScale"
-        on-selection="imgCtrl.handleSelection(bbox)"
-        annotation-mode="imgCtrl.currentMode">
-      </image-selectable>
-    </div>
+								<!-- 3) Scrollable area for the image -->
+								<div style="width: 100%; height: 100%; overflow: auto;">
+								<image-selectable
+									base64-img="imgCtrl.imgSrc"
+									zoom-scale="imgCtrl.imgState.imageScale"
+									on-selection="imgCtrl.handleSelection(bbox)"
+									annotation-mode="imgCtrl.currentMode">
+								</image-selectable>
+								</div>
 
-  </div>
-</div>
+							</div>
+							</div>
 
 
 
