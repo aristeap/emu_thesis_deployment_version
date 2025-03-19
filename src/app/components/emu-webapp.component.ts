@@ -35,6 +35,7 @@ let EmuWebAppComponent = {
 				EMU-webApp : {{$ctrl.LoadedMetaDataService.getCurBndlName()}}
 			</div>
 <!-- I am making this change so i can view it on github -->
+<!-- Can you see this change i am making?? -->
 			<!-- start: top menu bar -->
 			<div class="emuwebapp-top-menu">
 				<button class="emuwebapp-button-icon" 
