@@ -1,0 +1,10 @@
+import "./dragout.directive";
+import "./modal.directive";
+import "./my-drop-zone.directive";
+import "./my-drop-zone-input.directive";
+import "./split-pane-view.directive";
+import "./pdf-viewer.directive";
+import "./annotationTableWindow.directive";
+import "./image-viewer.directive";
+import "./image-selectable.directive";
+import "./floatingImageAnnotationWindow.directive";

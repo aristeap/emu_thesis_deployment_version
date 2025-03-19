@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Metadata</title>
+  <!-- Include Stylesheets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/PdfMetadataButton.css">
+  <script type="text/javascript" src="../js folder/PdfMetadataButtonFunctions.js"></script>
+  <script type="text/javascript" src="../js folder/PdfexportIMDI.js"></script>
+</head>
+<body>
+  <div class="emuwebapp-modal-wrap" ng-controller="metaCtrl">
+    <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+      <h3 id="modalHeading">Add PDF Metadata</h3>
+    </div>
+    <div class="emuwebapp-modal-body">
+      <!-- Two-column layout -->
+      <div class="metadata-layout">
+        <!-- Left Panel: Tree Structure -->
+        <div class="metadata-tree">
+          <ul>
+            <!-- Corpus Name (top item) -->
+            <li id="corpusName" class="form-switch" data-form-type="corpus" onclick="loadForm('name_of_file')">
+              <i class="fas fa-key" id="toggleKeyIcon" onclick="toggleAdditionalItems()"></i>
+              <span>{{ dataIn || 'No corpus name available' }}</span>
+              <i class="fas fa-ellipsis-v" onclick="showExportOptions(event)"></i>
+              <!-- Hidden Dropdown Menu for Export Options -->
+              <div id="exportOptions" class="export-menu" style="display:none">
+                <ul>
+                  <li onclick="downloadIMDIFileForPDF()">Export to IMDI</li>
+                </ul>
+              </div>
+            </li>
+            
+            
+            <!-- Hidden items: Authors and Languages -->
+            <ul id="additionalItems" style="display: none; padding-left: 20px;">
+
+              <!-- Authors -->
+              <li id="author" class="context-menu-trigger">
+                <i>---</i>
+                <i class="fas fa-key" id="toggleKeyIconAuthors"></i>
+                Authors
+                <i id="arrowIconAuthors" class="fas fa-angle-right arrow-icon"></i>
+              </li>
+              <div id="authorContextMenu" class="context-menu" style="display:none">
+                <ul>
+                  <li onclick="loadAuthorForm(event)">Add an Author</li>
+                </ul>
+              </div>
+
+
+              
+              <!-- Languages -->
+              <li id="language" class="context-menu-trigger form-switch">
+                <i>---</i>
+                <i class="fas fa-key" id="toggleKeyIconLanguages"></i>
+                Languages
+                <i id="arrowIconLanguages" class="fas fa-angle-right arrow-icon"></i>
+              </li>
+              <div id="languageContextMenu" class="context-menu" style="display:none">
+                <ul>
+                  <li onclick="loadLanguageForm()">Add a Language</li>
+                </ul>
+              </div>
+
+            </ul>
+          </ul>
+        </div>
+        <!-- Right Panel: Dynamic form content -->
+        <div id="metadata-form-container" class="metadata-form-container"></div>
+      </div>
+    </div>
+    <div class="emuwebapp-modal-footer">
+      <button id="MetaCancelBtn" class="emuwebapp-mini-btn metadata-cancel">Cancel all</button>
+      <button id="emuwebapp-modal-save" class="emuwebapp-mini-btn metadata-save" id="submit">Save all</button>
+    </div>
+  </div>
+</body>
+</html>

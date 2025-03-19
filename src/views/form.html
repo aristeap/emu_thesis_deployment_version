@@ -1,0 +1,57 @@
+<!-- <div class="emuwebapp-modal-wrap" ng-controller="formCtrl">
+    <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+        <h3 id="modalHeading">Form Test</h3>
+    </div>
+
+    <div class="emuwebapp-modal-body">
+        <form id="formSubmission" onsubmit="handleFormSubmit(event)">
+            <label for="regd_no">Registration Number:</label>
+            <input type="text" id="regd_no" name="regd_no" ng-focus="cursorInTextField()" ng-blur="cursorOutOfTextField()" />
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" ng-focus="cursorInTextField()" ng-blur="cursorOutOfTextField()" />
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" ng-focus="cursorInTextField()" ng-blur="cursorOutOfTextField()" />
+            <label for="branch">Branch:</label>
+            <select name="branch" id="branch">
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+                <option value="EEE">EEE</option>
+                <option value="MECH">MECH</option>
+                <option value="CIVIL">CIVIL</option>
+            </select>
+            <button id="submitButton" type="submit">Submit</button>
+        </form>
+        <div id="messageBox" style="display: none; color: green;">Form Submitted Successfully!</div>
+    </div>
+    <div class="emuwebapp-modal-footer">
+        <button ng-click="ModalService.close()" class="emuwebapp-mini-btn">Cancel</button>
+    </div>
+</div>
+
+<script>
+    function handleFormSubmit(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    const form = document.getElementById('formSubmission');
+    const formData = new FormData(form);
+
+    fetch('http://localhost:3019/post', {
+        method: 'POST',
+        body: formData,
+    })
+        .then((response) => {
+            if (response.ok) {
+                document.getElementById('messageBox').style.display = 'block';
+                document.getElementById('messageBox').innerText = 'Form Submitted Successfully!';
+                form.reset(); // Clear the form fields
+            } else {
+                throw new Error('Form submission failed');
+            }
+        })
+        .catch((error) => {
+            alert('Error submitting form. Please try again.');
+            console.error(error);
+        });
+}
+
+</script> -->

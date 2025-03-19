@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+      "baseUrl": "",
+      "declaration": false,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "lib": ["es6", "dom"],
+      "mapRoot": "./",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "outDir": "../dist/out-tsc",
+      "sourceMap": true,
+      "target": "es6",
+      "skipLibCheck": true,
+      "strict": false,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "typeRoots": [
+        "../node_modules/@types"
+      ]
+    },
+    "include": [
+      "src/**/*.d.ts"
+  ]
+  }

@@ -1,0 +1,115 @@
+<!-- Executing file: index.html -->
+<!-- Executing file: index.html -->
+<!-- Executing file: index.html -->
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+
+<!-- add/remove ng-csp to html tag if you wish to use as chrome app -> slows everything down quite a bit(~ 30%) -->
+
+<!--  removed from html for now-->
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>EMU-webApp</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, user-scalable=no" >
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- icons -->
+    <link rel="apple-touch-icon" sizes="57x57" href="assets/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="assets/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="assets/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="assets/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="assets/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon-180x180.png">
+    <link rel="icon" type="image/png" href="assets/favicon-192x192.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="assets/favicon-160x160.png" sizes="160x160">
+    <link rel="icon" type="image/png" href="assets/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="assets/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="assets/favicon-32x32.png" sizes="32x32">
+    <meta name="msapplication-TileColor" content="#0DC5FF">
+    <meta name="msapplication-TileImage" content="assets/mstile-144x144.png">
+    <!-- endicons -->
+
+  
+     <!-- set basedir for angular app change if not running in root of server-->
+     <base href="/">
+
+     <script>
+      // Force polyfill (even if it exists, we overwrite it)
+      Object.defineProperty(Promise, 'allSettled', {
+        value: function(promises) {
+          return Promise.all(promises.map(promise =>
+            Promise.resolve(promise).then(
+              value => ({ status: 'fulfilled', value }),
+              reason => ({ status: 'rejected', reason })
+            )
+          ));
+        },
+        writable: true,
+        configurable: true
+      });
+      console.log("Forced polyfill for Promise.allSettled installed:", Promise.allSettled);
+  
+      // Disable the worker explicitly
+      window.pdfjsWorkerSettings = {
+        disableWorker: true,
+        workerSrc: ""
+      };
+    </script>
+
+     <!-- jQuery (must be loaded before jQuery UI) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- jQuery UI -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <!-- Now load pdf.min.js -->
+    <script src="./assets/pdf.min.js"></script>
+    <Script src="./assets/pdf_viewer.js"></Script>
+    <script>
+      // Apply our worker settings
+      pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfjsWorkerSettings.workerSrc;
+      pdfjsLib.GlobalWorkerOptions.disableWorker = window.pdfjsWorkerSettings.disableWorker;
+      // console.log("Worker disabled:", pdfjsLib.GlobalWorkerOptions.disableWorker);
+    </script>
+
+   
+
+
+</head>
+<body ng-app="emuwebApp">
+
+      <emuwebapp class="emuwebapp"></emuwebapp>
+
+    <!-- Matomo - piwik-->
+    <script type="text/javascript">
+        var _paq = _paq || [];
+        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+            var u="https://stats.clarin.eu/";
+            _paq.push(['setTrackerUrl', u+'piwik.php']);
+            _paq.push(['setSiteId', '31']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+        })();
+    </script>
+    <!-- End Matomo - Code -->
+    
+    <!-- webpack bundled code -->
+    <script src="dist/emuwebapp.bundle.js"></script>
+
+</body>
+</html>
+

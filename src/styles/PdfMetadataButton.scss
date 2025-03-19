@@ -1,0 +1,342 @@
+// Executing file: MetadataButton.scss
+/* Import Google Font - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+
+
+	.active-item {
+		color: #007bff; /* Optional: Highlight color */
+		background-color: rgba(0, 123, 255, 0.1); /* Optional: Subtle background */
+	}
+
+
+	.metadata-layout {
+	  display: flex;
+	  height: 100%;
+	  overflow: hidden; /* Prevent extra scrollbars */
+	}
+
+	.metadata-tree {
+		flex: 1; /* Left panel takes less space */
+		background-color: #69a7bf;
+		padding: 10px;
+		border-right: 1px solid #ccc;
+		overflow-y: auto; /* Only vertical scrolling */
+		overflow-x: hidden; /* Prevent horizontal scrolling */
+		max-height: 100vh; /* Prevent overflowing beyond viewport */
+
+	  // Style for the list items
+	  ul {
+		padding: 0;
+		list-style: none; // Remove default bullet points
+
+		li {
+		  text-align: left; // Left-align text
+		  font-size: 20px; // Increase font size of "Actors"
+		  //font-weight: bold; // Make text bold
+		  margin-bottom: 10px; // Add space between list items
+		  cursor: pointer; // Add pointer cursor on hover
+		  position: relative; // Ensures that the dropdown is positioned relative to the 'li' 
+
+		  // Style for the angle-right icon
+		  i {
+			margin-left: 5px; // Space between text and icon
+			font-size: 12px; // Adjust icon size
+			vertical-align: middle; // Align icon with text
+			color: black;  /*Set icon color */
+			
+		  }
+		
+		  span{
+				font-size : 20px;	//μονο για το recording name και για τα νεα Actors που θα παιρνουν το full name,ειναι και αυτα span
+				
+			}
+			
+			.author-name-span{
+				font-size: 15px;	//για τα Actor 1,Actor 2, etc
+			}
+
+			.language-name-span{
+				font-size: 15px;	//για τα Language 1,Language 2, etc
+			}
+					  
+		}
+		//For exporting the imdi*******************************************************************************************************************
+		.export-menu {
+			left: 35%;
+			top: -10%;
+			position: absolute;
+			text-align: center;
+			background: transparent; /* Background of the menu matches button */
+			border: 1px solid black; /* Matching border */
+			border-radius: 0; /* No rounded corners */
+			box-shadow: none; /* Remove box-shadow to match the button */
+			margin: 0;
+			padding: 0;
+			min-width: 120px; /* Adjust to match the button's width */
+		}
+		
+		.export-menu ul {
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+		
+		.export-menu ul li {
+			padding: 0; /* No padding like the button */
+			margin: 0;
+			width: 120px; /* Same width as the button */
+			height: 30px; /* Same height as the button */
+			line-height: 30px; /* Vertically center text */
+			border-bottom: 1px solid black; /* Separator between items */
+			background: transparent; /* Matching button background */
+			font-size: 15px; /* Keep font size */
+			color: black; /* Default text color */
+			text-align: center;
+			cursor: pointer;
+			transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+			text-decoration: none; /* No text decoration */
+		}
+		
+		.export-menu li:hover {
+			background-color: black; /* Matching hover background */
+			color: white; /* Text color changes to white */
+		}
+		//****************************************************************************************************************************************
+
+	  }
+	}
+
+	.success-message {
+		color: green;
+		background-color: #e6ffe6;
+		padding: 10px;
+		margin-top: 10px;
+		border: 1px solid green;
+		border-radius: 5px;
+		text-align: center;
+	}
+	
+	.error-message {
+		color: red;
+		background-color: #ffe6e6;
+		padding: 10px;
+		margin-top: 10px;
+		border: 1px solid red;
+		border-radius: 5px;
+		text-align: center;
+	}
+	
+
+
+	.metadata-form-container {
+		flex: 3; /* Right panel takes more space */
+		padding: 20px;
+		background-color: black; /* Restored the background color to black */
+		color: white; /* Ensure text color is white for readability on black */
+		border-left: 1px solid #ccc;
+		max-height: calc(100vh - 100px); /* Adjust for header and footer height */
+		overflow-y: auto; /* Ensure content is scrollable */
+		box-sizing: border-box;
+	}
+
+	.metadata-form {
+
+	  label {
+		display: block;
+		margin-top: 10px;
+		font-weight: bold;
+		font-size: 13px; /* Increase the font size of labels */
+	  }
+
+	  input,
+	  select {
+		width: 100%;
+		padding: 10px;
+		margin-top: 5px;
+		font-size: 16px; /* Increase the font size of input fields */
+		box-sizing: border-box;
+		color: black; /* Input text should remain black */
+	  }
+
+
+
+	  // Styling the button
+	  .done-btn {
+		display: block;
+		margin: 20px auto; // Center the button horizontally
+		padding: 10px 20px;
+		background-color: #69a7bf; // Blue background
+		color: white; // White text color
+		border: none; // Remove border
+		border-radius: 5px; // Rounded corners
+		cursor: pointer; // Pointer on hover
+		font-size: 16px;
+		font-weight: bold;
+		text-align: center;
+
+		&:hover {
+		  background-color: darkblue; // Darken on hover
+		}
+	  }
+	}
+
+	
+
+/**********context menu for actors****************************************************************************************************************/
+	.context-menu {
+			position: absolute;
+			text-align: center;
+			background: transparent; /* Background of the menu matches button */
+			border: 1px solid black; /* Matching border */
+			border-radius: 0; /* No rounded corners */
+			box-shadow: none; /* Remove box-shadow to match the button */
+			margin: 0;
+			padding: 0;
+			min-width: 120px; /* Adjust to match the button's width */
+		}
+
+		.context-menu ul {
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+
+		.context-menu ul li {
+			padding: 0; /* No padding like the button */
+			margin: 0;
+			width: 120px; /* Same width as the button */
+			height: 30px; /* Same height as the button */
+			line-height: 30px; /* Vertically center text */
+			border-bottom: 1px solid black; /* Separator between items */
+			background: transparent; /* Matching button background */
+			font-size: 15px; /* Keep font size */
+			color: black; /* Default text color */
+			text-align: center;
+			cursor: pointer;
+			transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+			text-decoration: none; /* No text decoration */
+		}
+
+		.context-menu ul li:hover {
+			background-color: black; /* Matching hover background */
+			color: white; /* Text color changes to white */
+		}
+
+		.context-menu ul li:active {
+			background-color: white; /* On active state, background turns white */
+			color: black; /* Text color reverts to black */
+		}
+
+		.context-menu ul li:last-child {
+			border-bottom: none; /* No bottom border for the last item */
+		}
+
+
+
+
+/****************context menu for languages*********************************************************************************************************/
+
+
+	.context-menu2 {
+			position: absolute;
+			text-align: center;
+			background: transparent; /* Background of the menu matches button */
+			border: 1px solid black; /* Matching border */
+			border-radius: 0; /* No rounded corners */
+			box-shadow: none; /* Remove box-shadow to match the button */
+			margin: 0;
+			padding: 0;
+			min-width: 120px; /* Adjust to match the button's width */
+		}
+
+		.context-menu2 ul {
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+
+		.context-menu2 ul li {
+			padding: 0; /* No padding like the button */
+			margin: 0;
+			width: 120px; /* Same width as the button */
+			height: 30px; /* Same height as the button */
+			line-height: 30px; /* Vertically center text */
+			border-bottom: 1px solid black; /* Separator between items */
+			background: transparent; /* Matching button background */
+			font-size: 15px; /* Keep font size */
+			color: black; /* Default text color */
+			text-align: center;
+			cursor: pointer;
+			transition: background-color 0.3s, color 0.3s; /* Smooth transitions */
+			text-decoration: none; /* No text decoration */
+		}
+
+		.context-menu2 ul li:hover {
+			background-color: black; /* Matching hover background */
+			color: white; /* Text color changes to white */
+		}
+
+		.context-menu2 ul li:active {
+			background-color: white; /* On active state, background turns white */
+			color: black; /* Text color reverts to black */
+		}
+
+		.context-menu2 ul li:last-child {
+			border-bottom: none; /* No bottom border for the last item */
+		}
+
+
+
+
+   /* Specific style for actor items to ensure it's applied */
+	#additionalItems .author-item {
+		margin-left: 80px !important;  /* Indent to the right */
+		font-size: 15px !important;  /* Smaller font size */
+		font-weight: normal !important;  /* Remove bold */
+		display: flex; /* Use flex to align items */
+		align-items: center; /* Center the items vertically */
+
+		i {
+			margin-right: 5px; /* Space between the icon and the actor name */
+			font-size: 16px; /* Adjust icon size as needed */
+			color: black;  /*Set icon color */
+		}
+	}
+
+	/* Specific style for language items to ensure it's applied */
+	#additionalItems .language-item {
+		margin-left: 80px !important;  /* Indent to the right */
+		font-size: 15px !important;  /* Smaller font size */
+		font-weight: normal !important;  /* Remove bold */
+		display: flex; /* Use flex to align items */
+		align-items: center; /* Center the items vertically */
+
+		i {
+			margin-right: 5px; /* Space between the icon and the actor name */
+			font-size: 16px; /* Adjust icon size as needed */
+			color: black;  /*Set icon color */
+		}
+	}
+
+
+	/* Success/Error Notification Styles */
+#successMessage, #errorMessage {
+	position: fixed;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: #69a7bf; /* Success background color */
+	color: white; /* Success text color */
+	padding: 10px 20px;
+	border-radius: 5px;
+	display: none; /* Hidden by default */
+	z-index: 1000;
+	font-size: 14px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  #errorMessage {
+	background-color: #dc3545; /* Error background color */
+  }
+  

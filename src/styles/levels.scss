@@ -1,0 +1,138 @@
+// Executing file: levels.scss
+@import 'EMUwebAppDesign';
+@import 'mixins';
+
+/**
+    ###################################
+        level directive css
+    ###################################
+*/
+
+.emuwebapp-level {
+    width: 100%;
+    height: 64px;
+
+    .emuwebapp-level-container {
+        position: relative;
+        float:left;
+        width: calc(100% - 10px);
+        height: 100%;
+        padding: 5px;
+    }
+    .emuwebapp-level-canvas {
+        float: left;
+        margin: 0;
+        // border: 1px solid $color-grey;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+    .emuwebapp-level-markup {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        background-color: transparent;
+        // border: 1px solid $color-grey;
+        width:calc(100% - 10px);
+        height: calc(100% - 10px);
+        z-index: 2;
+    }
+
+    .emuwebapp-level-buttons {
+        float: left;
+        width: 10px;
+        height: 100%;
+    }
+    
+    .context-menu-items {
+        // Decide if you want position: absolute or position: fixed.
+        // 'fixed' will place it relative to the browser window;
+        // 'absolute' will place it relative to the first positioned ancestor.
+        position: fixed;
+        z-index: 9999;
+        
+        // Basic styling
+        background: #2c067a; // or $color-blue if you have that variable
+        color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 5px;
+        font-family: sans-serif;
+        font-size: 14px;
+      
+        ul {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+      
+        li {
+          padding: 6px 12px;
+          cursor: pointer;
+          // For demonstration, let's make the text bold and white
+          font-weight: bold;
+          color: #fff;
+      
+          &:hover {
+            background-color: #444; 
+          }
+        }
+      }
+      
+}
+@include keyframes(rotate-the-object) {
+  0%   { @include vendor-prefix(transform, "rotateX(0deg)"); }
+  100% { @include vendor-prefix(transform, "rotateX(180deg)"); }
+}
+.emuwebapp-level-animation {
+    @include animation('rotate-the-object .2s 1');
+}
+.emuwebapp-level-button {
+    float:left;
+    width: 20px;
+    height: calc(100% / 3);
+    background-color: $color-white;
+    img {
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        vertical-align: middle;
+        &:hover{
+            background-color: $color-blue;
+        }
+    }
+}
+.emuwebapp-canvasSelectors {
+    width: calc(100% - 40px);
+    text-align: center;
+    padding: 0;
+    margin-left: 5px;
+    div{
+        display: inline-block;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    ul{
+        list-style:none;
+        padding: 0;
+        margin: 0 0 0 0;
+        li{
+            display: inline;
+            margin: 0 0 0 0;
+        }
+    }
+    button{
+        padding: 0;
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        border:1px solid $color-grey;
+        &:hover{
+            border:1px solid $color-blue;
+        }
+        &:focus{
+            outline: none;
+        }
+    }
+}
+
