@@ -19,13 +19,15 @@ class DragnDropService{
 	private TextGridParserService;
 	private LoadedMetaDataService;
 	private LevelService;
+	private VideoParserService;
+	private DrawHelperService;
 	
 	private drandropBundles;
 	private bundleList;
 	private sessionName;
 	private maxDroppedBundles;
 	
-	constructor($q, $rootScope, $window, ModalService, DataService, ValidationService, ConfigProviderService, DragnDropDataService, IoHandlerService, ViewStateService, SoundHandlerService, BinaryDataManipHelperService, BrowserDetectorService, WavParserService, TextGridParserService, LoadedMetaDataService, LevelService){
+	constructor($q, $rootScope, $window, ModalService, DataService, ValidationService, ConfigProviderService, DragnDropDataService, IoHandlerService, ViewStateService, SoundHandlerService, BinaryDataManipHelperService, BrowserDetectorService, WavParserService, TextGridParserService, LoadedMetaDataService, LevelService, VideoParserService, DrawHelperService){
 		this.$q = $q;
 		this.$rootScope = $rootScope;
 		this.$window = window;
@@ -43,6 +45,8 @@ class DragnDropService{
 		this.TextGridParserService = TextGridParserService;
 		this.LoadedMetaDataService = LoadedMetaDataService;
 		this.LevelService = LevelService;
+		this.VideoParserService = VideoParserService;
+		this.DrawHelperService = DrawHelperService;
 		
 		this.drandropBundles = [];
 		this.bundleList = [];
@@ -57,7 +61,7 @@ class DragnDropService{
 	///////////////////
 	// drag n drop data
 	public setData(bundles) {
-		// console.log("inside drag-n-drop.service.ts-> setData");
+		//  console.log("inside drag-n-drop.service.ts-> setData");
 		let count = 0;
 		bundles.forEach((bundle, i) => {
 		  // bundle[1] is { file: File, extension: 'WAV'/'PDF'/'JPEG'/'JPG' }
@@ -73,6 +77,9 @@ class DragnDropService{
 			} else if (ext === 'JPEG' || ext === 'JPG') {
 				// console.log("The ext is JPEG");
 			  this.setDragnDropData(bundle[0], i, 'img', fileObj.file);
+			}else if(ext === 'MP4'){
+				// console.log("The file is probably a video of MP4 formst");
+				this.setDragnDropData(bundle[0], i ,'video', fileObj.file);	
 			}
 		  }
 		  // If there’s an annotation, store it:
@@ -135,8 +142,10 @@ class DragnDropService{
 		  } else if (type === 'img') {
 			this.drandropBundles[i].img = data;
 			// console.log("this.drandropBundles[i].img : ",this.drandropBundles[i].img);
-
-		  } else if (type === 'annotation') {
+		  }else if(type === 'video'){
+			this.drandropBundles[i].video = data;
+		  } 
+		  else if (type === 'annotation') {
 			this.drandropBundles[i].annotation = data;
 		}
 		  
@@ -189,7 +198,7 @@ class DragnDropService{
 	
 
 	public convertDragnDropData(bundles, i) {
-		// console.log("drag-n-drop.service.ts-> convertDragnDropData");
+		//  console.log("drag-n-drop.service.ts-> convertDragnDropData");
 		var defer = this.$q.defer();
 		// If we have more bundles to process...
 		if (bundles.length > i) {
@@ -198,7 +207,7 @@ class DragnDropService{
 		  var reader2: any = new FileReader();
 		  var res;
 		  
-		  // If the bundle contains a WAV file, process it as before
+		  // If the bundle contains a WAV file, process it as before-----------------------------------------------------------------
 		  if (data.wav !== undefined) {
 			reader.readAsArrayBuffer(data.wav);
 			reader.onloadend = (evt) => {
@@ -275,7 +284,7 @@ class DragnDropService{
 			  }
 			};
 		  } 
-		  // If the bundle contains a PDF file, process it without WAV parsing
+		  // If the bundle contains a PDF file, process it without WAV parsing-------------------------------------------------------
 		  else if (data.pdf !== undefined) {
 			console.log("the file is propably pdf");
 			reader.readAsArrayBuffer(data.pdf);
@@ -308,7 +317,7 @@ class DragnDropService{
 			  }
 			};
 		  } 
-		  // If the bundle contains an image (JPEG/JPG), process it similarly
+		  // If the bundle contains an image (JPEG/JPG), process it similarly-------------------------------------------------------
 		  else if (data.img !== undefined) {
 			console.log("the file is propably JPEG/JPG");
 
@@ -345,7 +354,61 @@ class DragnDropService{
 				});
 			  }
 			};
-		  } 
+		  }
+
+			// If the bundle contains a video (MP4), process it similarly-----------------------------------------------------
+			else if (data.video !== undefined) {
+				reader.readAsArrayBuffer(data.video);
+				reader.onloadend = (evt) => {
+				  if (evt.target.readyState === FileReader.DONE) {
+					var resVideo = evt.target.result;
+					const bufferClone = resVideo.slice(0);
+					if (!this.DragnDropDataService.convertedBundles[i]) {
+					  this.DragnDropDataService.convertedBundles[i] = {};
+					}
+			  
+					// Store the video data (for display) as base64
+					this.DragnDropDataService.convertedBundles[i].mediaFile = {
+					  encoding: 'BASE64',
+					  type: 'VIDEO',
+					  data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
+					};
+			  
+					// Create an empty annotation placeholder for videos
+					const bundleName = data.video.name.substr(0, data.video.name.lastIndexOf('.'));
+					this.DragnDropDataService.convertedBundles[i].annotation = {
+					  levels: [],
+					  links: [],
+					  sampleRate: null,  // We'll set this after decoding the audio
+					  annotates: bundleName,
+					  name: bundleName
+					};
+			  
+					// Decode the audio track via VideoParserService
+					this.VideoParserService.parseVideoAudioBuf(bufferClone)
+					.then((decodedAudioBuffer) => {
+					  // Store the decoded AudioBuffer in SoundHandlerService
+					  this.SoundHandlerService.audioBuffer = decodedAudioBuffer;
+					  // Update annotation sampleRate from the AudioBuffer
+					  this.DragnDropDataService.convertedBundles[i].annotation.sampleRate = decodedAudioBuffer.sampleRate;
+			  
+					  // Do NOT try to draw the waveform here — let the VideoController do it
+					  // once the user actually views the video display.
+			  
+					  // Continue processing the next bundle
+					  this.convertDragnDropData(bundles, i + 1).then(() => {
+						delete this.drandropBundles;
+						this.drandropBundles = [];
+						defer.resolve();
+					  });
+					}, (error) => {
+					  console.error("Error decoding video audio:", error);
+					  this.ModalService.open('views/error.html', 'Error decoding video audio track: ' + error);
+					  defer.reject(error);
+					});
+				  }
+				};
+			}
 		  // If no recognized file type is found, skip to the next bundle.
 		  else {
 			this.convertDragnDropData(bundles, i + 1).then(() => {
@@ -458,4 +521,4 @@ class DragnDropService{
 }
 
 angular.module('emuwebApp')
-.service('DragnDropService', ['$q', '$rootScope', '$window', 'ModalService', 'DataService', 'ValidationService', 'ConfigProviderService', 'DragnDropDataService', 'IoHandlerService', 'ViewStateService', 'SoundHandlerService', 'BinaryDataManipHelperService', 'BrowserDetectorService', 'WavParserService', 'TextGridParserService', 'LoadedMetaDataService', 'LevelService', DragnDropService]);
+.service('DragnDropService', ['$q', '$rootScope', '$window', 'ModalService', 'DataService', 'ValidationService', 'ConfigProviderService', 'DragnDropDataService', 'IoHandlerService', 'ViewStateService', 'SoundHandlerService', 'BinaryDataManipHelperService', 'BrowserDetectorService', 'WavParserService', 'TextGridParserService', 'LoadedMetaDataService', 'LevelService', 'VideoParserService','DrawHelperService' , DragnDropService]);

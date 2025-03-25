@@ -530,18 +530,21 @@ class DrawHelperService{
 	 */
 
 	public drawMovingBoundaryLine(ctx) {
+		console.log("inside drawMovingBoundaryLine inside draw-helper.service.ts");
 
 		var xOffset, sDist;
 		sDist = this.ViewStateService.getSampleDist(ctx.canvas.width);
 
 		// calc. offset dependant on type of level of mousemove  -> default is sample exact
 		if (this.ViewStateService.getcurMouseLevelType() === 'SEGMENT') {
+			console.log("inside the segment part");
 			xOffset = 0;
 		} else {
 			xOffset = (sDist / 2);
 		}
 
 		if (this.ViewStateService.movingBoundary) {
+			console.log("inside the movingBoundary------------------");
 			ctx.fillStyle = styles.colorBlue;
 			var p = Math.round(this.ViewStateService.getPos(ctx.canvas.width, this.ViewStateService.movingBoundarySample));
 			if (this.ViewStateService.getcurMouseisLast()) {

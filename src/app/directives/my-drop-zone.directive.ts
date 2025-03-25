@@ -50,8 +50,7 @@ angular.module('emuwebApp')
 					  scope.bundles[j][0] = bundle;
 					}
 					
-					if (['WAV', 'PDF', 'JPEG', 'JPG'].indexOf(extension) !== -1) {
-						// console.log("inside the if wav,pdf etc in my-drop-zone.directive.ts");
+					if (['WAV', 'PDF', 'JPEG', 'JPG', 'MP4'].indexOf(extension) !== -1) {
 					  // Store the file along with its extension for later handling
 					  scope.bundles[j][1] = { file: file, extension: extension };
 					  scope.handles.push(file);

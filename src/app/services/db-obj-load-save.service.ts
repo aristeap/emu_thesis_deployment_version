@@ -145,7 +145,7 @@ class DbObjLoadSaveService{
 	loadBundle(bndl, url) {
 		console.log("THE FILE ON THE LEFT PANEL HAS BEEN CLICKED");
 
-		// console.log("db-obj-load-save.service->loadBundle()");
+		//  console.log("db-obj-load-save.service->loadBundle()");
 
 		// console.log("bndl at the start of the loadBundle() function: ",bndl);
 
@@ -209,9 +209,9 @@ class DbObjLoadSaveService{
 				  this.ViewStateService.somethingInProgressTxt = 'Done!';
 				  defer.resolve();
 
-				  console.log("For PDF :")
-				  console.log("bndl: ",bndl);
-				  console.log("this.LoadedMetaDataService.getCurBndl(bndl): ",this.LoadedMetaDataService.getCurBndl(bndl));
+				//   console.log("For PDF :")
+				//   console.log("bndl: ",bndl);
+				//   console.log("this.LoadedMetaDataService.getCurBndl(bndl): ",this.LoadedMetaDataService.getCurBndl(bndl));
 				  
 				//FOR THE IMG***************************************************************************************************************
 				}else if(bundleData.mediaFile && bundleData.mediaFile.type && (bundleData.mediaFile.type === 'IMG')){
@@ -232,8 +232,23 @@ class DbObjLoadSaveService{
 				//   console.log("bndl: ",bndl);
 				//   console.log("this.LoadedMetaDataService.getCurBndl(bndl): ",this.LoadedMetaDataService.getCurBndl(bndl));
 
+				//FOR THE VIDEO***************************************************************************************************************
+				}else if(bundleData.mediaFile && bundleData.mediaFile.type && (bundleData.mediaFile.type === 'VIDEO')){
+				
+					//   console.log("Before setCurBndl-->inside the innerLoadBundle() of db-obj-load-save.service.ts");
+					this.LoadedMetaDataService.setCurBndl(bndl);
 
-				}//FOR THE WAV***************************************************************************************************************
+					// console.log("bndl: ",bndl);
+					// console.log("this.LoadedMetaDataService.getCurBndl(bndl): ",this.LoadedMetaDataService.getCurBndl(bndl));
+
+					this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
+					this.ViewStateService.setState('videoDisplay');
+					this.ViewStateService.somethingInProgress = false;
+					this.ViewStateService.somethingInProgressTxt = 'Done!';
+					defer.resolve();
+
+				}
+				//FOR THE WAV***************************************************************************************************************
 				 else if(bundleData.mediaFile.encoding === 'BASE64') {
 
 					var arrBuff = this.BinaryDataManipHelperService.base64ToArrayBuffer(bundleData.mediaFile.data);

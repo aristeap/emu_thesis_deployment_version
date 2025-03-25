@@ -34,8 +34,6 @@ let EmuWebAppComponent = {
 			<div class="printTitle">
 				EMU-webApp : {{$ctrl.LoadedMetaDataService.getCurBndlName()}}
 			</div>
-<!-- I am making this change so i can view it on github -->
-<!-- Can you see this change i am making?? -->
 			<!-- start: top menu bar -->
 			<div class="emuwebapp-top-menu">
 				<button class="emuwebapp-button-icon" 
@@ -464,14 +462,81 @@ let EmuWebAppComponent = {
 			<!-- vertical split layout that contains top and bottom pane -->
 			<div class="emuwebapp-canvas">
 				<history-action-popup class="emuwebApp-history" history-action-txt="$ctrl.ViewStateService.historyActionTxt"></history-action-popup>
-				<bg-splitter show-two-dim-cans="{{$ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].twoDimCanvases.order.length > 0}}">
-					
-					<!-- Top Pane: Always visible -->
+				<bg-splitter show-two-dim-cans="{{$ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].twoDimCanvases.order.length > 0}}" ng-class="{'noSplitBar': $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay}">					
 					<bg-pane type="topPane" min-size="80" max-size="500">
+						
+					
+					
+						<!-- Video Display Mode ----------------------------------------------------------->
+						<div ng-controller="VideoController as vidCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay" style="width: 100%; height: 100%;">
+							
+							<!-- Video container with fixed height (e.g., 350px) -->
+							<div style="height:350px; display: flex; flex-direction: column;">
+								<!-- Video area: takes up the available space -->
+								<div style="flex:1; display: flex;">
+									
+									<!-- LEFT half for the video -------------------->
+									<div style="flex: 0.8; position: relative; border: 1px solid #ccc;">
+										<div  style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+											<video id="myVideo" ng-src="{{vidCtrl.videoSrc}}" style="width:100%; height:100%; object-fit: cover;">
+											Your browser does not support the video tag.
+											</video>
+										</div>
+									</div>
+
+									<!-- RIGHT half for future content or additional info ---------------->
+									<div style="flex: 1.2; position: relative; border: 1px solid #ccc;">
+										<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+											<span>Right Side (to be used later)</span>
+										</div>
+									</div>
+								</div>
+
+						<!-- Navigation buttons row -->
+						<div style="height: 50px; width: 100%; display: flex; align-items: center; justify-content: flex-start; margin-top: -10px;">
+							<button style="margin-left: 10px;" ng-click="vidCtrl.play()">Play</button>
+							<button style="margin-left: 10px;" ng-click="vidCtrl.pause()">Pause</button>
+							<button style="margin-left: 10px;" ng-click="vidCtrl.stop()">Stop</button>
+						</div>
+
+						<!-- Progress bar row (unchanged) -->
+						<div style="width: 100%; display: flex; align-items: center; margin-top: 0px;">
+						<span style="margin-right: 10px; color: white;">
+							{{ vidCtrl.currentTime | number:0 }} / {{ vidCtrl.duration | number:0 }}
+						</span>
+						<input type="range" 
+								min="0" 
+								max="{{vidCtrl.duration}}" 
+								ng-model="vidCtrl.currentTime" 
+								ng-change="vidCtrl.seek()"
+								ng-model-options="{ updateOn: 'input', debounce: {'default': 0, 'blur': 0} }"
+								style="flex: 1; color: white; margin-left: 0;"
+						>
+						</div>
+
+						<!-- Waveform Section using interactive component -->
+						<div style="height:70px; width:100%; background-color: #333; margin-top: 0px;">
+							<video-signal-canvas-markup></video-signal-canvas-markup>
+						</div>
+
+
+
+
+
+
+
+							</div>
+						</div>
+
+
+
+
+
+
+
 
 						<!-- Audio Waveform Block -->
-						<ul class="emuwebapp-timeline-flexcontainer">
-
+						<ul class="emuwebapp-timeline-flexcontainer"  ng-if="$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.videoDisplay">
 
 							<!-- PDF Viewer Block --------------------------------------------------------------------------------------->
 							<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay"
@@ -513,46 +578,40 @@ let EmuWebAppComponent = {
 							</div>								
 
 							<!-- Image Viewer Block ------------------------------------------------------------------------------------>
-							<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay"
-							ng-controller="ImageController as imgCtrl"
-							style="width: 100%; height: 100%; position: relative;">
-
-							<!-- 1) A relatively positioned container that fills the entire top pane -->
-							<div style="position: rel	ative; width: 100%; height: 100%;">
-
-								<!-- 2) Absolutely positioned zoom buttons inside this container -->
-								<div style="position: absolute; top: 10px; left: 10px; z-index: 9999; display: flex; gap: 8px;">
-								<button ng-click="imgCtrl.imgState.zoomIn()"
-										style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff;
-												border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer;
-												display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
-									+
-								</button>
-								<button ng-click="imgCtrl.imgState.zoomOut()"
-										style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff;
-												border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer;
-												display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
-									-
-								</button>
+							<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="width: 100%; height: 100%; position: relative;">
+							
+								<!-- Outer container with relative positioning -->
+								<div style="position: relative; width: 100%; height: 100%;">
+								
+									<!-- Zoom buttons container with high z-index and pointer-events enabled -->
+									<div style="position: absolute; top: 10px; left: 10px; z-index: 100000; pointer-events: auto; background: transparent; display: flex; gap: 8px;">
+										<button ng-click="imgCtrl.imgState.zoomIn()"
+												style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333;
+														font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center;
+														justify-content: center; color: #0DC5FF;">
+											+
+										</button>
+										<button ng-click="imgCtrl.imgState.zoomOut()"
+												style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333;
+														font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center;
+														justify-content: center; color: #0DC5FF;">
+											-
+										</button>
+									</div>
+										
+									<!-- Image container (scrollable) -->
+									<div style="position: relative; width: 100%; height: 100%; overflow: auto;">
+										<image-selectable
+											base64-img="imgCtrl.imgSrc"
+											zoom-scale="imgCtrl.imgState.imageScale"
+											on-selection="imgCtrl.handleSelection(bbox)"
+											annotation-mode="imgCtrl.currentMode">
+										</image-selectable>
+									</div>
 								</div>
-
-								<!-- 3) Scrollable area for the image -->
-								<div style="width: 100%; height: 100%; overflow: auto;">
-								<image-selectable
-									base64-img="imgCtrl.imgSrc"
-									zoom-scale="imgCtrl.imgState.imageScale"
-									on-selection="imgCtrl.handleSelection(bbox)"
-									annotation-mode="imgCtrl.currentMode">
-								</image-selectable>
-								</div>
-
-							</div>
 							</div>
 
-
-
-
-
+						
 							<li class="emuwebapp-timeline-flexitem"
 								ng-repeat="curTrack in $ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].signalCanvases.order track by $index"
 								ng-switch on="curTrack">
@@ -610,6 +669,7 @@ let EmuWebAppComponent = {
 							</li>
 						</ul>
 						
+
 						
 					</bg-pane>
 					
@@ -679,13 +739,13 @@ let EmuWebAppComponent = {
 					</ul>
 					</bg-pane>
 					
-				</bg-splitter>
+				</bg-splitter>  
 			</div>
 			<!-- end: vertical split layout -->
 
 
 			<!-- start: bottom menu bar -->
-            <div class="emuwebapp-bottom-menu" ng-if="$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
+            <div class="emuwebapp-bottom-menu" ng-if="$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.videoDisplay">
                 <div>
                     <osci-overview class="preview" 
 					id="preview"

@@ -8,7 +8,7 @@ angular.module('emuwebApp')
 			restrict: 'E',
 			scope: {},
 			link: function postLink(scope, element) {
-				scope.acceptWav = 'audio/wav, audio/x-wav, audio/wave, audio/x-pn-wav, application/pdf, image/jpeg';
+				scope.acceptWav = 'audio/wav, audio/x-wav, audio/wave, audio/x-pn-wav, application/pdf, image/jpeg, video/mp4';
 				scope.acceptFile = scope.acceptWav;
 
 				scope.handleFilesonChange = function () {

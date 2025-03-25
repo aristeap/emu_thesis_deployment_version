@@ -36,3 +36,4 @@ import "./pdfState.service";
 import "./linguistic.service";
 import "./annotation.service";
 import "./image-state.service";
+import "./video-parser.service";

@@ -238,6 +238,9 @@ class ViewStateService{
 		this.states.JpegDisplay = {
 			'permittedActions' : []
 		};
+		this.states.videoDisplay = {
+			'permittedActions' : []
+		};
 		this.states.modalShowing = this.states.loadingSaving;
 		this.prevState = this.states.noDBorFilesloaded;
 		this.curState = this.states.noDBorFilesloaded;
