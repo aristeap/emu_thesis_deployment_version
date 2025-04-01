@@ -20,7 +20,10 @@ let VideoSignalCanvasMarkupComponent = {
     viewPortSampleEnd: '<',
     viewPortSelectStart: '<',
     viewPortSelectEnd: '<',
-    curBndl: '<'
+    curBndl: '<',
+    
+    videoCurrentTime: '<',   // New binding for current time
+    videoDuration: '<'       // New binding for video duration
   },
   controller: [
     '$scope',
@@ -57,9 +60,12 @@ let VideoSignalCanvasMarkupComponent = {
       private ctx: CanvasRenderingContext2D;
       private _inited = false;
       private drawCrossHairs = false;
-      private cachedWaveform: HTMLImageElement; // <-- Cache for the static waveform
-    // Declare a property in your controller
-    private redrawScheduled = false;
+      private cachedWaveform: HTMLImageElement; // cache for the static waveform
+      private redrawScheduled = false;
+      private debouncedSetSelectDrag: (event: any) => void;
+
+      public videoCurrentTime: number;
+      public videoDuration: number;
 
       constructor(
         $scope, 
@@ -79,13 +85,30 @@ let VideoSignalCanvasMarkupComponent = {
         this.DrawHelperService = DrawHelperService;
         this.HistoryService = HistoryService;
         this.SoundHandlerService = SoundHandlerService;
+        
+        this.videoCurrentTime = 0;
+        this.videoDuration = 0;
+      }
+
+      // A simple debounce helper (you may adjust the wait time)
+      private debounce(func, wait) {
+        let timeout;
+        return function() {
+          const context = this, args = arguments;
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(context, args), wait);
+        };
       }
 
       $postLink() {
         this.canvas = this.$element.find('canvas')[0];
         this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 
-        // Bind mouse events (unchanged)
+        // Create a debounced version of setSelectDrag (50ms delay, adjust as needed)
+        this.debouncedSetSelectDrag = this.debounce((event) => {
+          this.setSelectDrag(event);
+        }, 50);
+
         this.$element.bind('mousedown', (event) => {
           if (!event.shiftKey) {
             this.ViewStateService.curViewPort.movingS = Math.round(
@@ -121,32 +144,32 @@ let VideoSignalCanvasMarkupComponent = {
         });
 
         this.$element.bind('mousemove', (event) => {
-            let mbutton = event.buttons !== undefined ? event.buttons : event.which;
-            this.drawCrossHairs = true;
-            let mouseX = this.ViewStateService.getX(event);
-            this.ViewStateService.curMouseX = mouseX;
-            this.ViewStateService.curMouseY = this.ViewStateService.getY(event);
-            this.ViewStateService.curMouseTrackName = this.trackName;
-            this.ViewStateService.curMousePosSample = Math.round(
-              this.ViewStateService.curViewPort.sS +
-              (mouseX / this.canvas.width) * (this.ViewStateService.curViewPort.eS - this.ViewStateService.curViewPort.sS)
-            );
-            if (mbutton === 1) {
-              this.setSelectDrag(event);
-            }
-            
-            // Throttle redraws using requestAnimationFrame:
-            if (!this.redrawScheduled) {
-              this.redrawScheduled = true;
-              requestAnimationFrame(() => {
-                this.drawMarkup();
-                this.redrawScheduled = false;
-              });
-            }
-            
-            this.$scope.$apply();
-          });
+          let mbutton = event.buttons !== undefined ? event.buttons : event.which;
+          this.drawCrossHairs = true;
+          let mouseX = this.ViewStateService.getX(event);
+          this.ViewStateService.curMouseX = mouseX;
+          this.ViewStateService.curMouseY = this.ViewStateService.getY(event);
+          this.ViewStateService.curMouseTrackName = this.trackName;
+          this.ViewStateService.curMousePosSample = Math.round(
+            this.ViewStateService.curViewPort.sS +
+            (mouseX / this.canvas.width) * (this.ViewStateService.curViewPort.eS - this.ViewStateService.curViewPort.sS)
+          );
+          if (mbutton === 1) {
+            this.setSelectDrag(event);
+          }
           
+          // Throttle dynamic overlay updates.
+          if (!this.redrawScheduled) {
+            this.redrawScheduled = true;
+            requestAnimationFrame(() => {
+              this.updateOverlay();
+              this.redrawScheduled = false;
+              this.$scope.$apply();
+            });
+          }
+        });
+        
+        
 
         this.$element.bind('mouseleave', () => {
           this.drawCrossHairs = false;
@@ -156,6 +179,10 @@ let VideoSignalCanvasMarkupComponent = {
 
       $onChanges(changes) {
         if (this._inited) {
+          if (changes.videoCurrentTime || changes.videoDuration) {
+            this.drawMarkup();
+          }
+          // Existing changes handling...
           if (changes.curBndl) {
             this.drawMarkup();
           }
@@ -166,6 +193,7 @@ let VideoSignalCanvasMarkupComponent = {
           }
         }
       }
+      
 
       $onInit() {
         this._inited = true;
@@ -178,27 +206,40 @@ let VideoSignalCanvasMarkupComponent = {
       }
 
       private drawMarkup() {
-        // Clear canvas
+        // Clear the canvas.
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Draw the cached waveform if available and complete; otherwise, draw and cache it
+      
+        // Draw the cached waveform if available; otherwise, draw and cache it.
         if (this.cachedWaveform && this.cachedWaveform.complete) {
           this.ctx.drawImage(this.cachedWaveform, 0, 0, this.canvas.width, this.canvas.height);
         } else {
-          // Draw static waveform and then cache it
           this.DrawHelperService.freshRedrawDrawOsciOnCanvas(
             this.canvas,
             0,
             this.SoundHandlerService.audioBuffer.length,
-            false // use false to avoid recalculating peaks
+            false
           );
           this.cacheWaveform();
         }
       
-        // Now overlay the selection markers
+        // *** Draw Video Progress Overlay ***
+        // Ensure videoCurrentTime and videoDuration are defined and videoDuration > 0.
+        if (this.videoCurrentTime !== undefined && this.videoDuration > 0) {
+          // Calculate the progress percentage.
+          const progress = this.videoCurrentTime / this.videoDuration;
+          // Determine the width of the overlay based on the canvas width.
+          const progressWidth = progress * this.canvas.width;
+          // Set a light-grey color with some transparency.
+          this.ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
+          // Draw the overlay rectangle.
+          this.ctx.fillRect(0, 0, progressWidth, this.canvas.height);
+        }
+      
+        // Draw other waveform overlays.
+        this.DrawHelperService.drawPlayHead(this.ctx);
         this.DrawHelperService.drawCurViewPortSelected(this.ctx, true);
       
-        // Draw crosshairs if enabled
+        // Draw crosshairs if enabled.
         if (this.drawCrossHairs) {
           this.DrawHelperService.drawCrossHairs(
             this.ctx,
@@ -213,6 +254,32 @@ let VideoSignalCanvasMarkupComponent = {
           this.DrawHelperService.drawCrossHairX(this.ctx, this.ViewStateService.curMouseX);
         }
       }
+      private updateOverlay() {
+        // Draw Video Progress Overlay (without clearing the static waveform)
+        if (this.videoCurrentTime !== undefined && this.videoDuration > 0) {
+          const progress = this.videoCurrentTime / this.videoDuration;
+          const progressWidth = progress * this.canvas.width;
+          this.ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
+          this.ctx.fillRect(0, 0, progressWidth, this.canvas.height);
+        }
+        
+        // Draw crosshairs if enabled.
+        if (this.drawCrossHairs) {
+          this.DrawHelperService.drawCrossHairs(
+            this.ctx,
+            this.ViewStateService.curMouseX,
+            this.ViewStateService.curMouseY,
+            undefined,
+            undefined,
+            '',
+            this.trackName
+          );
+        } else {
+          this.DrawHelperService.drawCrossHairX(this.ctx, this.ViewStateService.curMouseX);
+        }
+      }
+            
+      
 
       private setSelectDrag(event) {
         let curMouseSample = Math.round(

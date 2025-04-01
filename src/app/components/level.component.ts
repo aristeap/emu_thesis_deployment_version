@@ -71,6 +71,7 @@ class="emuwebapp-canvasSelectors"
         '$scope', 
         '$element', 
         '$animate', 
+        '$rootScope',
         'ViewStateService', 
         'SoundHandlerService', 
         'ConfigProviderService', 
@@ -86,6 +87,7 @@ class="emuwebapp-canvasSelectors"
         private $scope;
         private $element;
         private $animate;
+        private $rootScope;
 
         private ViewStateService;
         private SoundHandlerService;
@@ -129,6 +131,7 @@ class="emuwebapp-canvasSelectors"
             $scope, 
             $element, 
             $animate, 
+            $rootScope,
             ViewStateService, 
             SoundHandlerService, 
             ConfigProviderService, 
@@ -144,6 +147,7 @@ class="emuwebapp-canvasSelectors"
             this.$scope = $scope;
             this.$element = $element;
             this.$animate = $animate;
+            this.$rootScope = $rootScope;
             this.ViewStateService = ViewStateService;
             this.SoundHandlerService = SoundHandlerService;
             this.ConfigProviderService = ConfigProviderService;
@@ -166,34 +170,32 @@ class="emuwebapp-canvasSelectors"
         
         $postLink() {
             this.levelDef = this.ConfigProviderService.getLevelDefinition(this.level.name);
-
             this.canvases = this.$element.find('canvas');
             this.levelCanvasContainer = this.$element.find('div');
             if(this._inited){
                 this.drawLevelDetails();
                 this.drawLevelMarkup();
             }
-
-            ///////////////
-            // bindings
-
-            // on mouse leave reset ViewStateService
+          
+            // On mouse leave reset ViewStateService.
             this.$element.bind('mouseleave', () => {
                 this.ViewStateService.setcurMouseItem(undefined, undefined, undefined);
                 this.drawLevelMarkup();
             });
-
-            //----------------------------------------------------------------------------------------------
-            // Listen for the annotationChanged event from the child
+          
+            // Listen for the annotationChanged event from the child.
             this.$scope.$on('annotationChanged', () => {
                 console.log('annotationChanged received in parent, redrawing...');
+                // Use the same redraw functions regardless of media type.
+                // console.log("before the drawLevelDetails() gets called");
                 this.drawLevelDetails();
-                this.drawLevelMarkup();
-              });
-              
-            //----------------------------------------------------------------------------------------------
+                // console.log("before the drawLevelMarkup() gets called");
 
-        };
+                this.drawLevelMarkup();
+            });
+              
+          };
+          
 
         $onChanges (changes) {
             if(changes.viewPortSampleStart){
@@ -346,6 +348,7 @@ class="emuwebapp-canvasSelectors"
 
 
         private drawLevelDetails() {
+            // console.log("drawLevelDetails() -> level.component.ts");
             var labelFontFamily; // font family used for labels only
             var fontFamily = styles.fontSmallFamily; // font family used for everything else
             if(typeof this.ConfigProviderService.vals.perspectives[this.ViewStateService.curPerspectiveIdx].levelCanvases.labelFontFamily === 'undefined'){
@@ -462,29 +465,39 @@ class="emuwebapp-canvasSelectors"
                         ctx.font = (fontSize - 2 + 'px' + ' ' + labelFontFamily);
 
                         //check for enough space to stroke text
-                        if ((curLabVal !== undefined) && posE - posS > (mTxtImgWidth * curLabVal.length)) {
-                            if (isOpen) {
-                                this.FontScaleService.drawUndistortedText(
-                                    ctx, 
-                                    curLabVal, 
-                                    labelFontSize - 2, 
-                                    labelFontFamily, 
-                                    posS + (posE - posS) / 2, 
-                                    (ctx.canvas.height / 2) - (fontSize - 2) + 2, 
-                                    styles.colorWhite, 
-                                    false);
+                        if (curLabVal !== undefined) {
+                            // Determine the available width for the label (subtract a small padding)
+                            const availableWidth = posE - posS - 6; // adjust padding as needed
+                            // Build the font string (using the same size as before)
+                            const fontStr = (labelFontSize - 2) + 'px ' + labelFontFamily;
+                            
+                            // Measure the full text width
+                            const fullTextWidth = ctx.measureText(curLabVal).width;
+                            
+                            // Determine the y-coordinate based on isOpen
+                            const yCoord = isOpen 
+                              ? (ctx.canvas.height / 2) - (fontSize - 2) + 2 
+                              : (ctx.canvas.height / 2) - fontSize + 2;
+                            
+                            if (fullTextWidth <= availableWidth) {
+                              // Text fits: draw it normally
+                              this.FontScaleService.drawUndistortedText(
+                                ctx, 
+                                curLabVal, 
+                                labelFontSize - 2, 
+                                labelFontFamily, 
+                                posS + (posE - posS) / 2, 
+                                yCoord, 
+                                styles.colorWhite, 
+                                false
+                              );
                             } else {
-                                this.FontScaleService.drawUndistortedText(
-                                    ctx, 
-                                    curLabVal, 
-                                    labelFontSize - 2, 
-                                    labelFontFamily, 
-                                    posS + (posE - posS) / 2, 
-                                    (ctx.canvas.height / 2) - fontSize + 2, 
-                                    styles.colorWhite, 
-                                    false);
+                              // Text is too wide: draw a truncated version
+                              this.FontScaleService.drawTruncatedText(ctx, curLabVal, posS + 3, yCoord, availableWidth, fontStr, styles.colorWhite);
                             }
-                        }
+                          }
+                          
+
 
                         //draw helper lines
                         if (this.open && curLabVal !== undefined && curLabVal.length !== 0) { // only draw if label is not empty
@@ -593,7 +606,8 @@ class="emuwebapp-canvasSelectors"
          *
          */
         private drawLevelMarkup () {
-            
+            // console.log("drawLevelMarkup() -> level.component.ts");
+
             var ctx = this.canvases[1].getContext('2d');
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             if (this.level.name === this.ViewStateService.getcurClickLevelName()) {

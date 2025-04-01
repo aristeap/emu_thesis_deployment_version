@@ -239,7 +239,7 @@ class ViewStateService{
 			'permittedActions' : []
 		};
 		this.states.videoDisplay = {
-			'permittedActions' : []
+			'permittedActions' : ['zoom', 'playaudio', 'addLevelSegBtnClick', 'deleteLevelBtnClick', 'renameSelLevelBtnClick', 'addSpeakerBtnClick', 'renameSpeakerBtnClick', 'addEmbodiedActionsBtnClick', 'renameEmbodiedActionsBtnClick', 'downloadAnnotationBtnClick', 'spectSettingsChange', 'clearBtnClick', 'searchBtnClick', 'labelAction']
 		};
 		this.states.modalShowing = this.states.loadingSaving;
 		this.prevState = this.states.noDBorFilesloaded;
@@ -475,19 +475,68 @@ class ViewStateService{
 	/**
 	*
 	*/
+	// public updatePlayHead(timestamp) {
+	// 	// at first push animation !!!
+	// 	if (this.SoundHandlerService.isPlaying) {
+	// 		this.$window.requestAnimationFrame(this.updatePlayHead.bind(this));
+	// 	}
+		
+	// 	// do work in this animation round now
+	// 	if (this.start === null) {
+	// 		this.start = timestamp;
+	// 	}
+		
+	// 	var samplesPassed = (Math.floor(timestamp - this.start) / 1000) * this.SoundHandlerService.audioBuffer.sampleRate;
+	// 	this.playHeadAnimationInfos.curS = Math.floor(this.playHeadAnimationInfos.sS + samplesPassed);
+		
+	// 	if (this.SoundHandlerService.isPlaying && this.playHeadAnimationInfos.curS <= this.playHeadAnimationInfos.eS) {
+	// 		if (this.playHeadAnimationInfos.curS !== -1) {
+	// 			this.curMousePosSample = this.playHeadAnimationInfos.curS;
+	// 		}
+	// 		if (this.playHeadAnimationInfos.autoscroll && this.playHeadAnimationInfos.curS >= this.curViewPort.eS) {
+	// 			this.setViewPort(this.curViewPort.eS, this.curViewPort.eS + (this.curViewPort.eS - this.curViewPort.sS));
+	// 		}
+	// 	} else {
+	// 		this.curMousePosSample = this.playHeadAnimationInfos.endFreezeSample;
+	// 		this.playHeadAnimationInfos.sS = -1;
+	// 		this.playHeadAnimationInfos.eS = -1;
+	// 		this.playHeadAnimationInfos.curS = 0;
+	// 		this.start = null;
+	// 	}
+		
+	// 	this.$rootScope.$apply();
+	// };
+	
+	/**
+	*
+	*/
+	public animatePlayHead(startS, endS, autoscroll) {
+		// console.log("inside animatePlayHead-->view-state.service.ts");
+		this.playHeadAnimationInfos.sS = startS;
+		this.playHeadAnimationInfos.eS = endS;
+		this.playHeadAnimationInfos.endFreezeSample = endS;
+		this.playHeadAnimationInfos.curS = startS;
+		if(autoscroll !== undefined){
+			this.playHeadAnimationInfos.autoscroll = autoscroll;
+		}
+		// console.log("animatePlayHead called with start:", startS, "end:", endS);
+		this.$window.requestAnimationFrame(this.updatePlayHead.bind(this));
+	};
+	
+	
 	public updatePlayHead(timestamp) {
-		// at first push animation !!!
 		if (this.SoundHandlerService.isPlaying) {
 			this.$window.requestAnimationFrame(this.updatePlayHead.bind(this));
 		}
 		
-		// do work in this animation round now
 		if (this.start === null) {
 			this.start = timestamp;
 		}
 		
 		var samplesPassed = (Math.floor(timestamp - this.start) / 1000) * this.SoundHandlerService.audioBuffer.sampleRate;
 		this.playHeadAnimationInfos.curS = Math.floor(this.playHeadAnimationInfos.sS + samplesPassed);
+		
+		// console.log("updatePlayHead: current sample =", this.playHeadAnimationInfos.curS);
 		
 		if (this.SoundHandlerService.isPlaying && this.playHeadAnimationInfos.curS <= this.playHeadAnimationInfos.eS) {
 			if (this.playHeadAnimationInfos.curS !== -1) {
@@ -505,21 +554,8 @@ class ViewStateService{
 		}
 		
 		this.$rootScope.$apply();
-	};
-	
-	/**
-	*
-	*/
-	public animatePlayHead(startS, endS, autoscroll) {
-		this.playHeadAnimationInfos.sS = startS;
-		this.playHeadAnimationInfos.eS = endS;
-		this.playHeadAnimationInfos.endFreezeSample = endS;
-		this.playHeadAnimationInfos.curS = startS;
-		if(autoscroll !== undefined){
-			this.playHeadAnimationInfos.autoscroll = autoscroll;
-		}
-		this.$window.requestAnimationFrame(this.updatePlayHead.bind(this));
-	};
+
+	}
 	
 	
 	/**

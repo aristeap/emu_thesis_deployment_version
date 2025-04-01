@@ -44,9 +44,9 @@ let EmuWebAppComponent = {
 					<i class="material-icons">menu</i>
 				</button>  
 
-				<!-- PHONETIC TRANSCRIPTION (hidden in PDF mode) -->
+				<!-- PHONETIC TRANSCRIPTION (hidden in PDF mode and JPEG mode) -->
 				<div class="emuwebapp-mini-btn left" 
-					ng-show="($ctrl.ConfigProviderService.vals.activeButtons.addLevelSeg || $ctrl.ConfigProviderService.vals.activeButtons.addLevelEvent || $ctrl.ConfigProviderService.vals.activeButtons.renameSelLevel)
+					ng-show="($ctrl.ConfigProviderService.vals.activeButtons.addLevelSeg || $ctrl.ConfigProviderService.vals.activeButtons.addLevel || $ctrl.ConfigProviderService.vals.activeButtons.renameSelLevel)
 							&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
 					<ul class="emuwebapp-dropdown-container">
 						<li>
@@ -70,11 +70,12 @@ let EmuWebAppComponent = {
 									add level(SEG.) 
 								</li>
 								<li class="divider"></li>
-								<li ng-if="$ctrl.ConfigProviderService.vals.activeButtons.addLevelEvent"
+								<li ng-if="$ctrl.ConfigProviderService.vals.activeButtons.addLevelEvent 
+										&& !$root.isVideo"
 									ng-click="($ctrl.ViewStateService.getPermission('addLevelPointBtnClick')) && $ctrl.addLevelPointBtnClick()">
-									add level(EVENT)
+								add level(EVENT)
 								</li>
-								<li class="divider"></li>
+								<li ng-if="!$root.isVideo" class="divider"></li>
 								<li ng-if="$ctrl.ConfigProviderService.vals.activeButtons.renameSelLevel"
 									ng-click="($ctrl.ViewStateService.getPermission('renameSelLevelBtnClick')) && $ctrl.renameSelLevelBtnClick()">
 									rename level
@@ -90,7 +91,7 @@ let EmuWebAppComponent = {
 					</ul>
 				</div>
 
-				<!-- ORTHOGRAPHIC TRANSCRIPTION (hidden in PDF mode) -->
+				<!-- ORTHOGRAPHIC TRANSCRIPTION (hidden in PDF mode and JPEG mode) -->
 				<div class="emuwebapp-mini-btn left" 
 					ng-show="$ctrl.LoadedMetaDataService.getCurBndlName() 
 							&& ($ctrl.ConfigProviderService.vals.activeButtons.addSpeaker || $ctrl.ConfigProviderService.vals.activeButtons.renameSpeaker)
@@ -122,6 +123,16 @@ let EmuWebAppComponent = {
 									rename speaker
 								</li>
 								<li class="divider"></li>
+								<!-- New option for embodied actions -->
+								<li ng-if="$root.isVideo" ng-click="($ctrl.ViewStateService.getPermission('addEmbodiedActionsBtnClick')) && $ctrl.addEmbodiedActionsBtnClick()">
+									add embodied actions
+								</li>
+								<li ng-if="$root.isVideo" class="divider"></li>
+								<!-- New option for renaming embodied actions -->
+								<li ng-if="$root.isVideo" ng-click="($ctrl.ViewStateService.getPermission('renameEmbodiedActionsBtnClick')) && $ctrl.renameEmbodiedActionsBtnClick()">
+									rename embodied actions
+								</li>
+								<li ng-if="$root.isVideo" class="divider"></li>
 							</ul>
 						</li>
 					</ul>
@@ -472,6 +483,8 @@ let EmuWebAppComponent = {
 							
 							<!-- Video container with fixed height (e.g., 350px) -->
 							<div style="height:350px; display: flex; flex-direction: column;">
+								
+								
 								<!-- Video area: takes up the available space -->
 								<div style="flex:1; display: flex;">
 									
@@ -486,43 +499,96 @@ let EmuWebAppComponent = {
 
 									<!-- RIGHT half for future content or additional info ---------------->
 									<div style="flex: 1.2; position: relative; border: 1px solid #ccc;">
-										<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-											<span>Right Side (to be used later)</span>
-										</div>
+										<annotation-table></annotation-table>
 									</div>
+
 								</div>
 
-						<!-- Navigation buttons row -->
-						<div style="height: 50px; width: 100%; display: flex; align-items: center; justify-content: flex-start; margin-top: -10px;">
-							<button style="margin-left: 10px;" ng-click="vidCtrl.play()">Play</button>
-							<button style="margin-left: 10px;" ng-click="vidCtrl.pause()">Pause</button>
-							<button style="margin-left: 10px;" ng-click="vidCtrl.stop()">Stop</button>
-						</div>
-
-						<!-- Progress bar row (unchanged) -->
-						<div style="width: 100%; display: flex; align-items: center; margin-top: 0px;">
-						<span style="margin-right: 10px; color: white;">
-							{{ vidCtrl.currentTime | number:0 }} / {{ vidCtrl.duration | number:0 }}
-						</span>
-						<input type="range" 
-								min="0" 
-								max="{{vidCtrl.duration}}" 
-								ng-model="vidCtrl.currentTime" 
-								ng-change="vidCtrl.seek()"
-								ng-model-options="{ updateOn: 'input', debounce: {'default': 0, 'blur': 0} }"
-								style="flex: 1; color: white; margin-left: 0;"
-						>
-						</div>
-
-						<!-- Waveform Section using interactive component -->
-						<div style="height:70px; width:100%; background-color: #333; margin-top: 0px;">
-							<video-signal-canvas-markup></video-signal-canvas-markup>
-						</div>
 
 
+								<!--Navigation Buttons Row ---------------------->
+								<div style="display: flex; align-items: center; justify-content: flex-start; margin: 5px 0;">
+									<!-- Zoom In Button -->
+									<button class="emuwebapp-mini-btn" 
+ 										style="background-color: #0DC5FF; width: 80px; height: 22px; margin-right: 5px; padding: 1px 2px; font-size: 10px; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #000;"											
+											ng-click="vidCtrl.zoomIn()">
+										<i class="material-icons" style="font-size: 20px;">expand_less</i> in
+									</button>
+									<!-- Zoom Out Button -->
+									<button class="emuwebapp-mini-btn" 
+ 										style="background-color: #0DC5FF; width: 80px; height: 22px; margin-right: 5px; padding: 1px 2px; font-size: 10px; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #000;"											
+											ng-click="vidCtrl.zoomOut()">
+										<i class="material-icons" style="font-size: 20px;">expand_more</i> out
+									</button>
+									<!-- Play Button -->
+									<button class="emuwebapp-mini-btn" 
+ 										style="background-color: #0DC5FF; width: 80px; height: 22px; margin-right: 5px; padding: 1px 2px; font-size: 10px; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #000;"											
+											ng-click="vidCtrl.play()">
+										<i class="material-icons" style="font-size: 20px;">play_arrow</i> play
+									</button>
+									<!-- Pause Button -->
+									<button class="emuwebapp-mini-btn" 
+ 										style="background-color: #0DC5FF; width: 80px; height: 22px; margin-right: 5px; padding: 1px 2px; font-size: 10px; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #000;"											
+											ng-click="vidCtrl.pause()">
+										<i class="material-icons" style="font-size: 20px;">pause</i> pause
+									</button>
+									<!-- Selection Button -->
+									<button class="emuwebapp-mini-btn" 
+ 										style="background-color: #0DC5FF; width: 80px; height: 22px; margin-right: 5px; padding: 1px 2px; font-size: 10px; line-height: 1.2; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #000;"											
+											ng-click="vidCtrl.playSelection()">
+										<i class="material-icons" style="font-size: 20px; transform: rotate(90deg);">unfold_more</i> selection
+									</button>
+								</div>
 
 
 
+
+								<!-- Progress bar row (unchanged) -->
+								<div style="width: 100%; display: flex; align-items: center; margin-top: 0px;">
+									<span style="margin-right: 10px; color: white;">
+										{{ vidCtrl.currentTime | number:0 }} / {{ vidCtrl.duration | number:0 }}
+									</span>
+									<input type="range" 
+											min="0" 
+											max="{{vidCtrl.duration}}" 
+											ng-model="vidCtrl.currentTime" 
+											ng-change="vidCtrl.seek()"
+											ng-model-options="{ updateOn: 'input', debounce: {'default': 0, 'blur': 0} }"
+											style="flex: 1; color: white; margin-left: 0;"
+									>
+								</div>
+
+								<!-- Waveform Section using interactive component -->
+								<div style="position: relative; width: 100%; height: 70px; background-color: #333; margin-top: 0px;">
+									<!-- Static (background) waveform canvas -->
+									<canvas 
+										id="videoWaveformBgCanvas" 
+										style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+									</canvas>
+
+									<!-- Overlay canvas for progress bar, crosshairs, etc. -->
+									<canvas 
+										id="videoWaveformOverlayCanvas" 
+										style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+									</canvas>
+
+
+									<!-- Left pan button -->
+									<button ng-click="vidCtrl.panLeft()"
+											style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%);
+													z-index: 10; font-size: 15px; padding: 8px 12px; border: none; background: rgba(0,0,0,0.5); color: white;">
+										&lt;
+									</button>
+									
+									<!-- Right pan button -->
+									<button ng-click="vidCtrl.panRight()"
+											style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+													z-index: 10; font-size: 15px; padding: 8px 12px; border: none; background: rgba(0,0,0,0.5); color: white;">
+										&gt;
+									</button>
+
+
+								</div>
 
 
 							</div>
@@ -1664,7 +1730,7 @@ let EmuWebAppComponent = {
 		  }
 		  
 		  private addLevelPointBtnClick() {
-			console.log("inside the addLevelPointBtnClick");
+			// console.log("inside the addLevelPointBtnClick");
 			if (this.ViewStateService.getPermission('addLevelPointBtnClick')) {
 		  
 			  // 1) Count how many levels are NOT speakers
@@ -1748,7 +1814,7 @@ let EmuWebAppComponent = {
 		};
 
 		private addSpeakerBtnClick(){
-			console.log("You have clicked to add a speaker!");
+			// console.log("You have clicked to add a speaker!");
 		  
 			if (this.ViewStateService.getPermission('addLevelSegBtnClick')) {
 			  // Count only levels that have been designated as speakers
@@ -1816,9 +1882,80 @@ let EmuWebAppComponent = {
 				this.ModalService.open('views/error.html', 'Rename Error: Please create a Speaker first!');
 			  }
 			}
-		  }
+		}
 			  
-
+		private addEmbodiedActionsBtnClick() {
+			// Count existing levels with role 'embodied'
+			let embodiedCount = 0;
+			if (this.DataService.data.levels) {
+			  this.DataService.data.levels.forEach((lvl) => {
+				if (lvl.role === 'embodied') {
+				  embodiedCount++;
+				}
+			  });
+			}
+			let newName = 'EmbodiedActionsNr' + embodiedCount;
+			
+			// Create a new level object
+			let level = {
+			  items: [],
+			  name: newName,
+			  type: 'SEGMENT',   // We use SEGMENT type (adjust if needed)
+			  role: 'embodied'   // Mark this level as embodied actions
+			};
+		  
+			// Create an attribute definition if one doesn't exist for this level
+			if (this.ViewStateService.getCurAttrDef(newName) === undefined) {
+			  let leveldef = {
+				name: newName,
+				type: 'EVENT',  // For labeling purposes, we use 'EVENT'
+				attributeDefinitions: {
+				  name: newName,
+				  type: 'string'
+				}
+			  };
+			  this.ViewStateService.setCurLevelAttrDefs([leveldef]);
+			}
+		  
+			// Insert the new level at the end of the levels array
+			let insertionIndex = this.DataService.data.levels.length;
+			this.LevelService.insertLevel(level, insertionIndex, this.ViewStateService.curPerspectiveIdx);
+		  
+			// Add the change to the history stack for undo/redo
+			this.HistoryService.addObjToUndoStack({
+			  type: 'ANNOT',
+			  action: 'INSERTLEVEL',
+			  level: level,
+			  id: insertionIndex,
+			  curPerspectiveIdx: this.ViewStateService.curPerspectiveIdx
+			});
+		  
+			// Select the newly created level so that its annotation canvas appears
+			this.ViewStateService.selectLevel(
+			  false,
+			  this.ConfigProviderService.vals.perspectives[this.ViewStateService.curPerspectiveIdx].levelCanvases.order,
+			  this.LevelService
+			);
+		}
+		  
+		private renameEmbodiedActionsBtnClick() {
+			if (this.ViewStateService.getPermission('renameEmbodiedActionsBtnClick')) {
+			  const curLevelName = this.ViewStateService.getcurClickLevelName();
+			  if (curLevelName !== undefined) {
+				const levelDetails = this.LevelService.getLevelDetails(curLevelName);
+				if (levelDetails && levelDetails.role === 'embodied') {
+				  // Open a modal with embodied-actions–specific text/template.
+				  this.ModalService.open('views/renameEmbodiedActions.html', curLevelName);
+				} else {
+				  // Fallback: use generic rename modal.
+				  this.ModalService.open('views/renameLevel.html', curLevelName);
+				}
+			  } else {
+				this.ModalService.open('views/error.html', 'Rename Error: Please create an Embodied Actions level first!');
+			  }
+			}
+		}
+		  
 		/**
 		 *
 		 */
@@ -2110,6 +2247,7 @@ let EmuWebAppComponent = {
 		 *
 		 */
 		private cmdPlayAll () {
+			console.log("cmdPlayAll function-->emu-webapp.component.ts");
 			if (this.ViewStateService.getPermission('playaudio')) {
 				this.SoundHandlerService.playFromTo(0, this.SoundHandlerService.audioBuffer.length);
 				this.ViewStateService.animatePlayHead(0, this.SoundHandlerService.audioBuffer.length);

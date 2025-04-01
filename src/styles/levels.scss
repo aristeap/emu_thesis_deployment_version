@@ -67,17 +67,91 @@
         }
       
         li {
-          padding: 6px 12px;
-          cursor: pointer;
-          // For demonstration, let's make the text bold and white
-          font-weight: bold;
-          color: #fff;
+          width : 100%;
+          list-style: none;
+          //padding: 6px 12px;
+           cursor: pointer;
+           margin: 2px 0;  // Adjusted for a smaller margin
+           padding: 0;     // No padding, if that was the desired effect
+           font-weight: bold;
+           color: #fff;
+           box-sizing: border-box;  // ensures padding/border are included in width
+
       
           &:hover {
             background-color: #444; 
           }
+          span {
+            font-weight: bold;
+            }
+
         }
-      }
+    }
+      
+
+   
+      
+    /* Styling for the first-level submenu (the Add action submenu) */
+    .embodied-submenu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        background: #664f93;
+        color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 1px; // adjust if you want rounded edges; set to 0 for no rounding
+        padding: 5px;
+        font-family: sans-serif;
+        font-size: 14px;
+        list-style: none;
+        margin: 0;
+        max-width: 150px;
+        z-index: 9999;
+    }
+    
+    /* Styling for the second-level submenu (submenu2) */
+    .embodied-submenu-2 {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        background: #6a5f80;
+        color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 1px;  // no rounded corners for submenu2
+        padding: 5px;
+        font-family: sans-serif;
+        font-size: 14px;
+        list-style: none;
+        margin: 0;
+        max-width: 120px; // make it narrower
+        z-index: 9999;
+    
+        li {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #fff;
+    
+        &:hover {
+            background-color: #444;
+        }
+        }
+    }
+    /* For first-level submenu when flipped */
+    .submenu1-left {
+        left: auto;
+        right: 100%;
+    }
+    
+    /* For second-level submenu when flipped */
+    .submenu-left {
+        left: auto;
+        right: 100%;
+    }
+   
+        
       
 }
 @include keyframes(rotate-the-object) {

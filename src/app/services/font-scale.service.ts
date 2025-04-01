@@ -14,6 +14,40 @@ class FontScaleService{
 		this.scaleX = 0;
 	}
 	
+
+	public drawTruncatedText(
+		ctx: CanvasRenderingContext2D, 
+		text: string, 
+		x: number, 
+		y: number, 
+		maxWidth: number, 
+		font: string, 
+		fillStyle: string
+	  ) {
+		ctx.font = font;
+		ctx.fillStyle = fillStyle;
+		
+		// If the full text fits, draw it.
+		if (ctx.measureText(text).width <= maxWidth) {
+		  ctx.fillText(text, x, y);
+		  return;
+		}
+		
+		// Otherwise, shorten the text until it fits.
+		const ellipsis = '…';
+		const ellipsisWidth = ctx.measureText(ellipsis).width;
+		let len = text.length;
+		
+		while (len > 0 && ctx.measureText(text.substring(0, len)).width + ellipsisWidth > maxWidth) {
+		  len--;
+		}
+		
+		const truncatedText = text.substring(0, len) + ellipsis;
+		ctx.fillText(truncatedText, x, y);
+	  }
+	  
+
+
 	/**
 	*
 	*/

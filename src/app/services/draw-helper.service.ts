@@ -37,11 +37,23 @@ class DrawHelperService{
 		}
 	}
 
+	// In DrawHelperService (add this method)
+	public drawPlayHead(ctx) {
+		// Calculate the x-position corresponding to the starting sample of the playhead
+		const posS = this.ViewStateService.getPos(ctx.canvas.width, this.ViewStateService.playHeadAnimationInfos.sS);
+		// Calculate the x-position corresponding to the current playhead sample
+		const posCur = this.ViewStateService.getPos(ctx.canvas.width, this.ViewStateService.playHeadAnimationInfos.curS);
+		// Set your grey fill style (using a transparent grey from your styles)
+		ctx.fillStyle = styles.colorTransparentLightGrey;
+		// Draw a rectangle from posS to posCur over the entire canvas height
+		ctx.fillRect(posS, 0, posCur - posS, ctx.canvas.height);
+	}
+  
 	/**
 	 * 
 	 */
 	public calculateOsciPeaks () {
-		console.log("inside draw-helper.service.ts->calculateOsciPeaks()");
+		// console.log("inside draw-helper.service.ts->calculateOsciPeaks()");
 
 		// If there's no real audio buffer or getChannelData is missing, skip.
 		if (!this.SoundHandlerService.audioBuffer || typeof this.SoundHandlerService.audioBuffer.getChannelData !== 'function') {
@@ -530,14 +542,14 @@ class DrawHelperService{
 	 */
 
 	public drawMovingBoundaryLine(ctx) {
-		console.log("inside drawMovingBoundaryLine inside draw-helper.service.ts");
+		// console.log("inside drawMovingBoundaryLine inside draw-helper.service.ts");
 
 		var xOffset, sDist;
 		sDist = this.ViewStateService.getSampleDist(ctx.canvas.width);
 
 		// calc. offset dependant on type of level of mousemove  -> default is sample exact
 		if (this.ViewStateService.getcurMouseLevelType() === 'SEGMENT') {
-			console.log("inside the segment part");
+			// console.log("inside the segment part");
 			xOffset = 0;
 		} else {
 			xOffset = (sDist / 2);

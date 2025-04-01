@@ -521,7 +521,7 @@ class LevelService {
 	* insert a new Item with id labelname start and duration at position on level
 	*/
 	public insertItemDetails(id, levelname, position, labelname, start, duration) {
-		console.log("inside level.service.ts-> insertItemDetails");
+		// console.log("inside level.service.ts-> insertItemDetails");
 		var attrdefs = this.ConfigProviderService.getLevelDefinition(levelname).attributeDefinitions;
 		var curAttrDef = this.ViewStateService.getCurAttrDef(levelname);
 		var newElement;
@@ -604,7 +604,7 @@ class LevelService {
 	* sets element details by passing in levelName and elemtent id
 	*/
 	public updateSegment(levelname, id, labelname, labelIdx, start, duration) {
-		console.log("inside level.service.ts-> updateSegment");
+		// console.log("inside level.service.ts-> updateSegment");
 		this.DataService.getLevelData().forEach((level) => {
 			if (level.name === levelname) {
 				level.items.forEach((element) => {
@@ -628,7 +628,7 @@ class LevelService {
 	* sets element details by passing in levelName and elemtent id
 	*/
 	public updatePoint(levelname, id, labelname, labelIdx, start) {
-		console.log("inside level.service.ts-> updatePoint");
+		// console.log("inside level.service.ts-> updatePoint");
 		this.DataService.getLevelData().forEach((level) => {
 			if (level.name === levelname) {
 				level.items.forEach((element) => {
@@ -767,7 +767,7 @@ class LevelService {
 	* deletes a level by its index
 	*/
 	public deleteLevel(levelIndex, curPerspectiveIdx) {
-		console.log("inside level.service.ts-> deleteLevel");
+		// console.log("inside level.service.ts-> deleteLevel");
 		var lvl = this.DataService.getLevelDataAt(levelIndex);
 		this.DataService.deleteLevelDataAt(levelIndex);
 		this.ConfigProviderService.vals.perspectives[curPerspectiveIdx].levelCanvases.order.splice(levelIndex, 1);
@@ -776,7 +776,7 @@ class LevelService {
 
 	//deletes a level by name
 	public deleteLevelByName(levelName: string) {
-		console.log("inside level.service.ts-> deleteLevelByName");
+		// console.log("inside level.service.ts-> deleteLevelByName");
 		
 		// 1) Find the perspective index (often the current one):
 		const pIdx = this.ViewStateService.curPerspectiveIdx;
@@ -808,7 +808,7 @@ class LevelService {
 	* rename the label of an element by passing in level name and id
 	*/
 	public renameLabel(levelName, id, attrIndex, newLabelName) {
-		console.log("inside level.service.ts-> renameLabel");
+		// console.log("inside level.service.ts-> renameLabel");
 		this.updateSegment(levelName, id, newLabelName, attrIndex, undefined, undefined);
 	};
 
@@ -816,7 +816,7 @@ class LevelService {
 	* rename a level by passing in old and new level name and perspective id
 	*/
 	public renameLevel(oldname, newname, curPerspectiveIdx) {
-		console.log("inside level.service.ts-> renameLevel");
+		// console.log("inside level.service.ts-> renameLevel");
 		this.DataService.getLevelData().forEach((level) => {
 			if (level.name === oldname) {
 				level.name = newname;
@@ -842,7 +842,7 @@ class LevelService {
 	*
 	*/
 	public deleteSegmentsInvers(name, id, length, deletedSegment) {
-		console.log("inside level.service.ts-> deleteSegmentsInvers");
+		// console.log("inside level.service.ts-> deleteSegmentsInvers");
 		var attrDefName = this.ViewStateService.getCurAttrDef(name);
 		var labelIdx;
 		var x, insertPoint;
@@ -876,7 +876,7 @@ class LevelService {
 	*
 	*/
 	public deleteSegments(name, id, length) {
-		console.log("inside level.service.ts-> deleteSegments");
+		// console.log("inside level.service.ts-> deleteSegments");
 
 		var firstSegment = this.getItemFromLevelById(name, id);
 		var firstOrder = this.getOrderById(name, id);
@@ -1579,6 +1579,8 @@ class LevelService {
 					}
 				}
 			}
+		} else {
+			console.log("the first or last segment are null++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 		}
 
 	};

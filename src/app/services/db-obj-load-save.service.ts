@@ -59,7 +59,7 @@ class DbObjLoadSaveService{
 	}
 	
 	private innerLoadBundle(bndl: any, bundleData: any, arrBuff: ArrayBuffer, defer: angular.IDeferred<any>) {
-		console.log("db-obj-load-save.service->innerLoadBundle()");
+		// console.log("db-obj-load-save.service->innerLoadBundle()");
 		if (!bundleData.annotation) {
 		  bundleData.annotation = {
 			levels: [],
@@ -254,7 +254,7 @@ class DbObjLoadSaveService{
 					var arrBuff = this.BinaryDataManipHelperService.base64ToArrayBuffer(bundleData.mediaFile.data);
 				  this.innerLoadBundle(bndl, bundleData, arrBuff, defer);
 				  
-				  console.log("For BASE64 :");
+				//   console.log("For BASE64 :");
 				//   console.log("ViewStateService.getCurStateName----------------------: ", this.ViewStateService.getCurStateName());	
 
 				} else if(bundleData.mediaFile.encoding === 'GETURL'){

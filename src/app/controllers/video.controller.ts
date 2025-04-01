@@ -8,128 +8,358 @@ angular.module('emuwebApp')
   'DragnDropDataService', 
   'SoundHandlerService', 
   'DrawHelperService',
-  function($scope, $rootScope, $sce, DragnDropDataService, SoundHandlerService, DrawHelperService) {
-
-    // 'vm' is our controller instance
-    var vm = this;
+  'ViewStateService',
+  'LevelService',
+  function(
+    $scope, 
+    $rootScope, 
+    $sce, 
+    DragnDropDataService, 
+    SoundHandlerService, 
+    DrawHelperService, 
+    ViewStateService, 
+    LevelService,
+    LoadedMetaDataService
+  ) {
+    var vm: any = this;
     vm.duration = 0;
     vm.currentTime = 0;
-
-    // Store references so we can use them inside our methods
     vm.SoundHandlerService = SoundHandlerService;
     vm.DrawHelperService = DrawHelperService;
+    vm.ViewStateService = ViewStateService;
+    vm.LevelService = LevelService;
+    
+    // Canvas references and contexts.
+    vm.bgCanvas = null;       // For static waveform.
+    vm.overlayCanvas = null;  // For dynamic elements (progress, crosshair, selection, marker).
+    vm.bgCtx = null;
+    vm.overlayCtx = null;
 
-    /**
-     * Draw the static waveform using the AudioBuffer from SoundHandlerService.
-     * It scales the wave to fill the entire canvas width (from 0..audioBuffer.length).
-     */
-    vm.drawWaveform = function() {
-      // Check if we have an AudioBuffer from the decoded video audio
+    // For the white marker line placed on click.
+    vm.markerX = null;
+    vm.markerSample = null;
+
+    // Utility: Set canvas internal dimensions to match CSS size.
+    function matchCanvasSize(canvas: HTMLCanvasElement) {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+
+    // Draw the static waveform on the background canvas.
+    vm.drawWaveformBg = function() {
+      vm.bgCanvas = document.getElementById('videoWaveformBgCanvas') as HTMLCanvasElement;
+      if (!vm.bgCanvas) {
+        console.error("Canvas 'videoWaveformBgCanvas' not found in the DOM");
+        return;
+      }
+      matchCanvasSize(vm.bgCanvas);
+      vm.bgCtx = vm.bgCanvas.getContext('2d');
+      
       if (vm.SoundHandlerService.audioBuffer) {
-        const canvasEl = document.getElementById('videoWaveformCanvas') as HTMLCanvasElement;
-        if (!canvasEl) {
-          console.error("Canvas 'videoWaveformCanvas' not found in the DOM");
-          return;
-        }
-
-        // Match the internal drawing width/height to the rendered size
-        canvasEl.width = canvasEl.offsetWidth;
-        canvasEl.height = canvasEl.offsetHeight; // or a fixed 70 if you prefer
-
-        // Draw from sample 0 to the entire audio length
+        var startSample = ViewStateService.curViewPort.sS;
+        var endSample = ViewStateService.curViewPort.eS;
         vm.DrawHelperService.freshRedrawDrawOsciOnCanvas(
-          canvasEl,
-          0,
-          vm.SoundHandlerService.audioBuffer.length,
-          true // true for a full redraw
+          vm.bgCanvas,
+          startSample,
+          endSample,
+          true
         );
-
       } else {
         console.warn("No audioBuffer found in SoundHandlerService");
       }
     };
-    
-    // In your controller, after drawing the waveform once:
-    function cacheWaveform() {
-      const canvasEl = document.getElementById('videoWaveformCanvas') as HTMLCanvasElement;
-      // Create an image object from the current canvas content:
-      vm.cachedWaveform = new Image();
-      vm.cachedWaveform.src = canvasEl.toDataURL();
-    }
 
-    /**
-     * Initialize when the user clicks the video bundle in the left panel
-     * (triggering nonAudioBundleLoaded) or on first load.
-     */
-    function init() {
-      // Identify which bundle is currently selected
-      var currentIndex = DragnDropDataService.getDefaultSession();
-      var bundle = DragnDropDataService.convertedBundles[currentIndex];
-
-      // If it's a video file, display the video and wait to draw the waveform
-      if (bundle && bundle.mediaFile && bundle.mediaFile.type === 'VIDEO') {
-        // Convert the base64 data to a trustable video source
-        vm.videoSrc = $sce.trustAsResourceUrl(
-          'data:video/mp4;base64,' + bundle.mediaFile.data
-        );
-
-        // Delay so Angular has time to render the <video> + <canvas>
-        setTimeout(function() {
-          var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
-          if (videoEl) {
-            // Once metadata is loaded, we know the <video> is ready
-            videoEl.onloadedmetadata = function() {
-              $scope.$apply(function() {
-                vm.duration = videoEl.duration;
-              });
-              // Now draw the static waveform
-              vm.drawWaveform();
-            };
-
-            // Track the currentTime so we can display it in the UI
-            videoEl.ontimeupdate = function() {
-              $scope.$apply(function() {
-                vm.currentTime = videoEl.currentTime;
-                console.log("Video Time updated: ", vm.currentTime);
-              });
-            };
-          }
-        }, 100);
+    // Update the overlay canvas: draw video progress, playhead, drag selection,
+    // the red crosshair with coordinates, and any white marker line.
+    vm.updateWaveformOverlay = function() {
+      vm.overlayCanvas = document.getElementById('videoWaveformOverlayCanvas') as HTMLCanvasElement;
+      if (!vm.overlayCanvas) {
+        console.error("Canvas 'videoWaveformOverlayCanvas' not found in the DOM");
+        return;
       }
-    }
+      matchCanvasSize(vm.overlayCanvas);
+      vm.overlayCtx = vm.overlayCanvas.getContext('2d');
+      vm.overlayCtx.clearRect(0, 0, vm.overlayCanvas.width, vm.overlayCanvas.height);
 
-    // Basic controls for the video element
-    vm.play = function() {
-      var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
-      if (videoEl) {
-        videoEl.play();
+      // 1. Draw the video progress overlay (light-grey rectangle).
+      if (vm.currentTime !== undefined && vm.duration > 0) {
+        var progress = vm.currentTime / vm.duration;
+        var progressWidth = progress * vm.overlayCanvas.width;
+        vm.overlayCtx.fillStyle = "rgba(200, 200, 200, 0.5)";
+        vm.overlayCtx.fillRect(0, 0, progressWidth, vm.overlayCanvas.height);
+      }
+
+      // 2. Draw the playhead (red line) via your DrawHelperService.
+      vm.DrawHelperService.drawPlayHead(vm.overlayCtx);
+
+      // 3. Draw the drag-selection overlay if a selection exists.
+      if (ViewStateService.curViewPort.selectS >= 0 &&
+          ViewStateService.curViewPort.selectE > ViewStateService.curViewPort.selectS) {
+        var totalSamples = ViewStateService.curViewPort.eS - ViewStateService.curViewPort.sS;
+        var selectStartX = ((ViewStateService.curViewPort.selectS - ViewStateService.curViewPort.sS) / totalSamples) * vm.overlayCanvas.width;
+        var selectEndX = ((ViewStateService.curViewPort.selectE - ViewStateService.curViewPort.sS) / totalSamples) * vm.overlayCanvas.width;
+        vm.overlayCtx.fillStyle = "rgba(100, 100, 255, 0.3)"; // selection color.
+        vm.overlayCtx.fillRect(selectStartX, 0, selectEndX - selectStartX, vm.overlayCanvas.height);
+      }
+
+      // 4. Draw the red crosshair (following the mouse) with coordinate text.
+      if (ViewStateService.curMouseX !== undefined) {
+        vm.overlayCtx.strokeStyle = "red";
+        vm.overlayCtx.beginPath();
+        vm.overlayCtx.moveTo(ViewStateService.curMouseX, 0);
+        vm.overlayCtx.lineTo(ViewStateService.curMouseX, vm.overlayCanvas.height);
+        vm.overlayCtx.stroke();
+
+        // Compute sample coordinate from mouse position.
+        var totalSamples = ViewStateService.curViewPort.eS - ViewStateService.curViewPort.sS;
+        var sampleAtMouse = Math.round((ViewStateService.curMouseX / vm.overlayCanvas.width) * totalSamples + ViewStateService.curViewPort.sS);
+        vm.overlayCtx.fillStyle = "red";
+        vm.overlayCtx.font = "12px sans-serif";
+        vm.overlayCtx.fillText("Sample: " + sampleAtMouse, ViewStateService.curMouseX + 2, 12);
+      }
+
+      // 5. Draw the white marker (placed on click) with its coordinate.
+      if (vm.markerX !== null) {
+        vm.overlayCtx.strokeStyle = "white";
+        vm.overlayCtx.beginPath();
+        vm.overlayCtx.moveTo(vm.markerX, 0);
+        vm.overlayCtx.lineTo(vm.markerX, vm.overlayCanvas.height);
+        vm.overlayCtx.stroke();
+        vm.overlayCtx.fillStyle = "white";
+        vm.overlayCtx.font = "12px sans-serif";
+        vm.overlayCtx.fillText("Sample: " + vm.markerSample, vm.markerX + 2, 24);
       }
     };
+
+
+    vm.panLeft = function() {
+      // Calculate a delta: 10% of the current viewport width
+      var currentWidth = ViewStateService.curViewPort.eS - ViewStateService.curViewPort.sS;
+      var delta = currentWidth * 0.1;
+      
+      // Compute new viewport boundaries ensuring start doesn't go below 0
+      var newStart = Math.max(ViewStateService.curViewPort.sS - delta, 0);
+      var newEnd = newStart + currentWidth;
+      
+      // Update the viewport
+      ViewStateService.setViewPort(newStart, newEnd);
+      
+      // Redraw the waveform background and overlay
+      vm.drawWaveformBg();
+      vm.updateWaveformOverlay();
+    };
+    
+    vm.panRight = function() {
+      var currentWidth = ViewStateService.curViewPort.eS - ViewStateService.curViewPort.sS;
+      var delta = currentWidth * 0.1;
+      
+      // Ensure newEnd doesn't exceed the media length
+      var maxSample = SoundHandlerService.audioBuffer.length;
+      var newEnd = Math.min(ViewStateService.curViewPort.eS + delta, maxSample);
+      var newStart = newEnd - currentWidth;
+      
+      ViewStateService.setViewPort(newStart, newEnd);
+      
+      vm.drawWaveformBg();
+      vm.updateWaveformOverlay();
+    };
+    
+    // Attach drag-and-choose plus crosshair and marker event handlers to the overlay canvas.
+    function addDragChooseHandlers() {
+      // Ensure overlayCanvas is available.
+      if (!vm.overlayCanvas) {
+        vm.overlayCanvas = document.getElementById('videoWaveformOverlayCanvas') as HTMLCanvasElement;
+        if (!vm.overlayCanvas) return;
+      }
+      
+      // Add event listeners (ensure you don't add duplicates if already attached)
+      vm.overlayCanvas.addEventListener('mousedown', function(event: MouseEvent) {
+        var rect = vm.overlayCanvas.getBoundingClientRect();
+        var x = event.clientX - rect.left;
+        var totalSamples = ViewStateService.curViewPort.eS - ViewStateService.curViewPort.sS;
+        var sample = Math.round((x / vm.overlayCanvas.width) * totalSamples + ViewStateService.curViewPort.sS);
+        if (!event.shiftKey) {
+          // Start a new selection.
+          ViewStateService.curViewPort.movingS = sample;
+          ViewStateService.curViewPort.movingE = sample;
+          ViewStateService.select(sample, sample);
+          // Set the white marker.
+          vm.markerX = x;
+          vm.markerSample = sample;
+        }
+        vm.updateWaveformOverlay();
+      });
+    
+      vm.overlayCanvas.addEventListener('mousemove', function(event: MouseEvent) {
+        var rect = vm.overlayCanvas.getBoundingClientRect();
+        var x = event.clientX - rect.left;
+        ViewStateService.curMouseX = x;
+        var totalSamples = ViewStateService.curViewPort.eS - ViewStateService.curViewPort.sS;
+        var sample = Math.round((x / vm.overlayCanvas.width) * totalSamples + ViewStateService.curViewPort.sS);
+        ViewStateService.curMousePosSample = sample;
+        if (event.buttons === 1) {
+          if (sample > ViewStateService.curViewPort.movingS) {
+            ViewStateService.curViewPort.movingE = sample;
+          } else {
+            ViewStateService.curViewPort.movingS = sample;
+          }
+          ViewStateService.select(ViewStateService.curViewPort.movingS, ViewStateService.curViewPort.movingE);
+        }
+        vm.updateWaveformOverlay();
+      });
+    
+      vm.overlayCanvas.addEventListener('mouseup', function(event: MouseEvent) {
+        vm.updateWaveformOverlay();
+      });
+    
+      vm.overlayCanvas.addEventListener('mouseleave', function(event: MouseEvent) {
+        ViewStateService.curMouseX = undefined;
+        vm.updateWaveformOverlay();
+      });
+    }
+    
+
+    // Video playback controls.
+    vm.play = function() {
+      console.log("inside play function");
+      var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
+      if (videoEl) {
+        SoundHandlerService.isPlaying = true;
+        videoEl.play();
+        if (SoundHandlerService.audioBuffer) {
+          ViewStateService.animatePlayHead(0, SoundHandlerService.audioBuffer.length);
+        } else {
+          console.warn("No audioBuffer found in SoundHandlerService");
+        }
+      }
+    };
+
     vm.pause = function() {
       var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
       if (videoEl) {
         videoEl.pause();
+        SoundHandlerService.isPlaying = false;
       }
     };
-    vm.stop = function() {
+    
+    vm.playSelection = function() {
       var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
-      if (videoEl) {
-        videoEl.pause();
-        videoEl.currentTime = 0;
+      if (!videoEl) return;
+      
+      if (!vm.SoundHandlerService.audioBuffer) {
+        console.warn("No audioBuffer available for sample rate conversion.");
+        return;
+      }
+      
+      var sampleRate = vm.SoundHandlerService.audioBuffer.sampleRate;
+      var selectS = ViewStateService.curViewPort.selectS;
+      var selectE = ViewStateService.curViewPort.selectE;
+      
+      if (selectS < 0 || selectE <= selectS) {
+        console.warn("No valid selection defined.");
+        return;
+      }
+      
+      var startTime = selectS / sampleRate;
+      var endTime = selectE / sampleRate;
+      
+      videoEl.currentTime = startTime;
+      videoEl.play();
+      
+      var onTimeUpdate = function() {
+        if (videoEl.currentTime >= endTime) {
+          videoEl.pause();
+          videoEl.removeEventListener('timeupdate', onTimeUpdate);
+        }
+      };
+      
+      videoEl.addEventListener('timeupdate', onTimeUpdate);
+    };
+    
+
+    vm.zoomIn = function() {
+      if (ViewStateService.getPermission('zoom')) {
+        vm.LevelService.deleteEditArea();
+        ViewStateService.zoomViewPort(true, vm.LevelService);
+        requestAnimationFrame(function() {
+          vm.drawWaveformBg();
+          vm.updateWaveformOverlay();
+          addDragChooseHandlers();
+        });
+        console.log("Zoom in triggered; new viewport:", ViewStateService.curViewPort);
+      } else {
+        console.log("Zoom action not permitted");
       }
     };
+
+    vm.zoomOut = function() {
+      if (ViewStateService.getPermission('zoom')) {
+        vm.LevelService.deleteEditArea();
+        ViewStateService.zoomViewPort(false, vm.LevelService);
+        requestAnimationFrame(function() {
+          vm.drawWaveformBg();
+          vm.updateWaveformOverlay();
+          addDragChooseHandlers();
+        });
+        console.log("Zoom out triggered; new viewport:", ViewStateService.curViewPort);
+      } else {
+        console.log("Zoom action not permitted");
+      }
+    };
+
     vm.seek = function() {
       var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
       if (videoEl) {
         videoEl.currentTime = Number(vm.currentTime) || 0;
-        console.log("Seeking to:", videoEl.currentTime);
       }
     };
 
-    // Listen for event from drag-n-drop or when a new non-audio bundle is loaded
-    $scope.$on('nonAudioBundleLoaded', init);
+    // Initialization: load video, set up canvases, and attach event handlers.
+    // Initialization: load video, set up canvases, and attach event handlers.
+  function init() {
+    var currentIndex = DragnDropDataService.getDefaultSession();
+    var bundle = DragnDropDataService.convertedBundles[currentIndex];
 
-    // Also call on first load
+    if (bundle && bundle.mediaFile && bundle.mediaFile.type === 'VIDEO') {
+      
+      vm.isVideo = true; // Flag for the add level (EVENT) option
+      // LoadedMetaDataService.currentMediaType = 'VIDEO';
+      $rootScope.isVideo = true;  // set a global flag for transcription buttons
+
+      vm.videoSrc = $sce.trustAsResourceUrl(
+        'data:video/mp4;base64,' + bundle.mediaFile.data
+      );
+
+      // Allow time for Angular to render the video element and canvases.
+      setTimeout(function() {
+        var videoEl = document.getElementById('myVideo') as HTMLVideoElement;
+        if (videoEl) {
+          videoEl.onloadedmetadata = function() {
+            $scope.$apply(function() {
+              vm.duration = videoEl.duration;
+            });
+            // Draw the static waveform background
+            vm.drawWaveformBg();
+            // Make sure the overlay canvas is ready and attach event handlers.
+            vm.overlayCanvas = document.getElementById('videoWaveformOverlayCanvas') as HTMLCanvasElement;
+            if (vm.overlayCanvas) {
+              addDragChooseHandlers();
+            }
+          };
+
+          videoEl.ontimeupdate = function() {
+            $scope.$apply(function() {
+              vm.currentTime = videoEl.currentTime;
+            });
+            vm.updateWaveformOverlay();
+          };
+        }
+      }, 100);
+    }
+  }
+
+
+    $scope.$on('nonAudioBundleLoaded', init);
     init();
   }
 ]);

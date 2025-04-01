@@ -20,3 +20,4 @@ import "./level-canvas-markup-canvas.component";
 import "./epg-grid-canvas.component";
 import "./dots-canvas.component"; 
 import "./video-signal-canvas-markup.component";
+import "./annotationTable.component";

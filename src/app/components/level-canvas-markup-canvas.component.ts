@@ -10,34 +10,110 @@ let LevelCanvasMarkupCanvasComponent = {
         height="256">
     </canvas>
     <div class="context-menu-items" ng-show="$ctrl.showContextMenu" style="top: {{$ctrl.contextMenuY}}px; left: {{$ctrl.contextMenuX}}px;">
-        <ul style="margin: 0; padding: 0; list-style: none;">
-            <!-- For adding an annotation -->
-            <li ng-click="$ctrl.addItem()" style="margin: 10; padding: 0;" ng-if="$ctrl.level.role === 'speaker'">
+        <ul>
+            <!-- For adding a SPEAKER -->
+            <li ng-if="$ctrl.level.role === 'speaker'" ng-click="$ctrl.addItem()">
                 Add annotation for Speaker
             </li>
-
-            <li ng-click="$ctrl.addItem()" style="margin: 10; padding: 0;" ng-if="$ctrl.level.role !== 'speaker'">
-                Add Item on level
-            </li>
-        
-            <!-- For deleting an item -->
-            <li ng-click="$ctrl.deleteItem()" style="margin: 10; padding: 0;" ng-if="$ctrl.level.role === 'speaker'">
+              <!-- For deleting an item -->
+            <li ng-if="$ctrl.level.role === 'speaker'" ng-click="$ctrl.deleteItem()">
                 Delete annotation for Speaker
             </li>
-            <li ng-click="$ctrl.deleteItem()" style="margin: 10; padding: 0;" ng-if="$ctrl.level.role !== 'speaker'">
-                Delete Item on level
-            </li>
-        
             <!-- For deleting the entire level/tier -->
-            <li ng-click="$ctrl.deleteLevel()" style="margin: 10; padding: 0;" ng-if="$ctrl.level.role === 'speaker'">
+            <li ng-if="$ctrl.level.role === 'speaker'" ng-click="$ctrl.deleteLevel()">
                 Delete Speaker
             </li>
 
-            <li ng-click="$ctrl.deleteLevel()" style="margin: 10; padding: 0;" ng-if="$ctrl.level.role !== 'speaker'">
+           <!-- For embodied:---------------------------------------------------------------------------------------------->
+           <div>
+                <ul style="margin: 0; padding: 0; list-style: none;">
+                    <!-- Main option: Add action -->
+                    <li ng-if="$ctrl.level.role === 'embodied'" style="position: relative; margin: 10; padding: 0;">
+                        <span ng-click="$ctrl.toggleAddActionSubmenu()">
+                            Add action <span class="arrow" style="margin-left: 5px; font-weight: bold;">&#9654;</span>
+                        </span>
+                        <!-- First-level submenu for Add action -->
+                        <ul class="embodied-submenu" ng-show="$ctrl.showAddActionSubmenu"  ng-class="{'submenu-left': $ctrl.useSubmenuLeft}">
+                            <!-- Head Movement category -->
+                            <li style="position: relative; margin: 5px 0; padding: 0;">
+                                <span ng-click="$ctrl.toggleSubmenu('headMovement')">
+                                    Head Movement <span class="arrow" style="margin-left: 5px; font-weight: bold;">&#9654;</span>
+                                </span>
+                                <!-- Second-level submenu for Head Movement -->
+                                <ul class="embodied-submenu-2" ng-show="$ctrl.showHeadMovementSubmenu"  ng-class="{'submenu-left': $ctrl.useSubmenuLeft}">
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Nod Up-Down')">Nod Up-Down</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Shake Side-to-Side')">Shake Side-to-Side</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Tilt Head Left')">Tilt Head Left</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Tilt Head Right')">Tilt Head Right</li>
+                                </ul>
+                            </li>
+                            <!-- Facial Expression category -->
+                            <li style="position: relative; margin: 5px 0; padding: 0;">
+                                <span ng-click="$ctrl.toggleSubmenu('facialExpression')">
+                                    Facial Expression <span class="arrow" style="margin-left: 5px; font-weight: bold;">&#9654;</span>
+                                </span>
+                                <!-- Second-level submenu for Facial Expression -->
+                                <ul class="embodied-submenu-2" ng-show="$ctrl.showFacialExpressionSubmenu"  ng-class="{'submenu-left': $ctrl.useSubmenuLeft}">
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Raised Eyebrows')">Raised Eyebrows</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Frown')">Frown</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Smile')">Smile</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Squint/Narrowed Eyes')">Squint/Narrowed Eyes</li>
+                                </ul>
+                            </li>
+                            <!-- Hand Gesture category -->
+                            <li style="position: relative; margin: 5px 0; padding: 0;">
+                                <span ng-click="$ctrl.toggleSubmenu('handGesture')">
+                                    Hand Gesture <span class="arrow" style="margin-left: 5px; font-weight: bold;">&#9654;</span>
+                                </span>
+                                <!-- Second-level submenu for Hand Gesture -->
+                                <ul class="embodied-submenu-2" ng-show="$ctrl.showHandGestureSubmenu"  ng-class="{'submenu-left': $ctrl.useSubmenuLeft}">
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Open Palm')">Open Palm</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Closed Fist')">Closed Fist</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Pointing')">Pointing</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Circular Gesture')">Circular Gesture</li>
+                                </ul>
+                            </li>
+                            <!-- Body Posture category -->
+                            <li style="position: relative; margin: 5px 0; padding: 0;">
+                                <span ng-click="$ctrl.toggleSubmenu('bodyPosture')">
+                                    Body Posture <span class="arrow" style="margin-left: 5px; font-weight: bold;">&#9654;</span>
+                                </span>
+                                <!-- Second-level submenu for Body Posture -->
+                                <ul class="embodied-submenu-2" ng-show="$ctrl.showBodyPostureSubmenu"  ng-class="{'submenu-left': $ctrl.useSubmenuLeft}">
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Lean Forward')">Lean Forward</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Lean Backward')">Lean Backward</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Shoulder Shrug')">Shoulder Shrug</li>
+                                    <li ng-click="$ctrl.selectEmbodiedAction('Torso Twist')">Torso Twist</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Other context menu options -->
+                    <li ng-if="$ctrl.level.role === 'embodied'" ng-click="$ctrl.deleteItem()">
+                        Delete action on level
+                    </li>
+                    <li ng-if="$ctrl.level.role === 'embodied'" ng-click="$ctrl.deleteLevel()">
+                        Delete the level
+                    </li>
+                </ul>
+            </div>
+
+
+            <!-- For adding a LEVEL -->
+            <li ng-if="$ctrl.level.role !== 'speaker' && $ctrl.level.role !== 'embodied'"  ng-click="$ctrl.addItem()">
+                Add Item on level
+            </li>
+            <li ng-if="$ctrl.level.role !== 'speaker' && $ctrl.level.role !== 'embodied'" ng-click="$ctrl.deleteItem()">
+                Delete Item on level
+            </li>
+            <li ng-if="$ctrl.level.role !== 'speaker' && $ctrl.level.role !== 'embodied'" ng-click="$ctrl.deleteLevel()">
                 Delete the level
             </li>
+
         </ul>
     </div>
+
     `,
     bindings: {
         level: '<',
@@ -80,6 +156,15 @@ let LevelCanvasMarkupCanvasComponent = {
         private contextMenuY: number;
 
         private lastRightClickSample: number;
+
+       // Declare flags for each submenu level
+        private showAddActionSubmenu: boolean = false;
+        private showHeadMovementSubmenu: boolean = false;
+        private showFacialExpressionSubmenu: boolean = false;
+        private showHandGestureSubmenu: boolean = false;
+        private showBodyPostureSubmenu: boolean = false;
+        private useSubmenuLeft: boolean = false;
+
 
         constructor(
             $scope, 
@@ -125,7 +210,7 @@ let LevelCanvasMarkupCanvasComponent = {
             const canvas = this.$element.find('canvas')[0];
 
             this.$element.bind('contextmenu', (event) => {
-                // console.log("Inside context menu------------------------------------------------");
+                //  console.log("Inside context menu------------------------------------------------");
                 // console.log('contextmenu event on:', event.target);
 
                 event.preventDefault();
@@ -133,14 +218,27 @@ let LevelCanvasMarkupCanvasComponent = {
             });
             //
             this.$element.bind('click', (event) => {
-                // Only do these actions if it's a left-click (button === 0)
-                if (event.button === 0) {
-                  event.preventDefault(); // optional
-                  this.showContextMenu = false;  // hide context menu on left-click
-                  this.setLastMove(event, true);
-                  this.setLastClick(event);
+                let target = angular.element(event.target);
+                // Check if the click target is within an element with class "embodied-submenu" or "embodied-submenu-2" or "arrow"
+                if (target.closest('.embodied-submenu').length > 0 || 
+                    target.closest('.embodied-submenu-2').length > 0 ||
+                    target.closest('.arrow').length > 0) {
+                  // Do nothing so that the submenu toggling is not interrupted.
+                  return;
                 }
+                
+                // Otherwise, close the context menu and reset submenu flags.
+                this.showContextMenu = false;
+                this.showAddActionSubmenu = false;
+                this.showHeadMovementSubmenu = false;
+                this.showFacialExpressionSubmenu = false;
+                this.showHandGestureSubmenu = false;
+                this.showBodyPostureSubmenu = false;
+                this.setLastMove(event, true);
+                this.setLastClick(event);
               });
+              
+              
               
 
             //
@@ -171,14 +269,22 @@ let LevelCanvasMarkupCanvasComponent = {
 
             //
             this.$element.bind('dblclick', (event) => {
-                // console.log("inside level-canvas-markup-canvas.component.ts-> bind(dblclick event)");
                 this.setLastMove(event, true);
-                if (this.ConfigProviderService.vals.restrictions.editItemName) {
-                    this.setLastDblClick(event);
+                // If in video mode (using $root.isVideo), force open the edit area.
+                if (this.$rootScope.isVideo) {
+                    // console.log("inside rootScope.isVideo");
+                  this.setLastDblClick(event);
                 } else {
+                  // Otherwise, follow the original behavior.
+                  if (this.ConfigProviderService.vals.restrictions.editItemName) {
+                    this.setLastDblClick(event);
+                  } else {
                     this.setLastClick(event);
+                  }
                 }
             });
+              
+            
 
             //
             this.$element.bind('mousemove', (event) => {
@@ -350,6 +456,13 @@ let LevelCanvasMarkupCanvasComponent = {
                         this.contextMenuX = event.clientX;
                         this.contextMenuY = event.clientY;
                     
+                        // If the context menu is too far right (e.g., within 300px of the window's right edge),
+                        // then set a flag to flip nested submenus.
+                        if (this.contextMenuX > window.innerWidth - 300) {
+                            this.useSubmenuLeft = true;
+                        } else {
+                            this.useSubmenuLeft = false;
+                        }
                         // 3) Show the custom menu
                         this.showContextMenu = true;
                     
@@ -407,7 +520,7 @@ let LevelCanvasMarkupCanvasComponent = {
          *
          */
         private setLastRightClick (x) {
-            console.log("inside level-canvas-markup-canvas.component.ts-> setLastRightClick()");
+            // console.log("inside level-canvas-markup-canvas.component.ts-> setLastRightClick()");
 
             if (this.ViewStateService.getcurClickLevelName() !== this.level.name) {
                 this.setLastClick(x);
@@ -431,7 +544,7 @@ let LevelCanvasMarkupCanvasComponent = {
          *
          */
         private setLastDblClick (x) {
-            // console.log("inside level-canvas-markup-canvas.component.ts-> setLastDbClick()");
+            //  console.log("inside level-canvas-markup-canvas.component.ts-> setLastDbClick()");
 
             this.curMouseSampleNrInView = this.ViewStateService.getX(x) * this.ViewStateService.getSamplesPerPixelVal(x);
             this.lastEventClick = this.LevelService.getClosestItem(this.curMouseSampleNrInView + this.ViewStateService.curViewPort.sS, this.level.name, this.SoundHandlerService.audioBuffer.length);
@@ -440,7 +553,9 @@ let LevelCanvasMarkupCanvasComponent = {
             if (!isOpen) {
                 this.$element.parent().parent().find('div')[3].click();
             }
+            // console.log("BEFORE THE view-state service if condition");
             if (this.lastEventClick.current !== undefined && this.lastEventClick.nearest !== undefined && this.ViewStateService.getPermission('labelAction')) {
+                // console.log("this.ViewStateService.getPermission('labelAction')--------------------------");
                 if (this.level.type === 'SEGMENT') {
                     if (this.lastEventClick.current.sampleStart >= this.ViewStateService.curViewPort.sS) {
                         if ((this.lastEventClick.current.sampleStart + this.lastEventClick.current.sampleDur) <= this.ViewStateService.curViewPort.eS) {
@@ -449,6 +564,7 @@ let LevelCanvasMarkupCanvasComponent = {
                             this.LevelService.setlasteditArea('_' + this.lastEventClick.current.id);
                             this.LevelService.setlasteditAreaElem(this.$element.parent());
                             this.ViewStateService.setEditing(true);
+                            // console.log("before the this.LevelService.openEditArea ");
                             this.LevelService.openEditArea(this.lastEventClick.current, this.$element.parent(), this.level.type);
                         } else {
                             //console.log('Editing out of right bound !');
@@ -491,13 +607,20 @@ let LevelCanvasMarkupCanvasComponent = {
         };
         
         addItem() {
+             console.log("inside addItem() on level-canvas-markup-canvas.component.ts")
             if (this.level.type === 'SEGMENT') {
               const startSample = this.ViewStateService.curViewPort.selectS;
               const endSample   = this.ViewStateService.curViewPort.selectE;
               const label       = 'newSeg';
                 
+
+              console.log("before the INSERTSEGMENT");
               // Insert a segment from startSample to endSample with label
               this.LevelService.insertSegment(this.level.name, startSample, endSample, label);
+              // Force Angular to detect changes:
+              this.level.items = [...this.level.items];
+              this.$rootScope.$broadcast('annotationChanged');
+
           
             } else if (this.level.type === 'EVENT') {
                 const pointName = 'newEvent';
@@ -553,6 +676,81 @@ let LevelCanvasMarkupCanvasComponent = {
             this.$rootScope.$broadcast('annotationChanged');
             this.showContextMenu = false;
         }
+          
+
+       // Function to toggle the top-level "Add action" submenu
+        toggleAddActionSubmenu() {
+            this.showAddActionSubmenu = !this.showAddActionSubmenu;
+            // Optionally reset nested submenus if closing:
+            if (!this.showAddActionSubmenu) {
+            this.showHeadMovementSubmenu = false;
+            this.showFacialExpressionSubmenu = false;
+            this.showHandGestureSubmenu = false;
+            this.showBodyPostureSubmenu = false;
+            }
+            this.$scope.$applyAsync();
+        }
+        
+        // Function to toggle a nested submenu (submenu2) based on category
+        toggleSubmenu(category: string) {
+            // Reset all nested submenu flags first
+            this.showHeadMovementSubmenu = false;
+            this.showFacialExpressionSubmenu = false;
+            this.showHandGestureSubmenu = false;
+            this.showBodyPostureSubmenu = false;
+        
+            switch (category) {
+            case 'headMovement':
+                this.showHeadMovementSubmenu = true;
+                break;
+            case 'facialExpression':
+                this.showFacialExpressionSubmenu = true;
+                break;
+            case 'handGesture':
+                this.showHandGestureSubmenu = true;
+                break;
+            case 'bodyPosture':
+                this.showBodyPostureSubmenu = true;
+                break;
+            }
+            this.$scope.$applyAsync();
+        }
+        
+        // Function to handle selection from any second-level submenu
+        selectEmbodiedAction(action: string) {
+            // Get the level name from the current click
+            let levelName = this.level.name;
+         
+            console.log("this.level.name: ",this.level.name);   
+            // Use the current viewport selection for start and end samples.
+            const startSample = this.ViewStateService.curViewPort.selectS;
+            const endSample   = this.ViewStateService.curViewPort.selectE;
+            
+            // Always insert a new segment with the chosen action as its label.
+            this.LevelService.insertSegment(levelName, startSample, endSample, action);
+            
+            // Force the UI update by reassigning the level's items array.
+            let level = this.LevelService.getLevelDetails(levelName);
+            if (level) {
+              level.items = [...level.items];
+            }
+            
+            // Broadcast that the annotations have changed and hide the menus.
+            this.$rootScope.$broadcast('annotationChanged');
+            this.showAddActionSubmenu = false;
+            this.showHeadMovementSubmenu = false;
+            this.showFacialExpressionSubmenu = false;
+            this.showHandGestureSubmenu = false;
+            this.showBodyPostureSubmenu = false;
+            this.showContextMenu = false;
+        }
+          
+          
+          
+          
+          
+          
+          
           
 
           
