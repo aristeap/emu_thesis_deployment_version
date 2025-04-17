@@ -229,24 +229,26 @@ class IoHandlerService{
 	/**
 	*
 	*/
-	public getBundle(name, session, nameOfDB) {
-		//  console.log("INSIDE io-handler.service.ts------->getBundle(name, session, nameOfDB)");
-		// console.log("name: ",name);
-		// console.log("session: ",session);
-		// console.log("nameOfDB: ",nameOfDB);
+	public getBundle(name, session, nameOfDB, gridFSRef) {
+	  console.log("INSIDE io-handler.service.ts------->getBundle(name, session, nameOfDB)");
+	 console.log("name: ",name);
+	 console.log("session: ",session);
+	 console.log("nameOfDB: ",nameOfDB);
 
 		var getProm;
 		
-		//  console.log("this.ConfigProviderService.vals.main.comMode: ",this.ConfigProviderService.vals.main.comMode);
+		  console.log("this.ConfigProviderService.vals.main.comMode: ",this.ConfigProviderService.vals.main.comMode);
 
 		if (this.ConfigProviderService.vals.main.comMode === 'CORS') {
 			 console.error('CORS version of getBundle not implemented');
 		} else if (this.ConfigProviderService.vals.main.comMode === 'EMBEDDED') {
-			// console.log("inside the 'EMBEDDED' mode");
+			console.log("inside the 'EMBEDDED' mode");
+			console.log("name: ",name, " session: ",session);
 			getProm = this.DragnDropDataService.getBundle(name, session);
 			
 			// console.log("getProm: ",getProm);
 		} else if (this.ConfigProviderService.vals.main.comMode === 'WS') {
+			console.log("inside the 'WS' mode")
 			getProm = this.WebSocketHandlerService.getBundle(name, session);
 		} else if (this.ConfigProviderService.vals.main.comMode === 'DEMO') {
 			console.log("ConfigProviderService.vals.main.comMode === 'DEMO");
@@ -262,7 +264,7 @@ class IoHandlerService{
 			let gitlabPath = this.getGitlabPathFromSearchObject(searchObject);
 			var bndlURL = searchObject.gitlabURL + '/api/v4/projects/' + searchObject.projectID + '/repository/files/' + gitlabPath + session + '_ses%2F' + name + '_bndl%2F';
 			var neededTracks = this.ConfigProviderService.findAllTracksInDBconfigNeededByEMUwebApp();
-			var ssffFiles = [];
+			var ssffFiles = [] as any;
 			
 			neededTracks.forEach((tr) => {
 				console.log("getBundle for each");

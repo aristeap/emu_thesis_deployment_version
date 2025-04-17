@@ -242,8 +242,11 @@ class ViewStateService{
 			'permittedActions' : ['zoom', 'playaudio', 'addLevelSegBtnClick', 'deleteLevelBtnClick', 'renameSelLevelBtnClick', 'addSpeakerBtnClick', 'renameSpeakerBtnClick', 'addEmbodiedActionsBtnClick', 'renameEmbodiedActionsBtnClick', 'downloadAnnotationBtnClick', 'spectSettingsChange', 'clearBtnClick', 'searchBtnClick', 'labelAction']
 		};
 		this.states.modalShowing = this.states.loadingSaving;
+		// console.log("before we set the curState to noDBorFilesloaded");
 		this.prevState = this.states.noDBorFilesloaded;
 		this.curState = this.states.noDBorFilesloaded;
+
+		// console.log("this.curState: ",this.curState);
 		
 		this.curLevelAttrDefs = [];
 		
@@ -454,8 +457,7 @@ class ViewStateService{
 		} else {
 			this.curState = nameOrObj;
 		}
-
-			// console.log("This cur state: ",this.curState);
+		console.log("setState: ",nameOrObj);
 	};
 	
 
@@ -466,6 +468,7 @@ class ViewStateService{
 			  return stateName;
 			}
 		  }
+		  console.log("the View.stateService.curStateName:  ",stateName);
 		}
 		return 'unknownState';
 	}

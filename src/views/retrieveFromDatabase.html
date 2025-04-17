@@ -1,0 +1,35 @@
+<div class="emuwebapp-modal-wrap" ng-controller="RetrieveFromDatabase as vm">
+    <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+        <h3 id="modalHeading" style="margin: 0;">Fetch from database</h3>
+    </div>
+    <div class="emuwebapp-modal-body">
+        <!-- Search bar with icon at the top right -->
+        <div style="text-align: right; margin-bottom: 10px;">
+            <div style="display: inline-flex; align-items: center;">
+                <i class="material-icons" style="font-size: 1.2em; margin-right: 5px;">search</i>
+                <input type="text" placeholder="Search..." ng-model="vm.searchTerm"
+                    style="width: 180px; padding: 4px; font-size: 1em; pointer-events: auto;"
+                    ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />
+            </div>
+        </div>
+        <!-- File list -->
+        <ul style="list-style: none; padding: 0;">
+            <li ng-repeat="file in vm.files | filter: { fileName: vm.searchTerm }"
+                ng-class="{'active-item': vm.selectedFile === file}"
+                style="margin-bottom: 10px; cursor: pointer;">
+                <label style="font-size: 1.2em; display: flex; align-items: center; justify-content: flex-start;">
+                    <input type="radio" ng-model="vm.selectedFile" ng-value="file"
+                           style="transform: scale(0.8); margin-right: 10px;">
+                    {{file.fileName}}
+                </label>
+            </li>
+        </ul>
+    </div>
+    <div class="emuwebapp-modal-footer">
+        <button ng-click="vm.cancel()" id="modalCancelBtn" class="emuwebapp-mini-btn">Cancel</button>
+        <button ng-click="vm.fetchSelected()" class="emuwebapp-mini-btn">Fetch</button>
+        <button ng-click="vm.deleteSelected()" class="emuwebapp-mini-btn">Delete from database</button>
+    </div>
+  </div>
+  
+  

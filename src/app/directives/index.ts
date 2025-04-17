@@ -9,3 +9,4 @@ import "./image-viewer.directive";
 import "./image-selectable.directive";
 import "./floatingImageAnnotationWindow.directive";
 import "./video-viewer.directive";
+import "./logDirective.directive";

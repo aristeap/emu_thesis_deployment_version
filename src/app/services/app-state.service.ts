@@ -57,6 +57,7 @@ class AppStateService{
 			this.DragnDropService.resetToInitState();
 			this.SsffDataService.data = [];
 			this.HistoryService.resetToInitState();
+			console.log("is this where the setState is becoming noDBorFilesloaded->resetToInitState of app-state.service.ts");
 			this.ViewStateService.setState('noDBorFilesloaded');
 			this.ViewStateService.somethingInProgress = false;
 			this.ViewStateService.resetToInitState();
@@ -79,6 +80,8 @@ class AppStateService{
 			this.DragnDropService.resetToInitState();
 			this.SsffDataService.data = [];
 			this.HistoryService.resetToInitState();
+			console.log("is this where the setState is becoming noDBorFilesloaded->reloadToInitState of app-state.service.ts");
+
 			this.ViewStateService.setState('noDBorFilesloaded');
 			this.ViewStateService.somethingInProgress = false;
 			this.HistoryService.resetToInitState();

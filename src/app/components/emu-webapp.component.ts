@@ -175,6 +175,24 @@ let EmuWebAppComponent = {
 					</ul>
 				</div>
 
+				<!-- NEW: the button that will add files to the database---------------------------------->
+				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται μονο στον developer (κατι με τα permissions οταν φτιαξω τους διαφορετικους χρηστες της βασης) -->
+				<button class="emuwebapp-mini-btn left" 
+						id="addToDatabaseButton" 
+						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect"
+						ng-click="$ctrl.addToDatabaseBtnClick()">
+							Add to database
+				</button>
+
+				<!-- NEW: the button that will open the files that are stored to the database---------------------------------->
+				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται σε ολους -->
+				<button class="emuwebapp-mini-btn left" 
+						id="openFromDatabaseButton" 
+						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect"
+						ng-click="$ctrl.openFromDatabaseBtnClick()">
+							Open from database
+				</button>
+
 				<button class="emuwebapp-mini-btn left" 
 						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect" 
 						ng-disabled="!$ctrl.ViewStateService.getPermission('connectBtnClick')" 
@@ -474,7 +492,7 @@ let EmuWebAppComponent = {
 			<div class="emuwebapp-canvas">
 				<history-action-popup class="emuwebApp-history" history-action-txt="$ctrl.ViewStateService.historyActionTxt"></history-action-popup>
 				<bg-splitter show-two-dim-cans="{{$ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].twoDimCanvases.order.length > 0}}" ng-class="{'noSplitBar': $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay}">					
-					<bg-pane type="topPane" min-size="80" max-size="500">
+					<bg-pane type="topPane" min-size="80" max-size="500" log-element="inside the topPane of emu-webapp.component.ts">
 						
 					
 					
@@ -603,136 +621,140 @@ let EmuWebAppComponent = {
 
 						<!-- Audio Waveform Block -->
 						<ul class="emuwebapp-timeline-flexcontainer"  ng-if="$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.videoDisplay">
+								
+								<!-- PDF Viewer Block --------------------------------------------------------------------------------------->
+								<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay"
+									ng-controller="PdfController as pdfCtrl"
+									style="width: 100%; height: 100%;">
+									<div style="position: relative; width: 100%; height: 100%;">
+										<pdf-viewer base64-pdf="pdfCtrl.pdfState.pdfData"
+													current-page="pdfCtrl.pdfState.currentPage"
+													pdf-scale="pdfCtrl.pdfState.pdfScale">
+										</pdf-viewer>
 
-							<!-- PDF Viewer Block --------------------------------------------------------------------------------------->
-							<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay"
-								ng-controller="PdfController as pdfCtrl"
-								style="width: 100%; height: 100%;">
-								<div style="position: relative; width: 100%; height: 100%;">
-									<pdf-viewer base64-pdf="pdfCtrl.pdfState.pdfData"
-												current-page="pdfCtrl.pdfState.currentPage"
-												pdf-scale="pdfCtrl.pdfState.pdfScale">
-									</pdf-viewer>
+										<!-- Floating controls for PDF -->
+										<div style="position: absolute; top: 10px; right: 20px; z-index: 9999; font-size: 13px; font-weight: bold;">
+											Page {{pdfCtrl.pdfState.currentPage}} of {{pdfCtrl.pdfState.totalPages}}
+										</div>
+										<div style="position: absolute; top: 10px; left: 10px; z-index: 9999; display: flex; gap: 8px;">
+											<button ng-click="pdfCtrl.pdfState.zoomIn()"
+												style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
+												+
+											</button>
+											<button ng-click="pdfCtrl.pdfState.zoomOut()"
+												style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
+												-
+											</button>
+										</div>
+										<div style="position: absolute; bottom: 10px; left: 10px; z-index: 9999;">
+											<button ng-click="pdfCtrl.pdfState.prevPage()"
+												style="background: transparent; border: none; font-size: 32px; font-weight: bold; color: #0DC5FF; cursor: pointer;">
+												&lt;
+											</button>
+										</div>
+										<div style="position: absolute; bottom: 10px; right: 25px; z-index: 9999;">
+											<button ng-click="pdfCtrl.pdfState.nextPage()"
+												style="background: transparent; border: none; font-size: 32px; font-weight: bold; color: #0DC5FF; cursor: pointer;">
+												&gt;
+											</button>
+										</div>
+									</div>
+								</div>								
 
-									<!-- Floating controls for PDF -->
-									<div style="position: absolute; top: 10px; right: 20px; z-index: 9999; font-size: 13px; font-weight: bold;">
-										Page {{pdfCtrl.pdfState.currentPage}} of {{pdfCtrl.pdfState.totalPages}}
-									</div>
-									<div style="position: absolute; top: 10px; left: 10px; z-index: 9999; display: flex; gap: 8px;">
-										<button ng-click="pdfCtrl.pdfState.zoomIn()"
-											style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
-											+
-										</button>
-										<button ng-click="pdfCtrl.pdfState.zoomOut()"
-											style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333; font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0DC5FF;">
-											-
-										</button>
-									</div>
-									<div style="position: absolute; bottom: 10px; left: 10px; z-index: 9999;">
-										<button ng-click="pdfCtrl.pdfState.prevPage()"
-											style="background: transparent; border: none; font-size: 32px; font-weight: bold; color: #0DC5FF; cursor: pointer;">
-											&lt;
-										</button>
-									</div>
-									<div style="position: absolute; bottom: 10px; right: 25px; z-index: 9999;">
-										<button ng-click="pdfCtrl.pdfState.nextPage()"
-											style="background: transparent; border: none; font-size: 32px; font-weight: bold; color: #0DC5FF; cursor: pointer;">
-											&gt;
-										</button>
+								<!-- Image Viewer Block ------------------------------------------------------------------------------------>
+								<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="width: 100%; height: 100%; position: relative;">
+								
+									<!-- Outer container with relative positioning -->
+									<div style="position: relative; width: 100%; height: 100%;">
+									
+										<!-- Zoom buttons container with high z-index and pointer-events enabled -->
+										<div style="position: absolute; top: 10px; left: 10px; z-index: 100000; pointer-events: auto; background: transparent; display: flex; gap: 8px;">
+											<button ng-click="imgCtrl.imgState.zoomIn()"
+													style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333;
+															font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center;
+															justify-content: center; color: #0DC5FF;">
+												+
+											</button>
+											<button ng-click="imgCtrl.imgState.zoomOut()"
+													style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333;
+															font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center;
+															justify-content: center; color: #0DC5FF;">
+												-
+											</button>
+										</div>
+											
+										<!-- Image container (scrollable) -->
+										<div style="position: relative; width: 100%; height: 100%; overflow: auto;">
+											<image-selectable
+												base64-img="imgCtrl.imgSrc"
+												zoom-scale="imgCtrl.imgState.imageScale"
+												on-selection="imgCtrl.handleSelection(bbox)"
+												annotation-mode="imgCtrl.currentMode">
+											</image-selectable>
+										</div>
 									</div>
 								</div>
-							</div>								
 
-							<!-- Image Viewer Block ------------------------------------------------------------------------------------>
-							<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="width: 100%; height: 100%; position: relative;">
 							
-								<!-- Outer container with relative positioning -->
-								<div style="position: relative; width: 100%; height: 100%;">
-								
-									<!-- Zoom buttons container with high z-index and pointer-events enabled -->
-									<div style="position: absolute; top: 10px; left: 10px; z-index: 100000; pointer-events: auto; background: transparent; display: flex; gap: 8px;">
-										<button ng-click="imgCtrl.imgState.zoomIn()"
-												style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333;
-														font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center;
-														justify-content: center; color: #0DC5FF;">
-											+
-										</button>
-										<button ng-click="imgCtrl.imgState.zoomOut()"
-												style="width: 30px; height: 30px; border-radius: 50%; background-color: #fff; border: 2px solid #333;
-														font-size: 25px; line-height: 1; cursor: pointer; display: flex; align-items: center;
-														justify-content: center; color: #0DC5FF;">
-											-
-										</button>
-									</div>
+								<li class="emuwebapp-timeline-flexitem"
+									log-element="inside the li that contains the osci in emu-webapp.component.ts"
+									ng-repeat="curTrack in $ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].signalCanvases.order track by $index"
+									ng-switch on="curTrack">
+
+										<osci ng-switch-when="OSCI" 
+											log-element="inside the osci in emu-webapp.component.ts"
+											track-name="curTrack"
+											cur-channel="$ctrl.ViewStateService.osciSettings.curChannel"
+											last-update="$ctrl.ViewStateService.lastUpdate"
+											timeline-size="$ctrl.ViewStateService.timelineSize"
+											cur-perspective-idx="$ctrl.ViewStateService.curPerspectiveIdx"
+											play-head-current-sample="$ctrl.ViewStateService.playHeadAnimationInfos.curS"
+											moving-boundary-sample="$ctrl.ViewStateService.movingBoundarySample"
+											cur-mouse-x="$ctrl.ViewStateService.curMouseX"
+											moving-boundary="$ctrl.ViewStateService.movingBoundary"
+											view-port-sample-start="$ctrl.ViewStateService.curViewPort.sS"
+											view-port-sample-end="$ctrl.ViewStateService.curViewPort.eS"
+											view-port-select-start="$ctrl.ViewStateService.curViewPort.selectS"
+											view-port-select-end="$ctrl.ViewStateService.curViewPort.selectE"
+											cur-bndl="$ctrl.LoadedMetaDataService.getCurBndl()">
+										</osci>
 										
-									<!-- Image container (scrollable) -->
-									<div style="position: relative; width: 100%; height: 100%; overflow: auto;">
-										<image-selectable
-											base64-img="imgCtrl.imgSrc"
-											zoom-scale="imgCtrl.imgState.imageScale"
-											on-selection="imgCtrl.handleSelection(bbox)"
-											annotation-mode="imgCtrl.currentMode">
-										</image-selectable>
-									</div>
-								</div>
-							</div>
+										<spectro ng-switch-when="SPEC"
+											track-name="curTrack"
+											window-size-in-secs="$ctrl.ViewStateService.spectroSettings.windowSizeInSecs"
+											range-from="$ctrl.ViewStateService.spectroSettings.rangeFrom"
+											range-to="$ctrl.ViewStateService.spectroSettings.rangeTo"
+											dynamic-range="$ctrl.ViewStateService.spectroSettings.dynamicRange"
+											window="$ctrl.ViewStateService.spectroSettings.window"
+											draw-heat-map-colors="$ctrl.ViewStateService.spectroSettings.drawHeatMapColors"
+											pre-emphasis-filter-factor="$ctrl.ViewStateService.spectroSettings.preEmphasisFilterFactor"
+											heat-map-color-anchors="$ctrl.ViewStateService.spectroSettings.heatMapColorAnchors"
+											invert="$ctrl.ViewStateService.spectroSettings.invert"
+											osci-settings="$ctrl.ViewStateService.osciSettings"
+											last-update="$ctrl.ViewStateService.lastUpdate"
+											moving-boundary-sample="$ctrl.ViewStateService.movingBoundarySample"
+											cur-mouse-x="$ctrl.ViewStateService.curMouseX"
+											cur-mouse-y="$ctrl.ViewStateService.curMouseY"
+											view-port-sample-start="$ctrl.ViewStateService.curViewPort.sS"
+											view-port-sample-end="$ctrl.ViewStateService.curViewPort.eS"
+											view-port-select-start="$ctrl.ViewStateService.curViewPort.selectS"
+											view-port-select-end="$ctrl.ViewStateService.curViewPort.selectE"
+											cur-bndl="$ctrl.LoadedMetaDataService.getCurBndl()">
+										</spectro>
 
-						
-							<li class="emuwebapp-timeline-flexitem"
-								ng-repeat="curTrack in $ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].signalCanvases.order track by $index"
-								ng-switch on="curTrack">
-							
-								<osci ng-switch-when="OSCI"
-									track-name="curTrack"
-									cur-channel="$ctrl.ViewStateService.osciSettings.curChannel"
-									last-update="$ctrl.ViewStateService.lastUpdate"
-									timeline-size="$ctrl.ViewStateService.timelineSize"
-									cur-perspective-idx="$ctrl.ViewStateService.curPerspectiveIdx"
-									play-head-current-sample="$ctrl.ViewStateService.playHeadAnimationInfos.curS"
-									moving-boundary-sample="$ctrl.ViewStateService.movingBoundarySample"
-									cur-mouse-x="$ctrl.ViewStateService.curMouseX"
-									moving-boundary="$ctrl.ViewStateService.movingBoundary"
-									view-port-sample-start="$ctrl.ViewStateService.curViewPort.sS"
-									view-port-sample-end="$ctrl.ViewStateService.curViewPort.eS"
-									view-port-select-start="$ctrl.ViewStateService.curViewPort.selectS"
-									view-port-select-end="$ctrl.ViewStateService.curViewPort.selectE"
-									cur-bndl="$ctrl.LoadedMetaDataService.getCurBndl()">
-								</osci>
+										<ssff-track ng-switch-default
+												order="{{$index}}"
+												track-name="curTrack"
+												cur-mouse-x="$ctrl.ViewStateService.curMouseX"
+												cur-mouse-y="$ctrl.ViewStateService.curMouseY"
+												view-port-sample-start="$ctrl.ViewStateService.curViewPort.sS"
+												view-port-sample-end="$ctrl.ViewStateService.curViewPort.eS"
+												view-port-select-start="$ctrl.ViewStateService.curViewPort.selectS"
+												view-port-select-end="$ctrl.ViewStateService.curViewPort.selectE">
+										</ssff-track>
+
 								
-								<spectro ng-switch-when="SPEC"
-									track-name="curTrack"
-									window-size-in-secs="$ctrl.ViewStateService.spectroSettings.windowSizeInSecs"
-									range-from="$ctrl.ViewStateService.spectroSettings.rangeFrom"
-									range-to="$ctrl.ViewStateService.spectroSettings.rangeTo"
-									dynamic-range="$ctrl.ViewStateService.spectroSettings.dynamicRange"
-									window="$ctrl.ViewStateService.spectroSettings.window"
-									draw-heat-map-colors="$ctrl.ViewStateService.spectroSettings.drawHeatMapColors"
-									pre-emphasis-filter-factor="$ctrl.ViewStateService.spectroSettings.preEmphasisFilterFactor"
-									heat-map-color-anchors="$ctrl.ViewStateService.spectroSettings.heatMapColorAnchors"
-									invert="$ctrl.ViewStateService.spectroSettings.invert"
-									osci-settings="$ctrl.ViewStateService.osciSettings"
-									last-update="$ctrl.ViewStateService.lastUpdate"
-									moving-boundary-sample="$ctrl.ViewStateService.movingBoundarySample"
-									cur-mouse-x="$ctrl.ViewStateService.curMouseX"
-									cur-mouse-y="$ctrl.ViewStateService.curMouseY"
-									view-port-sample-start="$ctrl.ViewStateService.curViewPort.sS"
-									view-port-sample-end="$ctrl.ViewStateService.curViewPort.eS"
-									view-port-select-start="$ctrl.ViewStateService.curViewPort.selectS"
-									view-port-select-end="$ctrl.ViewStateService.curViewPort.selectE"
-									cur-bndl="$ctrl.LoadedMetaDataService.getCurBndl()">
-								</spectro>
-
-								<ssff-track ng-switch-default
-										order="{{$index}}"
-										track-name="curTrack"
-										cur-mouse-x="$ctrl.ViewStateService.curMouseX"
-										cur-mouse-y="$ctrl.ViewStateService.curMouseY"
-										view-port-sample-start="$ctrl.ViewStateService.curViewPort.sS"
-										view-port-sample-end="$ctrl.ViewStateService.curViewPort.eS"
-										view-port-select-start="$ctrl.ViewStateService.curViewPort.selectS"
-										view-port-select-end="$ctrl.ViewStateService.curViewPort.selectE">
-								</ssff-track>
-							</li>
+								</li>
 						</ul>
 						
 
@@ -897,6 +919,7 @@ let EmuWebAppComponent = {
 		'$document',
 		'$location',
 		'$timeout',
+		'$http',  // Add $http here
 		'ViewStateService',
 		'HistoryService',
 		'IoHandlerService',
@@ -925,6 +948,7 @@ let EmuWebAppComponent = {
         private $document;
 		private $location;
 		private $timeout;
+		private $http;
         private ViewStateService;
         private HistoryService;
         private IoHandlerService;
@@ -976,6 +1000,7 @@ let EmuWebAppComponent = {
             $document,
 			$location,
 			$timeout,
+			$http,  // Add $http here
             ViewStateService,
             HistoryService,
             IoHandlerService,
@@ -1004,6 +1029,7 @@ let EmuWebAppComponent = {
                 this.$document = $document;
 				this.$location = $location;
 				this.$timeout = $timeout;
+				this.$http = $http;
                 this.ViewStateService = ViewStateService;
                 this.HistoryService = HistoryService;
                 this.IoHandlerService = IoHandlerService;
@@ -1179,9 +1205,24 @@ let EmuWebAppComponent = {
             }
         };
         
-        $onInit = function() {
-            this._inited = true;
-        };
+		$onInit = function() {
+			this._inited = true;
+			// Automatically connect to the WebSocket server
+			const wsUrl = 'ws://localhost:17890'; // This is your actual WebSocket URL.
+			this.IoHandlerService.WebSocketHandlerService.initConnect(wsUrl)
+			  .then((message) => {
+				  console.log("WebSocket connected:", message);
+				  // Optionally, update any connection status flags in your ViewStateService
+			  })
+			  .catch((err) => {
+				  console.error("Failed to connect WebSocket:", err);
+				  this.ModalService.open('views/error.html', 'Could not connect to websocket server: ' + wsUrl)
+					  .then(() => {
+						  this.AppStateService.resetToInitState();
+					  });
+			  });
+		};
+		
 
         /**
 		 *
@@ -1303,7 +1344,7 @@ let EmuWebAppComponent = {
 														this.ConfigProviderService.curDbConfig.levelDefinitions = levelDefs;
 														this.ViewStateService.setCurLevelAttrDefs(this.ConfigProviderService.curDbConfig.levelDefinitions);
 														// extract levels containing time to display as levelCanvases 
-														let lNamesWithTime = [];
+														let lNamesWithTime = [] as any;
 
 														levelDefs.forEach((ld) => {
 															if(ld.type !== 'ITEM'){
@@ -1954,8 +1995,91 @@ let EmuWebAppComponent = {
 				this.ModalService.open('views/error.html', 'Rename Error: Please create an Embodied Actions level first!');
 			  }
 			}
+		};
+		  
+
+		private addToDatabaseBtnClick() {
+			// Create a hidden file input element
+			const inputFile = document.createElement('input');
+			inputFile.type = 'file';
+			inputFile.style.display = 'none';
+		
+			// When a file is selected, upload it to the server
+			inputFile.onchange = (event: any) => {
+				const file: File = event.target.files[0];
+				if (file) {
+					const formData = new FormData();
+					formData.append('file', file);
+		
+					// Send the file to the backend using $http
+					this.$http.post('http://localhost:3019/upload-file', formData, {
+						headers: { 'Content-Type': undefined },
+						transformRequest: angular.identity
+					}).then((response: any) => {
+						console.log('File uploaded successfully', response.data);
+						console.log('ARE YOU SEEING ME');
+					}).catch((error: any) => {
+						console.error('Error uploading file', error);
+					});
+				}
+			};
+		
+			// Trigger the file selector
+			inputFile.click();
+		};
+
+
+		private mapFileToBundle(fileMetadata: any) {
+			return {
+			  name: fileMetadata.fileName,
+			  session: "DB", // default or computed session value
+			  mediaFile: {
+				encoding: 'GETURL',
+				type: fileMetadata.fileType,
+				data: fileMetadata.gridFSRef
+			  },
+			  annotation: {
+				levels: [],
+				links: [],
+				sampleRate: null,
+				annotates: fileMetadata.fileName,
+				name: fileMetadata.fileName
+			  }
+			};
+		  }
+		  
+
+		// In your main controller (or the controller that opens the modal)
+		private openFromDatabaseBtnClick() {
+			this.$http.get('http://localhost:3019/files')
+			  .then((response: any) => {
+				const files = response.data;
+				// console.log("Files retrieved from database:", files);
+				this.ModalService.data = { files: files };
+				this.ModalService.open('views/retrieveFromDatabase.html')
+				  .then((selectedFile: any) => {
+					if (selectedFile) {
+					  console.log("Selected file from DB:", selectedFile);
+					  // Here you could also use FileMappingService if needed, 
+					  // or leave that mapping to the modal controller.
+					}
+				  })
+				  .catch((err: any) => {
+					console.error("Modal was closed without selecting a file:", err);
+				  });
+			  })
+			  .catch((error: any) => {
+				console.error("Error retrieving files from database:", error);
+			  });
 		}
 		  
+		  
+  
+		  
+		  
+		
+		
+	
 		/**
 		 *
 		 */
@@ -2086,8 +2210,6 @@ let EmuWebAppComponent = {
 				this.ModalService.open('views/showHierarchyModal.html');
 			}
 		};
-
-
 		/**
 		 *
 		 */

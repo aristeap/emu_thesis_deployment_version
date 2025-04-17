@@ -20,7 +20,7 @@ class LoadedMetaDataService{
 	}
 	
 	private genUniqSessionList(bndlList) {
-		var sList = [];
+		var sList = [] as any;
 		var fistSes;
 		bndlList.forEach((bndl, idx) => {
 			sList[bndl.session] = {
@@ -76,6 +76,9 @@ class LoadedMetaDataService{
 	* getter for rendOptBndlList
 	*/
 	public getRendOptBndlList() {
+		// console.log("inside the getRendOptBndList()------------------------------------------------------------");
+		// console.log("and the this.rendOptBndlList is : ", this.rendOptBndlList);
+		
 		return this.rendOptBndlList;
 	};
 	

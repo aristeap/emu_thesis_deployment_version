@@ -11,3 +11,4 @@ import "./metadataButton.controller";
 import "./pdf.controller";
 import "./image.controller";
 import "./video.controller";
+import "./RetrieveFromDatabase.controller";

@@ -3,7 +3,12 @@ import * as angular from 'angular';
 let BundleListSideBarComponent = {
 	selector: "bundleListSideBar",
 	template: /*html*/`
-	<div class="emuwebapp-bundle-outer">
+	<div class="emuwebapp-bundle-outer" log-element="inside the html part of the bundlelist-sidebar.component.ts">
+
+	<pre style="background: #f8f8f8; border: 1px solid #ccc; padding: 5px; color:black;">
+  		{{ $ctrl.LoadedMetaDataService.getRendOptBndlList() | json }}
+	</pre>	
+
 	<div>
 		<h3>
 			<!-- αυτό είναι για το search bundle filter -->
@@ -14,7 +19,9 @@ let BundleListSideBarComponent = {
 		<my-drop-zone ng-if="$ctrl.ViewStateService.showDropZone && $ctrl.open"></my-drop-zone>
 		<div id="emuwebapp-bundleListContainer" class="emuwebapp-bundle-container" ng-if="!$ctrl.ViewStateService.showDropZone">
 			<ul ng-repeat="(key, value) in $ctrl.LoadedMetaDataService.getRendOptBndlList()" ng-class="{'emuwebapp-bundle-last':$last}">
-				<div class="emuwebapp-bundle-session" ng-if="$ctrl.isSessionDefined(key)" ng-click="$ctrl.LoadedMetaDataService.toggleCollapseSession(key)">
+				<!--Βαζω log element για να μπορω να δω ποτε θα επαναληφθει ο κωδικας -->
+				<div log-element="Inside the first ng-repeat, rendering session header: {{key}}" class="emuwebapp-bundle-session" ng-if="$ctrl.isSessionDefined(key)" ng-click="$ctrl.LoadedMetaDataService.toggleCollapseSession(key)">
+				
 					<div ng-if="$ctrl.LoadedMetaDataService.getSessionCollapseState(key)">
 						▷{{key}}
 					</div>
@@ -32,7 +39,9 @@ let BundleListSideBarComponent = {
 							→
 						</button>
 					</div>
-					<div ng-repeat="bundle in value | startFrom:$ctrl.ViewStateService.currentPage*$ctrl.ViewStateService.pageSize | limitTo:$ctrl.ViewStateService.pageSize | regex:$ctrl.filterText track by $index">
+
+					<!--Βαζω log element για να μπορω να δω ποτε θα επαναληφθει το δευτερο repeat -->
+					<div log-element="Inside the inner ng-repeat" ng-repeat="bundle in value | startFrom:$ctrl.ViewStateService.currentPage*$ctrl.ViewStateService.pageSize | limitTo:$ctrl.ViewStateService.pageSize | regex:$ctrl.filterText track by $index">						
 						<div class="emuwebapp-bundle-item" id="uttListItem" ng-style="$ctrl.getBndlColor(bundle);" ng-click="$ctrl.DbObjLoadSaveService.loadBundle(bundle);" dragout draggable="true" name="{{bundle.name}}">
 							<b>{{bundle.name}}</b>
 							<button ng-if="$ctrl.ConfigProviderService.vals.activeButtons.saveBundle && $ctrl.isCurBndl(bundle)" class="emuwebapp-saveBundleButton" ng-click="$ctrl.DbObjLoadSaveService.saveBundle();"><i class="material-icons">save</i></button>
@@ -102,6 +111,7 @@ bindings: {
 controller: [
 	'$element', 
 	'$animate', 
+	'$scope',
 	'ViewStateService', 
 	'HistoryService', 
 	'LoadedMetaDataService', 
@@ -112,6 +122,7 @@ controller: [
 
 	private $element;
 	private $animate;
+	private $scope;
 	private ViewStateService;
 	private HistoryService;
 	private LoadedMetaDataService;
@@ -129,6 +140,7 @@ controller: [
 	constructor(
 		$element, 
 		$animate, 
+		$scope,
 		ViewStateService, 
 		HistoryService, 
 		LoadedMetaDataService, 
@@ -138,7 +150,7 @@ controller: [
 		){
 		this.$element = $element;
 		this.$animate = $animate;
-
+		this.$scope = $scope;
 		this.ViewStateService = ViewStateService;
 		this.HistoryService = HistoryService;
 		this.LoadedMetaDataService = LoadedMetaDataService;
@@ -173,9 +185,26 @@ controller: [
 			}
 		}
 	}
+	  
 
 	$onInit () {
 		this._inited = true;
+		this.$scope.$watch(
+			() => this.LoadedMetaDataService.getBundleList(),
+			(newVal, oldVal) => {
+			//   console.log("INSIDE THE scope.watch OF THE loadedMetadata.getBundleList++++++++++++++++++++++++++ :", newVal);
+			},
+			true  // deep watch if needed
+		  );
+
+		  this.$scope.$watch(
+			() => this.LoadedMetaDataService.getRendOptBndlList(),
+			(newVal, oldVal) => {
+			//   console.log("Normalized list changed++++++++++++++++++++++++++:", newVal);
+			},
+			true
+		  );
+		  
 	}
 	// functions from directive 
 	private finishedEditing (finished, key, index) {

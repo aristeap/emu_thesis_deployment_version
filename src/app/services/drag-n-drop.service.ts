@@ -61,7 +61,7 @@ class DragnDropService{
 	///////////////////
 	// drag n drop data
 	public setData(bundles) {
-		//  console.log("inside drag-n-drop.service.ts-> setData");
+		  console.log("inside drag-n-drop.service.ts-> setData");
 		let count = 0;
 		bundles.forEach((bundle, i) => {
 		  // bundle[1] is { file: File, extension: 'WAV'/'PDF'/'JPEG'/'JPG' }
@@ -91,6 +91,7 @@ class DragnDropService{
 	  
 		if (count <= this.maxDroppedBundles) {
 		  this.convertDragnDropData(this.drandropBundles, 0).then(() => {
+			console.log("before the setBundleList of the drag-n-drop.service.ts");
 			this.LoadedMetaDataService.setBundleList(this.bundleList);
 			this.LoadedMetaDataService.setCurBndlName(
 			  this.bundleList[this.DragnDropDataService.sessionDefault]
@@ -440,6 +441,7 @@ class DragnDropService{
 			annotation = {levels: [], links: []};
 		}
 		this.ViewStateService.showDropZone = false;
+		console.log("is this where the setState is becoming loadingSaving->handleLocalFiles of drag-n-drop.service.ts");
 		this.ViewStateService.setState('loadingSaving');
 		// reset history
 		this.ViewStateService.somethingInProgress = true;
@@ -497,6 +499,8 @@ class DragnDropService{
 				validRes = this.ValidationService.validateJSO('annotationFileSchema', annotation);
 				if (validRes === true) {
 					this.DataService.setLinkData(annotation.links);
+					console.log("is this where the setState is becoming labeling->handleLocalFiles-2 of drag-n-drop.service.ts");
+
 					this.ViewStateService.setState('labeling');
 					this.ViewStateService.somethingInProgress = false;
 					this.ViewStateService.somethingInProgressTxt = 'Done!';

@@ -54,6 +54,7 @@ class ModalService{
 		}
 		this.defer = this.$q.defer();
 		this.templateUrl = template;
+		console.log("this setState:modalShowing is definetely coming from the open() of the modal.service.ts");
 		this.ViewStateService.setState('modalShowing');
 		this.isOpen = true;
 		return this.defer.promise;

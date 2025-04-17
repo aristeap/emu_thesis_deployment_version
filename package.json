@@ -40,6 +40,7 @@
     "d3": "^5.0.0",
     "express": "^4.21.2",
     "jquery": "^3.5.0",
+    "mongodb": "^6.15.0",
     "mongoose": "^8.9.3",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.9",
@@ -96,7 +97,7 @@
     "webpack-dev-server": "^3.10.3",
     "webpack-merge": "^4.2.2",
     "worker-loader": "^2.0.0",
-    "ws": ">=7.4.6"
+    "ws": "^8.18.1"
   },
   "engines": {
     "node": ">=0.10.0"

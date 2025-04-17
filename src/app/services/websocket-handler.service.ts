@@ -144,24 +144,34 @@ class WebSocketHandlerService{
 	}
 	
 	private sendRequest(request) {
+		console.log("inside sendRequest->websocket-handler.service.ts");
 		var defer = this.$q.defer();
 		var callbackId = this.getCallbackId();
 		this.callbacks[callbackId] = {
-			time: new Date(),
-			cb: defer
+		  time: new Date(),
+		  cb: defer
 		};
 		request.callbackID = callbackId;
+		
+		if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+			console.log("!this.ws: ",!this.ws);
+			console.log("this.ws.readyState: ", this.ws.readyState);
+		  console.error("WebSocket is not open. Current state:", this.ws ? this.ws.readyState : "undefined");
+		  defer.reject("WebSocket is not open");
+		  return defer.promise;
+		}
+		
 		this.ws.send(angular.toJson(request));
-		// timeout request if not answered
+		
 		this.$timeout(() => {
-			var tOutResp = {
-				'callbackID': callbackId,
-				'status': {
-					'type': 'ERROR:TIMEOUT',
-					'message': 'Sent request of type: ' + request.type + ' timed out after ' + this.ConfigProviderService.vals.main.serverTimeoutInterval + 'ms!  Please check the server...'
-				}
-			};
-			this.listener(tOutResp);
+		  var tOutResp = {
+			'callbackID': callbackId,
+			'status': {
+			  'type': 'ERROR:TIMEOUT',
+			  'message': 'Sent request of type: ' + request.type + ' timed out after ' + this.ConfigProviderService.vals.main.serverTimeoutInterval + 'ms! Please check the server...'
+			}
+		  };
+		  this.listener(tOutResp);
 		}, this.ConfigProviderService.vals.main.serverTimeoutInterval);
 		
 		return defer.promise;
@@ -170,21 +180,25 @@ class WebSocketHandlerService{
 	
 	///////////////////////////////////////////
 	// public api
-	public initConnect (url) {
+	public initConnect(url) {
+		// console.log("inside initConnect ->websocket-handler.service.ts--------------------");
 		var defer = this.$q.defer();
-		try{
-			this.ws = new WebSocket(url);
-			this.ws.onopen = this.wsonopen.bind(this);
-			this.ws.onmessage = this.wsonmessage.bind(this);
-			this.ws.onerror = this.wsonerror.bind(this);
-			this.ws.onclose = this.wsonclose.bind(this);
-		}catch (err){
-			return this.$q.reject('A malformed websocket URL that does not start with ws:// or wss:// was provided.');
+		try {
+		  this.ws = new WebSocket(url);
+		//   console.log("WebSocket initialized-----------------------:", this.ws);
+		  this.ws.onopen = this.wsonopen.bind(this);
+		  this.ws.onmessage = this.wsonmessage.bind(this);
+		  this.ws.onerror = this.wsonerror.bind(this);
+		  this.ws.onclose = this.wsonclose.bind(this);
+		} catch (err) {
+		  return this.$q.reject('A malformed websocket URL was provided.');
 		}
 		
 		this.conPromise = defer;
 		return defer.promise;
-	};
+	}
+	  
+  
 	
 	//
 	public isConnected () {
@@ -265,7 +279,8 @@ class WebSocketHandlerService{
 		var request = {
 			type: 'GETBUNDLE',
 			name: name,
-			session: session
+			session: session,
+
 		};
 		// Storing in a variable for clarity on what sendRequest returns
 		var promise = this.sendRequest(request);

@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
 
-
 const app = express();
 const port = 3019;
 
@@ -18,12 +17,12 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'src/views'))); // For HTML and other assets
 
-// Connect to MongoDB
+// Connect to MongoDB for main metadata and GridFS
 mongoose.connect('mongodb://127.0.0.1:27017/metadata_db', { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
-db.once('open', () => {
-    console.log('MongoDB connection successful');
-});
+// db.once('open', () => {
+//     console.log('MongoDB connection successful');
+// });
 
 // Schemas and Models
 const recordingSchema = new mongoose.Schema({
@@ -388,6 +387,121 @@ app.post("/save-img-metadata", async (req, res) => {
     }
 });
 
+
+// ----------------------------------------------------------------------------------------------------------------------------------------
+// NEW: For storing all the contents of files in the database (along with the FileMetadata.js)
+const { GridFSBucket } = require('mongodb');
+
+// Wait for the MongoDB connection to open
+db.once('open', () => {
+    console.log('Main MongoDB connection successful for GridFS');
+
+    // Initialize GridFSBucket
+    const { GridFSBucket } = require('mongodb');
+    const bucket = new GridFSBucket(db.db, { bucketName: 'uploads' });
+
+    // File upload endpoint: Upload file to GridFS and save technical metadata
+    app.post('/upload-file', upload.single('file'), (req, res) => {
+        const file = req.file;
+        if (!file) return res.status(400).send('No file uploaded.');
+
+
+        console.log("Original file name:", file.originalname);
+        // Convert the filename using Buffer conversion
+        const fixedName = Buffer.from(file.originalname, 'binary').toString('utf8');
+        console.log("Converted file name:", fixedName);
+
+
+        const uploadStream = bucket.openUploadStream(fixedName, {
+          contentType: file.mimetype
+        });
+    
+        uploadStream.on('error', (err) => {
+          console.error('Error uploading file to GridFS:', err);
+          return res.status(500).send('Error uploading file.');
+        });
+    
+        uploadStream.on('finish', async () => {
+          // Now the file has been written and uploadStream.id holds the _id of the stored file.
+          const FileMetadata = require('./FileMetadata');
+          const fileMetadata = new FileMetadata({
+            fileType: file.mimetype.split('/')[0],  // e.g., "audio" from "audio/wav"
+            fileName: fixedName,
+            gridFSRef: uploadStream.id,             // Use the id from the upload stream
+          });
+    
+          try {
+            await fileMetadata.save();
+            console.log('File metadata saved:', fileMetadata);
+            res.send('File uploaded and metadata saved');
+          } catch (saveError) {
+            console.error('Error saving file metadata:', saveError);
+            res.status(500).send('Error saving file metadata.');
+          }
+        });
+    
+        // Write the file buffer into the stream and close it.
+        uploadStream.end(file.buffer);
+    });
+    
+
+    // Endpoint to list all uploaded files (technical metadata)
+    app.get('/files', async (req, res) => {
+        try {
+            const FileMetadata = require('./FileMetadata');
+            const files = await FileMetadata.find();
+            res.json(files);
+        } catch (err) {
+            console.error('Error retrieving files:', err);
+            res.status(500).send('Error retrieving files');
+        }
+    });
+
+    // Endpoint to download/stream a file from GridFS by its ID
+    app.get('/download-file/:id', (req, res) => {
+        try {
+            const fileId = new mongoose.Types.ObjectId(req.params.id);
+            bucket.openDownloadStream(fileId)
+                .pipe(res)
+                .on('error', (err) => {
+                    console.error('Error downloading file:', err);
+                    res.status(500).send('Error downloading file');
+                });
+        } catch (err) {
+            res.status(400).send('Invalid file id');
+        }
+    });
+
+    app.delete('/delete-file/:id', async (req, res) => {
+        try {
+          const fileId = new mongoose.Types.ObjectId(req.params.id);
+      
+          // Check if the file exists in GridFS
+          const files = await bucket.find({ _id: fileId }).toArray();
+          if (!files || files.length === 0) {
+            console.error('File not found in GridFS for id', fileId);
+            return res.status(404).send('File not found in GridFS.');
+          }
+      
+          // Delete the file from GridFS
+          await bucket.delete(fileId);
+      
+          // Delete metadata record
+          const FileMetadata = require('./FileMetadata');
+          await FileMetadata.deleteOne({ gridFSRef: fileId });
+      
+          console.log('File deleted successfully, ID:', fileId);
+          res.send('File deleted successfully.');
+        } catch (err) {
+          console.error('Error deleting file:', err);
+          res.status(500).send('Error deleting file.');
+        }
+    });
+      
+      
+      
+
+});
 
 // Start the server
 app.listen(port, () => {

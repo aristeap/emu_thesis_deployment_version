@@ -20,6 +20,23 @@ const http = require('http');
 const filewalker = require('filewalker');
 const url = require('url');
 
+const { MongoClient, ObjectId, GridFSBucket } = require('mongodb');
+
+const mongoUrl = 'mongodb://127.0.0.1:27017';  // Adjust if necessary
+const dbName = 'metadata_db';                  // Use the appropriate database name
+
+let bucket;  // This will hold your GridFSBucket instance
+MongoClient.connect(mongoUrl, { useUnifiedTopology: true }, (err, client) => {
+  console.log("inside the MongoClient.connect()");
+  if (err) {
+    console.error("MongoDB connection error:", err);
+    process.exit(1);
+  }
+  const db = client.db(dbName);
+  bucket = new GridFSBucket(db, { bucketName: 'uploads' });
+  console.log("Connected to MongoDB, GridFSBucket 'uploads' initialized----------------------------.");
+});
+
 // allow users to set vars from command line
 var host = 'localhost';
 if (process.argv.length === 2) {
@@ -66,74 +83,11 @@ const wss = new WebSocket.Server({
   noServer: true
 });
 
-// create http server to handle get requests
 const server = http.createServer(function (request, response) {
-  var q = url.parse(request.url, true).query;
-  var contentType = 'application/octet-stream';
-  if(q.fileExtension === 'wav'){
-    contentType = 'audio/wav'
-  }
-  if(request.method === 'OPTIONS'){
-    console.log("handle preflight request");
-    response.writeHead(200, 
-      {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
-      'Access-Control-Allow-Headers': 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Range'
-      }
-    );
-    response.end();
-
-  } else {
-    var filePath = pathToDbRoot + q.session + '_ses/' + q.bundle + '_bndl/' + q.bundle + '.' + q.fileExtension;
-    if(typeof request.headers.range === 'undefined'){
-      // console.log("no range request");
-      // replace with 206 partial content response type
-      response.writeHead(200, 
-        {
-        'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
-        'Access-Control-Allow-Headers': 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Range'
-        }
-      ); 
-      response.end(fs.readFileSync(filePath));
-    } else {
-      // console.log('range request');
-      var range = request.headers.range;
-      const stats = fs.statSync(filePath);
-      const fileSizeInBytes = stats.size;
-      console.log(fileSizeInBytes);
-      var parts = range.replace(/bytes=/, "").split("-");
-      var partialstart = parts[0];
-      var partialend = parts[1];
-      console.log(parts)
-  
-      var start = parseInt(partialstart, 10);
-      var end = partialend ? parseInt(partialend, 10) : fileSizeInBytes;
-      var chunksize = (end-start);
-      response.writeHead(206, {
-        'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
-        'Access-Control-Allow-Headers': 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Range',
-        'Content-Range': 'bytes ' + start + '-' + end + '/' + fileSizeInBytes,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
-        'Content-Type': 'audio/wav'
-      });
-
-      const buf = Buffer.alloc(chunksize);
-      //response.end(fs.readSync(filePath));
-      response.end(fs.readFileSync(filePath));
-
-    }
-
-  }
+  response.writeHead(200, { 'Content-Type': 'text/plain' });
+  response.end('This server is only used for WebSocket upgrades.');
 });
+
 
 server.on('upgrade', function upgrade(request, socket, head) {
   console.log('in upgrade function');
@@ -145,7 +99,7 @@ server.on('upgrade', function upgrade(request, socket, head) {
 
 server.listen(portNr)
 
-  
+console.log("before the local server now running");  
 console.log('########################################################');
 console.log('local server now running @: ws://' + host + ':' + portNr);
 console.log('########################################################');
@@ -155,8 +109,11 @@ wss.on('connection', function (ws) {
   console.log('INFO: client connected');
 
   ws.on('message', function (message) {
+
+
     // console.log('received: %s', message);
     var mJSO = JSON.parse(message);
+    console.log("mJSO.type: ",mJSO.type);
 
     switch (mJSO.type) {
       // GETPROTOCOL method
@@ -311,88 +268,64 @@ wss.on('connection', function (ws) {
       break;
 
       // GETBUNDLE method
-    case 'GETBUNDLE':
-
-      var bundle = {};
-      bundle.ssffFiles = [];
-      filewalker(pathToDbRoot)
-        .on('dir', function () {}).on('file', function (p) {
-          // var pattMedia = new RegExp('^SES[^/]+/' + mJSO.name + '/[^/]+' + dbConfig.mediafileExtension + '$');
-          var pattMedia = new RegExp('^.+_ses+/' + mJSO.name + '_bndl' + '/[^/]+' + dbConfig.mediafileExtension + '$');
-
-          // var pattAnnot = new RegExp('^SES[^/]+/' + mJSO.name + '/[^/]+' + 'json' + '$');
-          var pattAnnot = new RegExp('^.+_ses+/' + mJSO.name + '_bndl' + '/[^/]+' + 'json' + '$');
-
-          // read media file
-          if (pattMedia.test(p)) {
-            console.log(p);
-            bundle.mediaFile = {};
-            bundle.mediaFile.encoding = 'GETURL';
-            // bundle.mediaFile.filePath = p;
-            bundle.mediaFile.data = 'http://' + host + ':' + portNr + "?session=" + mJSO.session + "&bundle=" +  mJSO.name + "&fileExtension=" + dbConfig.mediafileExtension;
-            console.log(bundle.mediaFile);
-            console.log(mJSO);
-          }
-          // read annotation file
-          if (pattAnnot.test(p)) {
-            bundle.annotation = {};
-            bundle.annotation.filePath = p;
-          }
-          // read ssffTrackDefinitions
-
-          // for (var i = 0; i < dbConfig.ssffTrackDefinitions.length; i++) {
-          //   // var pattTrack = new RegExp('^SES[^/]+/' + mJSO.name + '/[^/]+' + dbConfig.ssffTrackDefinitions[i].fileExtension + '$');
-          //   var pattTrack = new RegExp('^.+_ses+/' + mJSO.name + '_bndl' + '/[^/]+' + dbConfig.ssffTrackDefinitions[i].fileExtension + '$');
-          //   if (pattTrack.test(p)) {
-          //     bundle.ssffFiles.push({
-          //       ssffTrackName: dbConfig.ssffTrackDefinitions[i].name,
-          //       encoding: 'BASE64',
-          //       filePath: p
-          //     });
-          //   }
-          // }
-
-
-        }).on('error', function (err) {
+      //Auto einai pou ginetai executed!
+      case 'GETBUNDLE':
+        console.log("Received GETBUNDLE for:", mJSO.name);
+        
+        // Check if gridFSRef is provided in the request
+        if (!mJSO.gridFSRef) {
           ws.send(JSON.stringify({
             'callbackID': mJSO.callbackID,
-            'status': {
-              'type': 'ERROR',
-              'message': 'Error getting bundle! Request type was: ' + mJSO.type + ' Error is: ' + err
-            }
-          }), undefined, 0);
-        }).on('done', function () {
-          console.log(mJSO)
-          // bundle.mediaFile.data = fs.readFileSync(pathToDbRoot + bundle.mediaFile.filePath, 'base64');
-          // delete bundle.mediaFile.filePath;
-
-          bundle.annotation = JSON.parse(fs.readFileSync(pathToDbRoot + bundle.annotation.filePath, 'utf8'));
-          delete bundle.annotation.filePath;
-          for (var key in ssffFilesMap) {
-              bundle.ssffFiles.push({
-                fileExtension: key,
+            'status': { 'type': 'ERROR', 'message': 'Missing gridFSRef in request' }
+          }));
+          break;
+        }
+        
+        try {
+          // Use the GridFSBucket to open a download stream.
+          let downloadStream = bucket.openDownloadStream(new ObjectId(mJSO.gridFSRef));
+          let chunks = [];
+          downloadStream.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
+          downloadStream.on('end', () => {
+            let buffer = Buffer.concat(chunks);
+            let base64Data = buffer.toString('base64');
+            
+            // Build the bundle object to return. 
+            // We’re assuming that for now we don’t need an annotation (or it can be empty)
+            let bundle = {
+              mediaFile: {
                 encoding: 'BASE64',
-                data: fs.readFileSync(pathToDbRoot + mJSO.session + '_ses/' + mJSO.name + '_bndl/' + mJSO.name + '.' + key, 'base64')
-              });
-          //   bundle.ssffFiles[i].data = fs.readFileSync(pathToDbRoot + bundle.ssffFiles[i].filePath, 'base64');
-          //   delete bundle.ssffFiles[i].filePath;
-          }
-
-          console.log('##########################');
-          console.log('done');
-          // fs.writeFileSync('/Users/raphaelwinkelmann/Desktop/bundle.json', JSON.stringify(bundle, undefined, 0));
+                data: base64Data,
+                type: mJSO.fileType || 'audio'
+              },
+              annotation: { levels: [], links: [] },
+              ssffFiles: [] // If not used, leave empty
+            };
+            console.log("Returning bundle from GridFS:", bundle);
+            ws.send(JSON.stringify({
+              'callbackID': mJSO.callbackID,
+              'data': bundle,
+              'status': { 'type': 'SUCCESS', 'message': '' }
+            }), undefined, 0);
+          });
+          downloadStream.on('error', (err) => {
+            console.error("Error reading file from GridFS:", err);
+            ws.send(JSON.stringify({
+              'callbackID': mJSO.callbackID,
+              'status': { 'type': 'ERROR', 'message': 'Error reading file from GridFS: ' + err }
+            }), undefined, 0);
+          });
+        } catch (e) {
+          console.error("Exception in GETBUNDLE:", e);
           ws.send(JSON.stringify({
             'callbackID': mJSO.callbackID,
-            'data': bundle,
-            'status': {
-              'type': 'SUCCESS',
-              'message': ''
-            }
+            'status': { 'type': 'ERROR', 'message': 'Exception: ' + e }
           }), undefined, 0);
-
-        }).walk();
-      break;
-
+        }
+        break;
+      
       // SAVEBUNDLE method
     case 'SAVEBUNDLE':
       console.log('### Pretending to save bundle:');
