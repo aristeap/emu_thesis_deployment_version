@@ -89,7 +89,9 @@ class LoadedMetaDataService{
 	* getter curBndl
 	*/
 	public getCurBndl() {
+		// console.log("the curBndl of the loaded-metadata service is: ",this.curBndl);
 		return this.curBndl;
+		
 	};
 	
 	/**

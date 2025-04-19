@@ -141,13 +141,16 @@ let EmuWebAppComponent = {
 				<!-- SETTINGS, SEARCH, and CLEAR buttons (always enabled for PDFs AND jpeg) -->
 				<button class="emuwebapp-mini-btn left" 
 						id="spectSettingsBtn" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.specSettings" 
-						ng-disabled="($ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay) && (! $ctrl.ViewStateService.getPermission('spectSettingsChange')) && ($ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay)"
+						ng-show="
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"							
 						ng-click="$ctrl.settingsBtnClick();">
 					<i class="material-icons">settings</i> settings
 				</button>
-				
-				<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB">
+
+				<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
 					<ul class="emuwebapp-dropdown-container">
 						<li class="left">
 							<button type="button" 
@@ -179,7 +182,7 @@ let EmuWebAppComponent = {
 				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται μονο στον developer (κατι με τα permissions οταν φτιαξω τους διαφορετικους χρηστες της βασης) -->
 				<button class="emuwebapp-mini-btn left" 
 						id="addToDatabaseButton" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect"
+						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
 						ng-click="$ctrl.addToDatabaseBtnClick()">
 							Add to database
 				</button>
@@ -188,13 +191,13 @@ let EmuWebAppComponent = {
 				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται σε ολους -->
 				<button class="emuwebapp-mini-btn left" 
 						id="openFromDatabaseButton" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect"
+						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
 						ng-click="$ctrl.openFromDatabaseBtnClick()">
 							Open from database
 				</button>
 
 				<button class="emuwebapp-mini-btn left" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect" 
+						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded" 
 						ng-disabled="!$ctrl.ViewStateService.getPermission('connectBtnClick')" 
 						ng-click="$ctrl.connectBtnClick();">
 					<i class="material-icons">input</i>{{connectBtnLabel}}
@@ -209,16 +212,18 @@ let EmuWebAppComponent = {
 				</button>
 		
 				<button class="emuwebapp-mini-btn left" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.search" 
-						ng-disabled="($ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay) && (! $ctrl.ViewStateService.getPermission('spectSettingsChange')) && ($ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay)"
+ 						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.search && ($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay)"						
 						ng-click="$ctrl.searchBtnClick();">
 					<i class="material-icons">search</i>search
 				</button>
 				
 				<button class="emuwebapp-mini-btn left" 
 						id="clear" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.clear" 
-						ng-disabled="($ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay) && (! $ctrl.ViewStateService.getPermission('spectSettingsChange')) && ($ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay)"
+						ng-show="
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"							
 						ng-click="$ctrl.clearBtnClick();">
 					<i class="material-icons">clear_all</i>clear
 				</button>
@@ -226,8 +231,12 @@ let EmuWebAppComponent = {
 				<!-- Add metadata button -->
 				<button class="emuwebapp-mini-btn left" 
 						id="MetadataButton" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.clear"
-						ng-click="$ctrl.MetadataButtonClick();">
+ 						ng-show="
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"						
+		  				ng-click="$ctrl.MetadataButtonClick();">
 					<i class="material-icons">star</i>Add metadata
 				</button>
 				
@@ -1207,6 +1216,7 @@ let EmuWebAppComponent = {
         
 		$onInit = function() {
 			this._inited = true;
+			
 			// Automatically connect to the WebSocket server
 			const wsUrl = 'ws://localhost:17890'; // This is your actual WebSocket URL.
 			this.IoHandlerService.WebSocketHandlerService.initConnect(wsUrl)

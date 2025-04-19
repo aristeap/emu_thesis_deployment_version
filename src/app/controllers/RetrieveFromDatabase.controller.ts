@@ -65,45 +65,48 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
         return alert("Please select a file first!");
       }
     
-      // 1) build the bundle
+      // build + stash the bundle
       const bundle = mapFileToBundle(vm.selectedFile);
-      console.log("Mapped bundle with fetchSelected:", bundle);
-    
-      // 2) stash it in the drag‑n‑drop data service
       DragnDropDataService.processFetchedBundle(bundle);
-    
-      // 3) point sessionDefault at that last bundle
       DragnDropDataService.setDefaultSession(
         DragnDropDataService.convertedBundles.length - 1
       );
     
-      // 4) update the sidebar list
-      let currentList = LoadedMetaDataService.getBundleList() || [];
-      const exists = currentList.some(
-        b => b.name === bundle.name && b.session === bundle.session
-      );
-      // if (!exists) {
-      //   currentList.push(bundle);
-      //   LoadedMetaDataService.setBundleList(currentList);
-      // }
-
-      if (!exists) {
-        // push only a minimal entry, like the drag‑n‑drop path does
-        currentList.push({
-          name: bundle.name,
-        session: bundle.session
-        });
-
-        LoadedMetaDataService.setBundleList(currentList);
+      // update sidebar (minimal entry)
+      let list = LoadedMetaDataService.getBundleList() || [];
+      if (!list.some(b => b.name === bundle.name && b.session === bundle.session)) {
+        list.push({ name: bundle.name, session: bundle.session });
+        LoadedMetaDataService.setBundleList(list);
       }
     
-      // 5) hide the drop‑zone and fire off the same loader as drag‑n‑drop
       ViewStateService.showDropZone = false;
-      DragnDropService.handleLocalFiles();
     
-      // 6) close the modal
+      // **only** auto-load audio:
+      if (bundle.mediaFile.type === 'audio') {
+        DragnDropService.handleLocalFiles();
+      }
+      // else {
+      //   DbObjLoadSaveService
+      //   .loadBundle(bundle, '')
+      //   .then(() => {
+      //     // once loaded & broadcast, your Image/PDF/Video controllers will pick it up
+      //   })
+      //   .catch(err => {
+      //     console.error("Failed to auto‑load fetched bundle:", err);
+      //   });
+      // }
+    
+
+
+
+
+
+
+
       ModalService.close(vm.selectedFile);
     };
+    
+    
 
     
     

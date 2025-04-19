@@ -2,8 +2,8 @@ import * as angular from 'angular';
 
 angular.module('emuwebApp')
 .controller('ImageController', [
-  '$scope', '$rootScope', 'DragnDropDataService', 'ImageStateService', 'LinguisticService', 'AnnotationService',
-  function($scope, $rootScope, DragnDropDataService, ImageStateService, LinguisticService, AnnotationService) {
+  '$scope', '$rootScope', 'DragnDropDataService', 'ImageStateService', 'LinguisticService', 'AnnotationService','LoadedMetaDataService','ViewStateService',
+  function($scope, $rootScope, DragnDropDataService, ImageStateService, LinguisticService, AnnotationService, LoadedMetaDataService, ViewStateService) {
     var vm = this;
 
     // Injected services
@@ -149,20 +149,67 @@ angular.module('emuwebApp')
     $scope.$watch(function() { return LinguisticService.mode; }, function(newMode) {
       vm.currentMode = newMode;
     });
+// ─────────── Helpers to set the image src ───────────
 
-    // Initialize the image source from the bundle.
-    function init() {
-      var currentIndex = DragnDropDataService.getDefaultSession();
-      var bundle = DragnDropDataService.convertedBundles[currentIndex];
-      if (bundle && bundle.mediaFile && bundle.mediaFile.type === 'IMG') {
-        vm.imgSrc = 'data:image/jpeg;base64,' + bundle.mediaFile.data;
-        // console.log("ImageController: imgSrc set");
-      } else {
-        console.warn("ImageController: No image data found for current bundle");
+    /** 
+     * If this bundle has a BASE64 image payload, build a data‑URL 
+     * and stick it in vm.imgSrc.
+     */
+    function applyBundle(bundle: any) {
+      console.log("inside applyBundle()");
+      console.log("bundle: ",bundle);
+      if (
+        bundle &&
+        bundle.mediaFile &&
+        bundle.mediaFile.encoding === 'BASE64'
+      ) {
+        const t = bundle.mediaFile.type.toLowerCase();
+        if (
+          t === 'img' ||
+          t === 'image' ||
+          t === 'jpeg' ||
+          t === 'jpg' ||
+          t.startsWith('image/')
+        ) {
+          const ext = bundle.name.split('.').pop().toLowerCase();
+          vm.imgSrc = `data:image/${ext};base64,${bundle.mediaFile.data}`;
+          console.log("ImageController imgSrc set to:", vm.imgSrc);
+        }
       }
     }
+    
+    function init() {
 
-    $scope.$on('nonAudioBundleLoaded', init);
+      console.log("inside the init() of the image.controller.ts, before i call the getCur of the loaded-metadata");
+
+      // drag‑n‑drop
+      const idx = DragnDropDataService.getDefaultSession();
+      const ddBndl  = DragnDropDataService.convertedBundles[idx];
+
+      if(ddBndl.mediaFile.encoding === 'GETURL'){
+        const fullBndl = LoadedMetaDataService.getCurBndl();
+        console.log("Falling back to full curBndl:", fullBndl);
+
+        applyBundle(fullBndl);
+              
+        ViewStateService.getCurStateName();
+
+      }else if(ddBndl.mediaFile.encoding === 'BASE64'){
+        applyBundle(ddBndl);
+        ViewStateService.getCurStateName();
+        
+      }
+
+
+    }
+    
+    $scope.$on('nonAudioBundleLoaded', (_e, args: {bundle:any}) => {
+      console.log("Inside the nonAudioBundleLoaded() of the image.controller.ts++++++++++++++++++++++++++++++++++++++++++++++");
+
+      console.log("ImageController got nonAudioBundleLoaded:", args.bundle);
+      applyBundle(args.bundle);
+    });
+    
     init();
   }
 ]);
