@@ -85,16 +85,17 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
       if (bundle.mediaFile.type === 'audio') {
         DragnDropService.handleLocalFiles();
       }
-      // else {
-      //   DbObjLoadSaveService
-      //   .loadBundle(bundle, '')
-      //   .then(() => {
-      //     // once loaded & broadcast, your Image/PDF/Video controllers will pick it up
-      //   })
-      //   .catch(err => {
-      //     console.error("Failed to auto‑load fetched bundle:", err);
-      //   });
-      // }
+      else if (bundle.mediaFile.type === 'video') {
+        console.log("from inside the retrieveFromDatabase controller for the video, that calls the loadBundle");
+        DbObjLoadSaveService
+        .loadBundle(bundle, '')
+        .then(() => {
+          // once loaded & broadcast, your Image/PDF/Video controllers will pick it up
+        })
+        .catch(err => {
+          console.error("Failed to auto‑load fetched bundle:", err);
+        });
+      }
     
 
 
@@ -105,52 +106,6 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
 
       ModalService.close(vm.selectedFile);
     };
-    
-    
-
-    
-    
-    
-    // vm.fetchSelected = function() {
-    //   if (vm.selectedFile) {
-    //     // console.log("Fetching file:", vm.selectedFile);
-    //     // Build a bundle object using mapFileToBundle()
-    //     const bundle = mapFileToBundle(vm.selectedFile);
-    //     console.log("Mapped bundle with fetchSelected:", bundle);
-        
-    //      // Process this bundle as if it were drag-and-dropped.
-    //     DragnDropDataService.processFetchedBundle(bundle);
-
-    //     // Retrieve the existing bundle list from LoadedMetaDataService and update it
-    //     let currentList = LoadedMetaDataService.getBundleList() || [];
-    //     const exists = currentList.some(b => b.name === bundle.name && b.session === bundle.session);
-    //     if (!exists) {
-    //       console.log("Inside !exists+++++++++++++++++++++++++++++++++++++++++++");
-    //       currentList.push(bundle);
-    //       LoadedMetaDataService.setBundleList(currentList);
-    //       ViewStateService.setState('labeling');
-
-
-    //     } else {
-    //       console.log("Bundle already exists, not adding again.");
-    //     }
-    //     ViewStateService.showDropZone = false;
-
-    //      // Optionally trigger a digest cycle if needed:
-    //     $scope.$evalAsync(function() {
-    //       console.log("Updated bundle list:", currentList);
-    //     });
-
-    //     console.log("before making the setState loadingSaving");
-    //     ViewStateService.setState('loadingSaving');
-
-        
-    //     ModalService.close(vm.selectedFile);
-    //   } else {
-    //     alert("Please select a file first!");
-    //   }
-    // };
-    
     
     
     

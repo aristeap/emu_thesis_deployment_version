@@ -149,7 +149,10 @@ angular.module('emuwebApp')
     $scope.$watch(function() { return LinguisticService.mode; }, function(newMode) {
       vm.currentMode = newMode;
     });
-// ─────────── Helpers to set the image src ───────────
+
+
+    
+    // ─────────── Helpers to set the image src ───────────
 
     /** 
      * If this bundle has a BASE64 image payload, build a data‑URL 

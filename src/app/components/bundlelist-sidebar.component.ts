@@ -5,9 +5,9 @@ let BundleListSideBarComponent = {
 	template: /*html*/`
 	<div class="emuwebapp-bundle-outer" log-element="inside the html part of the bundlelist-sidebar.component.ts">
 
-	<pre style="background: #f8f8f8; border: 1px solid #ccc; padding: 5px; color:black;">
+	<!-- <pre style="background: #f8f8f8; border: 1px solid #ccc; padding: 5px; color:black;">
   		{{ $ctrl.LoadedMetaDataService.getRendOptBndlList() | json }}
-	</pre>	
+	</pre>	-->
 
 	<div>
 		<h3>

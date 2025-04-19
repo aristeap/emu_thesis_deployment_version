@@ -110,13 +110,13 @@
         "useLargeTextInputField": false
     },
     "activeButtons": {
-        "addLevelSeg": false,
+        "addLevelSeg": true,
         "addLevelEvent": false,
-        "renameSelLevel": false,
+        "renameSelLevel": true,
         "addSpeaker": true,
         "renameSpeaker": true,
         "downloadTextGrid": false,
-        "downloadAnnotation": false,
+        "downloadAnnotation": true,
         "specSettings": false,
         "connect": true,
         "search": true,

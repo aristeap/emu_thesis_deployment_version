@@ -40,6 +40,12 @@ let AnnotationTableComponent = {
       var vm = this;
       vm.rows = [];
       
+      // expose a refreshTable() for your button
+      vm.refreshTable = () => {
+        updateRows();
+      };
+
+
       function updateRows() {
         vm.rows = [];
         // Get levels from the DataService (assumes DataService.data.levels exists)

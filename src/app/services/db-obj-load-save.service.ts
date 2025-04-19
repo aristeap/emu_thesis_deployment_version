@@ -310,7 +310,7 @@ class DbObjLoadSaveService{
 				  defer.resolve();
 				}
 				// ─── AUDIO (BASE64) ─────────────────────────────────────────────────────
-				else if (bundleData.mediaFile.encoding === 'BASE64') {
+				else if (bundleData.mediaFile.encoding === 'BASE64') {	
 
 					console.log("Inside the BASE64_________________________________________________________________________________");
 
@@ -358,18 +358,24 @@ class DbObjLoadSaveService{
 
 						// 4) dispatch based on the *type* field you already set in mapFileToBundle()
 						const t = bundleData.mediaFile.type.toLowerCase();
+
+						console.log("The t is-----------------------------------------------------------------: ",t);
 				
 						// ─── PDF ─────────────────────────────
-						if (t === 'pdf' || t === 'application/pdf') {
-							this.LoadedMetaDataService.setCurBndl(bndl);
-							this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
+						if (t === 'pdf' || t === 'application') {
+							console.log("inside the pdf part _______________________________________________________________________");
+							this.LoadedMetaDataService.setCurBndl(fullBndl);
 							this.ViewStateService.setState(this.ViewStateService.states.nonAudioDisplay);
+
+							this.ViewStateService.somethingInProgress = false;
+							this.ViewStateService.somethingInProgressTxt = 'Done!';
+
+							this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: fullBndl });
 							defer.resolve();
 				
 						// ─── IMAGE ────────────────────────────
 						} else if (t === 'img' || t === 'jpeg' || t === 'jpg' ||  t === 'image' || t.startsWith('image/')) {
 							console.log("inside the img part _______________________________________________________________________");
-							console.log("fullBundle() from inside the loadBUndle img part: ",fullBndl);
 
 							this.LoadedMetaDataService.setCurBndl(fullBndl);
 							this.ViewStateService.setState(this.ViewStateService.states.JpegDisplay);
@@ -379,32 +385,62 @@ class DbObjLoadSaveService{
   							this.ViewStateService.somethingInProgressTxt = 'Done!';
 							
 							this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: fullBndl });
-							console.log("we broadcasted the nonAudioBundleLoaded with th fullBundle");
 							defer.resolve();
 				
 						// ─── VIDEO ────────────────────────────
 						} else if (t === 'video' || t === 'mp4' || t.startsWith('video/')) {
-							// decode audio so the waveform will show up
+
+							console.log("inside the video part _______________________________________________________________________");
+
 							this.VideoParserService.parseVideoAudioBuf(arr)
-								.then((audioBuf) => {
+							.then((audioBuf) => {
+								// 1) stash the decoded audio
 								this.SoundHandlerService.audioBuffer = audioBuf;
-								bndl.annotation = {
-									levels: [],
-									links: [],
-									sampleRate: audioBuf.sampleRate,
-									annotates: bndl.name,
-									name: bndl.name
-								};
-								this.LoadedMetaDataService.setCurBndl(bndl);
-								this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
+						
+								// 2) seed the viewport so the waveform spans the entire audio buffer
+								this.ViewStateService.setViewPort(0, audioBuf.length);
+						
+								// 3) now hand over the full bundle and flip to video mode
+								this.LoadedMetaDataService.setCurBndl(fullBndl);
 								this.ViewStateService.setState(this.ViewStateService.states.videoDisplay);
+
+								//**reset** the perspective index so LevelService can find it
+								this.ViewStateService.switchPerspective(
+									0,
+									this.ConfigProviderService.vals.perspectives
+								);
+
+								this.ViewStateService.somethingInProgress = false;
+								this.ViewStateService.somethingInProgressTxt = 'Done!';
+
+								// 4) initialize DataService.data.levels & links so your LevelController has
+								//    exactly one empty level object per canvas in the current perspective:
+								this.DataService.data = this.DataService.data || {};
+								this.DataService.data.links  = [];
+								this.DataService.data.levels = [];
+
+								const pers = this.ConfigProviderService.vals
+								.perspectives[this.ViewStateService.curPerspectiveIdx];
+									pers.levelCanvases.order.forEach((lvlName: string) => {
+										// look up the levelDefinition safely:
+										const def = this.ConfigProviderService
+													.getLevelDefinition(lvlName);
+										this.DataService.data.levels.push({
+										name: def.name || lvlName,
+										type: def.type || 'SEGMENT',
+										items: []
+										});
+									});
+
+								this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: fullBndl });
+						
 								defer.resolve();
-								})
-								.catch(err => {
-								console.error("Video audio decode error:", err);
-								this.ModalService.open('views/error.html', 'Error decoding video audio: ' + err);
-								defer.reject(err);
-								});
+							})
+							.catch(err => {
+							  console.error("Video audio decode error:", err);
+							  this.ModalService.open('views/error.html', 'Error decoding video audio: ' + err);
+							  defer.reject(err);
+							});
 				
 						// ─── FALL BACK TO AUDIO ───────────────
 						} else {
@@ -583,4 +619,4 @@ class DbObjLoadSaveService{
 }
 
 angular.module('emuwebApp')
-.service('DbObjLoadSaveService', ['$log', '$q', '$http','$rootScope','$timeout','DataService', 'ViewStateService', 'HistoryService', 'LoadedMetaDataService', 'SsffDataService', 'IoHandlerService', 'BinaryDataManipHelperService', 'WavParserService', 'SoundHandlerService', 'SsffParserService', 'ValidationService', 'LevelService', 'ModalService', 'ConfigProviderService', 'AppStateService', 'StandardFuncsService','DragnDropDataService', DbObjLoadSaveService]);
+.service('DbObjLoadSaveService', ['$log', '$q', '$http','$rootScope','$timeout','DataService', 'ViewStateService', 'HistoryService', 'LoadedMetaDataService', 'SsffDataService', 'IoHandlerService', 'BinaryDataManipHelperService', 'WavParserService', 'SoundHandlerService', 'SsffParserService', 'ValidationService', 'LevelService', 'ModalService', 'ConfigProviderService', 'AppStateService', 'StandardFuncsService','DragnDropDataService', 'VideoParserService', DbObjLoadSaveService]);

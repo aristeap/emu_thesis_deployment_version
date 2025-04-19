@@ -112,11 +112,42 @@ angular.module('emuwebApp')
       vm.linguisticMode = newMode;
     });
 
-    function init() {
-      const currentIndex = DragnDropDataService.getDefaultSession();
-      const bundle = DragnDropDataService.convertedBundles[currentIndex];
-      vm.pdfState.pdfData = (bundle && bundle.mediaFile && bundle.mediaFile.type === 'PDF') ? bundle.mediaFile.data : null;
+    // ─────────── Helpers to set the PDF data ───────────
+    function applyBundle(bundle: any) {
+      console.log("inside applyBundle() of PdfController:", bundle);
+      if (
+        bundle &&
+        bundle.mediaFile &&
+        bundle.mediaFile.encoding === 'BASE64'
+      ) {
+        vm.pdfState.pdfData = bundle.mediaFile.data;
+        console.log("PdfController pdfData set to Base64 payload");
+      }
     }
+
+   // ─────────── Initialization ───────────
+   function init() {
+      console.log("inside init() of PdfController");
+      const idx    = DragnDropDataService.getDefaultSession();
+      const ddBndl = DragnDropDataService.convertedBundles[idx];
+
+      if (ddBndl.mediaFile.encoding === 'GETURL') {
+        // fetched‑file case: pull the full Base64 bundle
+        const fullBndl = LoadedMetaDataService.getCurBndl();
+        console.log("PdfController falling back to fullBndl:", fullBndl);
+        applyBundle(fullBndl);
+
+      } else if (ddBndl.mediaFile.encoding === 'BASE64') {
+        // drag‑n‑drop case: use the convertedBundles entry directly
+        applyBundle(ddBndl);
+      }
+    }
+
+    // ─────────── Listen for loaded bundles ───────────
+    $scope.$on('nonAudioBundleLoaded', (_e, args: { bundle: any }) => {
+      console.log("PdfController got nonAudioBundleLoaded:", args.bundle);
+      applyBundle(args.bundle);
+    });
     
     $scope.$on('nonAudioBundleLoaded', init);
     $scope.$on('pdfLoaded', function(e, totalPages) {

@@ -46,7 +46,8 @@ let EmuWebAppComponent = {
 
 				<!-- PHONETIC TRANSCRIPTION (hidden in PDF mode and JPEG mode) -->
 				<div class="emuwebapp-mini-btn left" 
-					ng-show="($ctrl.ConfigProviderService.vals.activeButtons.addLevelSeg || $ctrl.ConfigProviderService.vals.activeButtons.addLevel || $ctrl.ConfigProviderService.vals.activeButtons.renameSelLevel)
+					ng-show="$ctrl.LoadedMetaDataService.getCurBndlName() 
+							&& ($ctrl.ConfigProviderService.vals.activeButtons.addSpeaker || $ctrl.ConfigProviderService.vals.activeButtons.renameSpeaker)
 							&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
 					<ul class="emuwebapp-dropdown-container">
 						<li>
@@ -150,7 +151,7 @@ let EmuWebAppComponent = {
 					<i class="material-icons">settings</i> settings
 				</button>
 
-				<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
+			<!--<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
 					<ul class="emuwebapp-dropdown-container">
 						<li class="left">
 							<button type="button" 
@@ -176,7 +177,7 @@ let EmuWebAppComponent = {
 							</ul>
 						</li>
 					</ul>
-				</div>
+				</div>	-->
 
 				<!-- NEW: the button that will add files to the database---------------------------------->
 				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται μονο στον developer (κατι με τα permissions οταν φτιαξω τους διαφορετικους χρηστες της βασης) -->
@@ -196,12 +197,12 @@ let EmuWebAppComponent = {
 							Open from database
 				</button>
 
-				<button class="emuwebapp-mini-btn left" 
+			<!--	<button class="emuwebapp-mini-btn left" 
 						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded" 
 						ng-disabled="!$ctrl.ViewStateService.getPermission('connectBtnClick')" 
 						ng-click="$ctrl.connectBtnClick();">
 					<i class="material-icons">input</i>{{connectBtnLabel}}
-				</button>
+				</button>	-->
 				
 				<button class="emuwebapp-mini-btn left" 
 						id="showHierarchy" 
@@ -1914,7 +1915,7 @@ let EmuWebAppComponent = {
 				this.LevelService
 			  );
 			}
-		  }
+		}
 		  
 
 		private renameSpeakerBtnClick() {

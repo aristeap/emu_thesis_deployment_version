@@ -190,16 +190,35 @@ class ConfigProviderService {
 	/**
 	 *
 	 */
-	public getLevelDefinition(levelName) {
-		var res = {} as any;
-		this.curDbConfig.levelDefinitions.forEach((ld) => {
-			if (ld.name === levelName) {
-				res = ld;
-			}
-		});
+	// public getLevelDefinition(levelName: string) {
+	// 	// try to find an existing definition
+	// 	const found = this.curDbConfig.levelDefinitions
+	// 	  .find(ld => ld.name === levelName);
+	  
+	// 	if (found) {
+	// 	  return found;
+	// 	}
+	  
+	// 	// fallback for brand‑new levels (e.g. SpeakerNr0, EmbodiedAction1, …)
+	// 	console.warn(`No levelDefinition for “${levelName}” – falling back to a single‑string tier`);
+	// 	return {
+	// 	  name: levelName,
+	// 	  // mirror the same minimal shape your code expects:
+	// 	  attributeDefinitions: [
+	// 		{ name: levelName, type: 'string' }
+	// 	  ]
+	// 	};
+	// }
 
-		return res;
-	};
+	  public getLevelDefinition(levelName: string) {
+  // make sure we always have an array to search
+  const defs = (this.curDbConfig && this.curDbConfig.levelDefinitions)
+             ? this.curDbConfig.levelDefinitions
+             : [];
+  // safely find or return an empty object
+  return defs.find(ld => ld.name === levelName) || {};
+}
+
 
 	/**
 	 *
