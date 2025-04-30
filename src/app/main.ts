@@ -53,7 +53,7 @@ import "../styles/customAngularuiModal.scss";
 import "../styles/largeTextInputField.scss";
 import "../styles/levelCanvasesGrid.scss";
 //import "../styles/MetadataButton.scss";
-import "../views/form.scss";
+import "../styles/auth.scss";
 
 
 // import {NgModule} from '@angular/core';

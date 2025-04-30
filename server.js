@@ -9,6 +9,11 @@ const port = 3019;
 const multer = require('multer');
 const upload = multer(); // Initialize multer for parsing multipart form data
 
+//for user login and signup---------------------------------------------------------:
+//1. Dependencies : bcrypt secures passwords
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;   //controls how “strong” (and therefore how slow) each hash is—it’s a balance between security and performance.
+
 // Middleware
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
@@ -17,12 +22,47 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'src/views'))); // For HTML and other assets
 
+
+
+const Users = require('./src/models/User');
+// // 2. User schema/model: has email, hashed password, role (by default simle user)
+// const userSchema = new mongoose.Schema({
+//   email:    { type: String, required: true, unique: true },
+//   password: { type: String, required: true },
+//   role:     { type: String, default: 'simple' }  // simple user by default
+// });
+// const Users = mongoose.model('User', userSchema);
+
+//bcrypt.hash is a one way hashing για τους κωδικους χρηστη. Δηλαδη οταν ο χρηστης κανει sign up, παιρνει τον κωδικα και τον πεταει μεσα σε μια hash function που κανει το 
+//  'MyS3cr3t!' σε $2b$10$VhQx…. Αλλα απο το $2b$10$VhQx… δεν μπορει να βγει το 'MyS3cr3t!'. Οταν ο χρηστης κανει log in και βαζει τον κωδικο του, τον παιρνει και τον κανει hash,αν το αποτελεσμα
+// ειναι ιδιο με καποιο που υπαρχει στη βαση τοτε γινεται succefull login. Με αυτο τον τροπο δν μαντευεται και ποτε ο κωδικος .
+app.post('/signup', async (req, res) => {
+  const { email, password } = req.body;
+  const hash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  await new Users({ email, password: hash, role: 'simple' }).save();
+
+  res.json({ success: true });
+});
+
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  const user = await Users.findOne({ email });
+  if (!user) return res.status(401).json({ success: false, message: 'No such user' });
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) return res.status(401).json({ success: false, message: 'Bad password' });
+  res.json({ success: true, role: user.role });
+});
+
+
+
 // Connect to MongoDB for main metadata and GridFS
 mongoose.connect('mongodb://127.0.0.1:27017/metadata_db', { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
-// db.once('open', () => {
-//     console.log('MongoDB connection successful');
-// });
+ db.once('open', () => {
+     console.log('MongoDB connection successful');
+ });
 
 // Schemas and Models
 const recordingSchema = new mongoose.Schema({
@@ -64,11 +104,7 @@ const Contents = mongoose.model('Content', contentSchema);
 const Languages = mongoose.model('Language', languageSchema);
 
 
-// NEW: Connect to MongoDB for PDF metadata (new database)
-const pdfConnection = mongoose.createConnection('mongodb://127.0.0.1:27017/metadata_forpdf_db', { useNewUrlParser: true, useUnifiedTopology: true });
-pdfConnection.once('open', () => {
-    console.log('PDF MongoDB connection successful');
-});
+//NEW: Connect to MongoDB for PDF metadata (same metadata_db database but different collections)
 
 // New schemas for PDF metadata
 const pdfCorpusSchema = new mongoose.Schema({
@@ -97,9 +133,9 @@ const pdfLanguageSchema = new mongoose.Schema({
 });
 
 // Models for PDF metadata (using pdfConnection)
-const PdfCorpus = pdfConnection.model('PdfCorpus', pdfCorpusSchema);
-const PdfAuthor = pdfConnection.model('PdfAuthor', pdfAuthorSchema);
-const PdfLanguage = pdfConnection.model('PdfLanguage', pdfLanguageSchema);
+const PdfCorpus = mongoose.model('PdfCorpus', pdfCorpusSchema);
+const PdfAuthor = mongoose.model('PdfAuthor', pdfAuthorSchema);
+const PdfLanguage = mongoose.model('PdfLanguage', pdfLanguageSchema);
 
 
 // Handle MetadataButton.component.html submissions
@@ -283,11 +319,7 @@ app.post("/save-pdf-metadata", async (req, res) => {
 
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
-// NEW: Connect to MongoDB for Image metadata (new database)
-const imgConnection = mongoose.createConnection('mongodb://127.0.0.1:27017/metadata_forimg_db', { useNewUrlParser: true, useUnifiedTopology: true });
-imgConnection.once('open', () => {
-    console.log('Image MongoDB connection successful');
-});
+// NEW: Connect to MongoDB for Image metadata (same metadata_db database but different collections)
 
 // New schemas for Image metadata
 const imgImageSchema = new mongoose.Schema({
@@ -308,9 +340,9 @@ const imgTechSchema = new mongoose.Schema({
 });
 
 // Models for Image metadata (using imgConnection)
-const ImgImage = imgConnection.model('ImgImage', imgImageSchema);
-const ImgBasic = imgConnection.model('ImgBasic', imgBasicSchema);
-const ImgTech = imgConnection.model('ImgTech', imgTechSchema);
+const ImgImage = mongoose.model('ImgImage', imgImageSchema);
+const ImgBasic = mongoose.model('ImgBasic', imgBasicSchema);
+const ImgTech = mongoose.model('ImgTech', imgTechSchema);
 
 // ------------------------------
 // Routes for Image metadata submissions

@@ -2,7 +2,7 @@ import * as angular from 'angular';
 
 import { HierarchyWorker } from '../workers/hierarchy.worker';
 import styles from '../../styles/EMUwebAppDesign.scss';
-
+import { AuthService, IUser } from '../services/auth.service';
 
 let EmuWebAppComponent = {
     selector: "emuwebapp",
@@ -183,7 +183,7 @@ let EmuWebAppComponent = {
 				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται μονο στον developer (κατι με τα permissions οταν φτιαξω τους διαφορετικους χρηστες της βασης) -->
 				<button class="emuwebapp-mini-btn left" 
 						id="addToDatabaseButton" 
-						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+						ng-show="$ctrl.canAdd && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
 						ng-click="$ctrl.addToDatabaseBtnClick()">
 							Add to database
 				</button>
@@ -929,8 +929,9 @@ let EmuWebAppComponent = {
 		'$document',
 		'$location',
 		'$timeout',
-		'$http',  // Add $http here
-		'ViewStateService',
+		'$http',
+		'ViewStateService',  
+		'AuthService',
 		'HistoryService',
 		'IoHandlerService',
 		'SoundHandlerService',
@@ -959,7 +960,8 @@ let EmuWebAppComponent = {
 		private $location;
 		private $timeout;
 		private $http;
-        private ViewStateService;
+		private canAdd: boolean;	
+		private ViewStateService;
         private HistoryService;
         private IoHandlerService;
         private SoundHandlerService;
@@ -1010,8 +1012,9 @@ let EmuWebAppComponent = {
             $document,
 			$location,
 			$timeout,
-			$http,  // Add $http here
+			$http,  
             ViewStateService,
+			private authService: AuthService,
             HistoryService,
             IoHandlerService,
             SoundHandlerService,
@@ -1094,6 +1097,8 @@ let EmuWebAppComponent = {
 				// bind keys
 				this.HandleGlobalKeyStrokes.bindGlobalKeys();
 				
+				const u: IUser|null  = this.authService.getUser();
+				this.canAdd = !!u && u.role !== 'simple';
 				
 				//this.recordingName = 'Example Recording Name'; // Set your desired value here
 				//this.simpleService = simpleService;

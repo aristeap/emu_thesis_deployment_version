@@ -1,0 +1,102 @@
+// src/styles/auth.scss
+
+// 1. Brand color
+$color-blue: #0DC5FF;
+$color-black: #000;
+
+
+// 2. Reset & full‑viewport background
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+   background: $color-black ;
+  // background :$color-grey;
+  overflow: hidden;  // remove unwanted scrollbars
+}
+
+// 3. Center the login box
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;    // fill viewport height
+}
+
+// 4. Login form container
+.auth-box {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 320px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+
+  h2 { margin-bottom: 1rem; }
+
+  .tabs {
+    display: flex;
+    margin-bottom: 1rem;
+
+    button {
+      flex: 1;
+      padding: .5rem;
+      border: none;
+      background: #f0f0f0;
+      cursor: pointer;
+
+      &.active {
+        //background: linear-gradient(90deg, #1e3c72, #2a5298);
+        background: $color-blue;
+
+        color: #fff;
+      }
+    }
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+
+    input {
+      width: 100%;
+      padding: .6rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  }
+
+  .forgot {
+    display: block;
+    text-align: right;
+    font-size: .85rem;
+    margin-bottom: 1rem;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: .7rem;
+    border: none;
+    border-radius: 4px;
+    //background: linear-gradient(90deg, #1e3c72, #2a5298);
+    background: $color-blue;
+    cursor: pointer;
+
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  .switch {
+    margin-top: 1rem;
+    font-size: .9rem;
+
+    a {
+      //color: #1e3c72;
+      color : $color-blue; 
+      text-decoration: none;
+    }
+  }
+}
