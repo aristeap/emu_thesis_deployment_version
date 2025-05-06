@@ -1,0 +1,52 @@
+<!--HTML for structure, ng-model for binding, and the controller for wiring up Save/Cancel to real logic-->
+
+<div class="emuwebapp-modal-wrap" ng-controller="SignUpAdminsCtrl as vm">
+    <!-- Header -->
+    <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+      <h3 id="modalHeading" style="margin: 0;">
+        Sign up Administrators for each SK
+      </h3>
+    </div>
+  
+    <!-- Body: a simple form with two inputs -->
+    <div class="emuwebapp-modal-body">
+
+        <form name="vm.form" novalidate>
+
+            <div>
+                <!-- Email field -->               
+                <label for="adminEmail">Email</label>
+                <input type="email" id="adminEmail" class="emuwebapp-input" ng-model="vm.newAdmin.email"  ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" placeholder="admins@domain.com" required />
+            </div>    
+
+            <div>
+              <!-- Password field -->
+              <label for="adminPassword">Password</label>
+              
+              <div class="password-wrapper">
+                    <!--vm.showPassword is a boolean on your controller (true if you want to show the text, false if you want dots).-->
+                    <!--Without the ng-attr- prefix, Angular would try to interpolate type="{{…}}" too late for the browser to pick up, so your input would always stay password-masked. The ng-attr- pattern fixes that timing issue.-->
+                    <input ng-attr-type="{{ vm.showPassword ? 'text' : 'password' }}" id="adminPassword" class="emuwebapp-input" ng-model="vm.newAdmin.password"  ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" placeholder="••••••••" required /> 
+                    
+                    <!-- toggle icon to view the password the user has written-->
+                    <!--The title attribute is the tooltip text that appears when you hover over the icon. In this case if showPassword is true it will show the 'Hide password' when hovering
+                      over the toggle icon. If showPasword is false it will show the 'Show password'-->
+                    <i class="material-icons toggle-password" ng-click="vm.showPassword = !vm.showPassword" title="{{ vm.showPassword ? 'Hide password' : 'Show password' }}">
+                      {{ vm.showPassword ? 'visibility_off' : 'visibility' }}
+                    </i>
+              </div>
+            
+            </div>
+
+        </form>
+
+    </div>
+  
+    <!-- Footer: Cancel and Save buttons -->
+    <div class="emuwebapp-modal-footer">
+      <button ng-click="vm.cancel()" class="emuwebapp-mini-btn">Cancel</button>
+      <button ng-click="vm.save()"class="emuwebapp-mini-btn">Sign Up</button>
+    </div>
+  </div>
+  
+

@@ -1,0 +1,65 @@
+.forms-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-left: 2rem;
+    margin-top: 1.0rem;
+
+    .add-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5em;
+        height: 1.5em;
+        background-color: #3dccff;  // pick a color that works on your header
+        color: #fff;                // icon color
+        border-radius: 50%;
+        font-size: 1rem;            // scale the “+” inside
+        margin-right: 0.5rem;       // space between circle and “Files”
+        vertical-align: middle;
+        cursor: pointer;
+    }
+           
+
+
+   #fileSelect {
+        margin-right: 2rem;
+        width: 100%;                //always fill the parent, no matter how wide that parent got
+        max-width: 290px;
+    }
+
+
+    label {
+      flex: 0 0 auto;
+      font-size: 1rem;
+      color: #eee;
+      margin-right: 0.2rem;
+      vertical-align: middle;
+
+    }
+  
+    .chooseAdmins-input {
+
+        width: 100%;                //always fill the parent, no matter how wide that parent got
+        max-width: 210px;           //upper limit if the parent is too large 
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+        border: 2px solid #555;
+        // margin-top: 1.0rem;
+        // margin-top: 0rem;
+        border-radius: 4px;
+        background: #333;
+        color: #fff;
+        padding-right: 2.5rem;
+        vertical-align: middle;
+        
+
+        &:focus {
+            outline: none;
+            border-color: #3dccff;
+        }
+    }
+
+
+  }
+  

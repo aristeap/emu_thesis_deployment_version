@@ -10,9 +10,12 @@ const fileMetadataSchema = new Schema({
   fileName: { type: String, required: true },
   uploadDate: { type: Date, default: Date.now },
   gridFSRef: { type: Schema.Types.ObjectId, ref: 'fs.files' },
+  //new: who the EY picked to be the administrator of the EY
+  adminEmail: {type: String, default:null},
+
   // Optional fields
   duration: Number,         // for audio/video files
-  resolution: String        // for image/video files (e.g., '1920x1080')
+  resolution: String       // for image/video files (e.g., '1920x1080')
 });
 
 module.exports = mongoose.model('FileMetadata', fileMetadataSchema);

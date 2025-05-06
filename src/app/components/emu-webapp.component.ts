@@ -22,7 +22,6 @@ let EmuWebAppComponent = {
 			open="$ctrl.ViewStateService.bundleListSideBarOpen">
 		</bundle-list-side-bar>  
 		<!-- end: left side menu bar -->
-
 		<!-- start: main window -->
 		<div class="emuwebapp-window" id="mainWindow">
 			<progress-bar 
@@ -189,13 +188,29 @@ let EmuWebAppComponent = {
 				</button>
 
 				<!-- NEW: the button that will open the files that are stored to the database---------------------------------->
-				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται σε ολους -->
 				<button class="emuwebapp-mini-btn left" 
 						id="openFromDatabaseButton" 
 						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
 						ng-click="$ctrl.openFromDatabaseBtnClick()">
 							Open from database
 				</button>
+
+				<!-- NEW: the button that will allow the EY to specify admins for each ΣΚ---------------------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="chooseAdminsButton" 
+        				ng-show="$ctrl.canChooseAdmins && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+       	 				ng-click="$ctrl.chooseAdminsBtnClick()">
+							Choose admins for database files
+				</button>
+
+				<!-- NEW: the button that will allow the EY to sing up admins so later he can choose them for ΣΚ----------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="signUpAdminsButton" 
+        				ng-show="$ctrl.canChooseAdmins && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+       	 				ng-click="$ctrl.signUpAdminsBtnClick()">
+							Sign up admins
+				</button>
+
 
 			<!--	<button class="emuwebapp-mini-btn left" 
 						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded" 
@@ -961,6 +976,7 @@ let EmuWebAppComponent = {
 		private $timeout;
 		private $http;
 		private canAdd: boolean;	
+		private canChooseAdmins: boolean;
 		private ViewStateService;
         private HistoryService;
         private IoHandlerService;
@@ -1100,6 +1116,8 @@ let EmuWebAppComponent = {
 				const u: IUser|null  = this.authService.getUser();
 				this.canAdd = !!u && u.role !== 'simple';
 				
+				this.canChooseAdmins = !!u && u.role === 'EY';
+
 				//this.recordingName = 'Example Recording Name'; // Set your desired value here
 				//this.simpleService = simpleService;
 
@@ -2090,7 +2108,38 @@ let EmuWebAppComponent = {
 		}
 		  
 		  
-  
+		private chooseAdminsBtnClick(): void {
+			this.$http.get('http://localhost:3019/files')
+			.then((response: any) => {
+			  const files = response.data;
+			  // console.log("Files retrieved from database:", files);
+			  this.ModalService.data = { files: files };
+			  this.ModalService.open('views/chooseAdmins.html')
+				.then((selectedFile: any) => {
+				  if (selectedFile) {
+					console.log("Selected file from DB:", selectedFile);
+					// Here you could also use FileMappingService if needed, 
+					// or leave that mapping to the modal controller.
+				  }
+				})
+				.catch((err: any) => {
+				  console.error("Modal was closed without selecting a file:", err);
+				});
+			})
+			.catch((error: any) => {
+			  console.error("Error retrieving files from database:", error);
+			});		
+		}
+		  
+
+		//Clicking “Choose admins…” opens the modal, data flows two-way into vm.newAdmin, 
+		// and hitting Save sends a request to your server and then closes the modal.
+		private signUpAdminsBtnClick() {
+			this.ModalService.open('views/signUpAdmins.html')
+			  .then(newAdmin => {
+				// console.log('Administrator created:', newAdmin);
+			  });
+		}
 		  
 		  
 		

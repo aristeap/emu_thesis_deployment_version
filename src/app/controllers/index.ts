@@ -13,3 +13,5 @@ import "./image.controller";
 import "./video.controller";
 import "./RetrieveFromDatabase.controller";
 import  "./auth.controller";
+import "./signUpAdmins.controller";
+import "./chooseAdmins.controller";

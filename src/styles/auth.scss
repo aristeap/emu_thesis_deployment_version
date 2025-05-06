@@ -59,6 +59,7 @@ body {
   }
 
   .form-group {
+    position: relative;
     margin-bottom: 1rem;
 
     input {
@@ -67,7 +68,27 @@ body {
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.1rem;    //take the box that this icon will render and move it 100 px to the right
+      margin-top: 0.1rem;  
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.4rem;
+      color: $color-black;
+      user-select: none;
+    }
+
   }
+
+  .login-error {
+    color: #e74c3c;       // a nice red
+    margin-top: 0.5rem;   // a little breathing room
+    font-size: 0.9rem;
+  }
+  
 
   .forgot {
     display: block;

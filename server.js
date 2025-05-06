@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
 
+
+
 const app = express();
 const port = 3019;
 
@@ -22,7 +24,7 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'src/views'))); // For HTML and other assets
 
-
+const FileMetadata  = require('./FileMetadata');
 
 const Users = require('./src/models/User');
 // // 2. User schema/model: has email, hashed password, role (by default simle user)
@@ -36,14 +38,45 @@ const Users = require('./src/models/User');
 //bcrypt.hash is a one way hashing για τους κωδικους χρηστη. Δηλαδη οταν ο χρηστης κανει sign up, παιρνει τον κωδικα και τον πεταει μεσα σε μια hash function που κανει το 
 //  'MyS3cr3t!' σε $2b$10$VhQx…. Αλλα απο το $2b$10$VhQx… δεν μπορει να βγει το 'MyS3cr3t!'. Οταν ο χρηστης κανει log in και βαζει τον κωδικο του, τον παιρνει και τον κανει hash,αν το αποτελεσμα
 // ειναι ιδιο με καποιο που υπαρχει στη βαση τοτε γινεται succefull login. Με αυτο τον τροπο δν μαντευεται και ποτε ο κωδικος .
-app.post('/signup', async (req, res) => {
-  const { email, password } = req.body;
-  const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  await new Users({ email, password: hash, role: 'simple' }).save();
 
-  res.json({ success: true });
+// List all users (or just those with admin roles)
+app.get('/users', async (req, res) => {
+  try {
+    // if you only want “administrator” roles:
+    // const admins = await Users.find({ role: 'administrator' }, 'email');
+    const admins = await Users.find({}, 'email role');
+    res.json(admins);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).send(err.message);
+  }
 });
+
+
+
+app.post('/signup', async (req, res) => {
+  try{
+        
+    const { email, password, role } = req.body;
+    const hash = await bcrypt.hash(password, SALT_ROUNDS);
+
+    // If role was passed in, use it; otherwise default to 'simple'
+    await new Users({ email, password: hash, role: role || 'simple'}).save();
+
+    res.json({ success: true });
+
+  }catch(err){
+    res.status(400).json({success:false, message: err.message});
+  }
+
+});
+
+//the app.post('/signup) does:
+// 1. pulls the incoming email,password,role out of the HTTP request body
+// 2. hashes the password
+// 3. stores a new user document in MongoDb
+// 4. sends back a JSON response like { success: true, role: 'administrator' }
 
 
 app.post('/login', async (req, res) => {
@@ -51,9 +84,41 @@ app.post('/login', async (req, res) => {
   const user = await Users.findOne({ email });
   if (!user) return res.status(401).json({ success: false, message: 'No such user' });
   const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.status(401).json({ success: false, message: 'Bad password' });
+  if (!ok) return res.status(401).json({ success: false, message: 'Wrong password' });
   res.json({ success: true, role: user.role });
 });
+
+
+// NEW: assign an admin to a file
+app.post('/assign-admin', async (req, res) => {
+  try {
+    const { assignments } = req.body;
+    if (!Array.isArray(assignments) || assignments.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No assignments provided'
+      });
+    }
+
+    const ops = assignments.map(({ fileId, adminEmail }) => ({
+      updateOne: {
+        filter:  { _id: new mongoose.Types.ObjectId(fileId) },
+        update:  { $set: { adminEmail } }
+      }
+    }));
+
+    const result = await FileMetadata.bulkWrite(ops);
+    console.log('Bulk assignment result:', result);
+    return res.json({ success: true });
+  }
+  catch (err) {
+    console.error('❌  Error in /assign-admin:', err);
+    return res
+      .status(500)
+      .json({ success: false, message: err.message });
+  }
+});
+
 
 
 

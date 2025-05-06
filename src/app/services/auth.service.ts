@@ -1,46 +1,46 @@
 // src/app/services/auth.service.ts
-import { module } from 'angular';
 import * as angular from 'angular';
 
+/**
+ * What we send to the server when creating or signing up a user.
+ */
+export interface IAuthUser {
+  email:    string;
+  password: string;
+  /** optional: if you pass a role, server will store it instead of defaulting to 'simple' */
+  role?:    string;
+}
 
 /**
- * Interface representing a logged-in user.
+ * What we keep around in-memory once someone is logged in.
  */
 export interface IUser {
   email: string;
-  role: string;
+  role:  string;
 }
 
-//How the auth.service.ts and auth.controller.ts work together:
-//1. User logs in → AuthController.submit() posts credentials.
-//2. Server responds with { success:true, role }.
-//3. AuthController stores { email, role } in AuthService.
-//4. 
-
-
-
 /**
- * AuthService stores the current user's authentication state.
+ * AuthService holds onto the current user and also
+ * offers a signup(...) call to create new accounts.
  */
 export class AuthService {
+  static $inject = ['$http'];
   private currentUser: IUser | null = null;
 
-  /**
-   * Store who’s logged in.
-   */
+  constructor(private $http: angular.IHttpService) {}
+
+  signup(newUser: IAuthUser): angular.IPromise<any> {
+    return this.$http.post('http://localhost:3019/signup', newUser);
+  }
+
   setUser(user: IUser): void {
     this.currentUser = user;
   }
 
-  /**
-   * Retrieve the logged-in user's info from elsewhere in the app.
-   */
   getUser(): IUser | null {
     return this.currentUser;
   }
 }
 
-// tell Angular about it:
 angular.module('emuwebApp')
   .service('AuthService', AuthService);
-
