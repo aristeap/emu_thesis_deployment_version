@@ -1,0 +1,40 @@
+<!-- views/signUpResearchers.html -->
+<div class="emuwebapp-modal-wrap" ng-controller="SignUpResearchersCtrl as vm">
+  <!-- Header -->
+  <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+    <h3 style="margin: 0;">
+      Sign up Researchers for my files
+    </h3>
+  </div>
+
+  <!-- Body: a simple form with two inputs -->
+  <div class="emuwebapp-modal-body">
+      <form name="vm.form" novalidate>
+          <div>
+            <!-- Email field -->
+            <label for="researcherEmail">Email</label>
+            <input type="email" id="researcherEmail" class="emuwebapp-input" ng-model="vm.newResearcher.email" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" placeholder="researcher@domain.com" required />
+          </div>
+
+        <div>
+          <!-- Password field + show/hide -->
+          <label for="researcherPassword">Password</label>
+
+          <div class="password-wrapper">
+            
+              <input ng-attr-type="{{ vm.showPassword ? 'text' : 'password' }}" id="researcherPassword" class="emuwebapp-input" ng-model="vm.newResearcher.password" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" placeholder="••••••••" required />
+              <i class="material-icons toggle-password" ng-click="vm.toggleShowPassword()" title="{{ vm.showPassword ? 'Hide password' : 'Show password' }}" >
+                {{ vm.showPassword ? 'visibility_off' : 'visibility' }}
+              </i>
+
+          </div>
+        </div>
+      </form>
+  </div>
+
+  <!-- Footer: Cancel and Save -->
+  <div class="emuwebapp-modal-footer">
+    <button ng-click="vm.cancel()" class="emuwebapp-mini-btn">Cancel</button>
+      <button ng-click="vm.save()"class="emuwebapp-mini-btn">Sign Up</button>
+  </div>
+</div>

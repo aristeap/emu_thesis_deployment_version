@@ -12,6 +12,8 @@ const fileMetadataSchema = new Schema({
   gridFSRef: { type: Schema.Types.ObjectId, ref: 'fs.files' },
   //new: who the EY picked to be the administrator of the EY
   adminEmail: {type: String, default:null},
+  researcherEmails: [String],    
+
 
   // Optional fields
   duration: Number,         // for audio/video files

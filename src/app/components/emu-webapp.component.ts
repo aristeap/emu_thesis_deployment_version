@@ -4,6 +4,14 @@ import { HierarchyWorker } from '../workers/hierarchy.worker';
 import styles from '../../styles/EMUwebAppDesign.scss';
 import { AuthService, IUser } from '../services/auth.service';
 
+
+interface IFileMeta {
+	_id:        string;
+	fileName:   string;
+	adminEmail: string;
+  }
+
+
 let EmuWebAppComponent = {
     selector: "emuwebapp",
     template: /*html*/`
@@ -150,7 +158,7 @@ let EmuWebAppComponent = {
 					<i class="material-icons">settings</i> settings
 				</button>
 
-			<!--<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
+				<!--<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
 					<ul class="emuwebapp-dropdown-container">
 						<li class="left">
 							<button type="button" 
@@ -190,17 +198,59 @@ let EmuWebAppComponent = {
 				<!-- NEW: the button that will open the files that are stored to the database---------------------------------->
 				<button class="emuwebapp-mini-btn left" 
 						id="openFromDatabaseButton" 
-						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+						ng-show="$ctrl.canOpen && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
 						ng-click="$ctrl.openFromDatabaseBtnClick()">
 							Open from database
 				</button>
 
+				<!-- NEW: button that will show up only FOR THE ADMINS. It will show only their assigned files--------------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="openFromDatabaseButtonForAdmins" 
+						ng-show="$ctrl.openMyFiles && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+						ng-click="$ctrl.openMyFilesBtnClick()">
+							Open My Files 
+				</button>
+
+				<!-- NEW: button that will show up only FOR THE RESEARCHERS. It will show only their assigned files--------------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="openFromDatabaseButtonForResearchers" 
+						ng-show="$ctrl.openMyResFiles && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+						ng-click="$ctrl.openMyFilesResBtnClick()">
+							Open My Files 
+				</button>
+				
 				<!-- NEW: the button that will allow the EY to specify admins for each ΣΚ---------------------------------->
 				<button class="emuwebapp-mini-btn left" 
 						id="chooseAdminsButton" 
         				ng-show="$ctrl.canChooseAdmins && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
        	 				ng-click="$ctrl.chooseAdminsBtnClick()">
 							Choose admins for database files
+				</button>
+
+
+				<!-- NEW: the button that will allow an administrator to specify researchers(Ερευνητες) for his ΣΚ---------------------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="chooseResearchersButton" 
+        				ng-show="$ctrl.openMyFiles && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+       	 				ng-click="$ctrl.chooseResearBtnClick()">
+							Choose researchers for my files
+				</button>
+
+				<!-- NEW: the button that will allow an administrator to specify researchers(Ερευνητες) for his ΣΚ---------------------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="signupResearchersButton" 
+        				ng-show="$ctrl.openMyFiles && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+       	 				ng-click="$ctrl.signupResearBtnClick()">
+							Sign Up researchers
+				</button>
+
+				<!-- NEW: the button that will allow the admin to view which researcher is assinged to each of his ΣΚ---------------------------------->
+				<!--Σε αντίθεση με τους αντίστοιχους πίνακες του ΕΥ, εδώ δεν θέλω να εμφανιστούν οι πίνακες μπροστά γιατί θέλω ο admin να μπορεί να ανοίξει κάποιο ΣΚ, οπότε οι πίνακες θα μπουν σε άλλο modal -->
+				<button class="emuwebapp-mini-btn left" 
+						id="viewInfoForAdminButton" 
+        				ng-show="$ctrl.openMyFiles && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+       	 				ng-click="$ctrl.viewInfoAdminBtnClick()">
+							View Researcher's list 
 				</button>
 
 				<!-- NEW: the button that will allow the EY to sing up admins so later he can choose them for ΣΚ----------------------->
@@ -210,14 +260,6 @@ let EmuWebAppComponent = {
        	 				ng-click="$ctrl.signUpAdminsBtnClick()">
 							Sign up admins
 				</button>
-
-
-			<!--	<button class="emuwebapp-mini-btn left" 
-						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.connect && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded" 
-						ng-disabled="!$ctrl.ViewStateService.getPermission('connectBtnClick')" 
-						ng-click="$ctrl.connectBtnClick();">
-					<i class="material-icons">input</i>{{connectBtnLabel}}
-				</button>	-->
 				
 				<button class="emuwebapp-mini-btn left" 
 						id="showHierarchy" 
@@ -500,7 +542,6 @@ let EmuWebAppComponent = {
 
 				</div>
 
-
 				
 				<button class="emuwebapp-button-icon" 
 						id="aboutBtn" 
@@ -508,19 +549,20 @@ let EmuWebAppComponent = {
 						ng-click="$ctrl.aboutBtnClick();">
 					<img src="assets/EMU-webAppEmu.svg" class="_35px" />
 				</button>
+
 			</div>
 			<!-- top menu bar end -->
 
 
 
 			<!-- vertical split layout that contains top and bottom pane -->
-			<div class="emuwebapp-canvas">
+			<div class="emuwebapp-canvas" ng-if="$ctrl.user.role !== 'EY'">
 				<history-action-popup class="emuwebApp-history" history-action-txt="$ctrl.ViewStateService.historyActionTxt"></history-action-popup>
-				<bg-splitter show-two-dim-cans="{{$ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].twoDimCanvases.order.length > 0}}" ng-class="{'noSplitBar': $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay}">					
+				<bg-splitter show-two-dim-cans="{{$ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].twoDimCanvases.order.length > 0}}" ng-class="{'noSplitBar': $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay}" >					
+					
+				
 					<bg-pane type="topPane" min-size="80" max-size="500" log-element="inside the topPane of emu-webapp.component.ts">
 						
-					
-					
 						<!-- Video Display Mode ----------------------------------------------------------->
 						<div ng-controller="VideoController as vidCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay" style="width: 100%; height: 100%;">
 							
@@ -782,9 +824,10 @@ let EmuWebAppComponent = {
 								</li>
 						</ul>
 						
-
-						
 					</bg-pane>
+
+					
+
 					
 					<!-- Bottom Pane: Level / Hierarchy Canvas (unchanged) -->
 					<bg-pane type="bottomPane" min-size="80">
@@ -856,9 +899,42 @@ let EmuWebAppComponent = {
 			</div>
 			<!-- end: vertical split layout -->
 
+			<!--*******************************************************************************************************************  -->
+			<!-- replace your two floats with one flex container -->
+			<div ng-if="$ctrl.user.role === 'EY'" style=" display: flex; height: calc(100% - 50px); ">
+  				
+				<!-- BIG table, takes 70% of the space -->
+  				<div style=" flex: 6;               /* 70% of the total (7 / (7+3)) */
+      					overflow-y: auto;
+      					border-right: 2px solid #0DC5FF;
+      					background: #303030;">
+    				
+					<infofor-e-y></infofor-e-y>
+ 		 		</div>
+
+  				<!-- SMALLER admin list, takes 30% -->
+  				<div style="
+      					flex: 3;               /* 30% of the total */
+      					overflow-y: auto;
+      					background: #303030;">
+    				
+					<admins-listfor-e-y></admins-listfor-e-y>
+  				</div>
+			</div>
+
+	
+			<!--*******************************************************************************************************************  -->
+
+
+
 
 			<!-- start: bottom menu bar -->
-            <div class="emuwebapp-bottom-menu" ng-if="$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.videoDisplay">
+            <div class="emuwebapp-bottom-menu"  ng-if="(
+         			$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay
+         			&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay
+         			&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.videoDisplay)     &&		
+						$ctrl.user.role !== 'EY'
+					">
                 <div>
                     <osci-overview class="preview" 
 					id="preview"
@@ -977,6 +1053,9 @@ let EmuWebAppComponent = {
 		private $http;
 		private canAdd: boolean;	
 		private canChooseAdmins: boolean;
+		private openMyFiles: boolean;
+		private canOpen : boolean;
+		private openMyResFiles: boolean;
 		private ViewStateService;
         private HistoryService;
         private IoHandlerService;
@@ -1016,6 +1095,8 @@ let EmuWebAppComponent = {
         private _inited;
 		
 		public recordingName: string; 						// Define the recordingName property
+		public user: IUser | null = null;
+
 
 		// // Add these NEW properties here
 		// public currentDocumentUrl: string = '';
@@ -1111,12 +1192,22 @@ let EmuWebAppComponent = {
 		        this.loadDefaultConfig();
 
 				// bind keys
-				this.HandleGlobalKeyStrokes.bindGlobalKeys();
+				this.HandleGlobalKeyStrokes.bindGlobalKeys();	
 				
 				const u: IUser|null  = this.authService.getUser();
-				this.canAdd = !!u && u.role !== 'simple';
+				this.user = u;
+
+				this.canOpen = !!u && (u.role === 'EY' || u.role === 'simple');
+
+				this.canAdd = !!u && u.role === 'EY' ;
 				
 				this.canChooseAdmins = !!u && u.role === 'EY';
+
+				this.openMyFiles = !!u && u.role === 'administrator';
+
+				this.openMyResFiles = !!u && u.role === 'researcher';
+
+				
 
 				//this.recordingName = 'Example Recording Name'; // Set your desired value here
 				//this.simpleService = simpleService;
@@ -2106,7 +2197,70 @@ let EmuWebAppComponent = {
 				console.error("Error retrieving files from database:", error);
 			  });
 		}
+
 		  
+		private openMyFilesBtnClick() {
+			const user = this.authService.getUser();
+			if (!user) {
+			  return console.error('No user logged in');
+			}
+
+			console.log("user: ",user);
+
+			this.$http
+			  .get('http://localhost:3019/files')
+			  .then((response: angular.IHttpResponse<IFileMeta[]>) => {
+				// Now TypeScript knows response.data is IFileMeta[]
+				const allFiles = response.data;
+				const myFiles = allFiles.filter(f => f.adminEmail === user.email);
+		  
+				if (myFiles.length === 0) {
+				  alert('You have no files assigned.');
+				  return;
+				}
+		  
+				this.ModalService.data = { files: myFiles };
+				this.ModalService.open('views/retrieveFromDatabase.html')
+				  .then((sel: IFileMeta) => {
+					if (sel) console.log('Picked:', sel);
+				  })
+				  .catch(() => { /* modal dismissed */ });
+			  })
+			  .catch(err => console.error('Error fetching files:', err));
+		}
+		 
+		
+		private openMyFilesResBtnClick(){
+			const user = this.authService.getUser();
+			if (!user) {
+			  return console.error('No user logged in');
+			}
+
+			console.log("user: ",user);
+
+			this.$http
+			  .get('http://localhost:3019/files')
+			  .then((response: angular.IHttpResponse<IFileMeta[]>) => {
+				// Now TypeScript knows response.data is IFileMeta[]
+				const allFiles = response.data;
+				const myFiles = allFiles.filter(f => Array.isArray(f.researcherEmails) && f.researcherEmails.includes(user.email));
+		  
+				if (myFiles.length === 0) {
+				  alert('You have no files assigned.');
+				  return;
+				}
+		  
+				this.ModalService.data = { files: myFiles };
+				this.ModalService.open('views/retrieveFromDatabase.html')
+				  .then((sel: IFileMeta) => {
+					if (sel) console.log('Picked:', sel);
+				  })
+				  .catch(() => { /* modal dismissed */ });
+			  })
+			  .catch(err => console.error('Error fetching files:', err));
+		}
+
+
 		  
 		private chooseAdminsBtnClick(): void {
 			this.$http.get('http://localhost:3019/files')
@@ -2132,16 +2286,45 @@ let EmuWebAppComponent = {
 		}
 		  
 
+
+		private signupResearBtnClick() {
+			this.ModalService
+			  .open('views/signUpResearchers.html')
+			  .then((newResearcher: any) => {
+				console.log('Researcher created:', newResearcher);
+				// you can immediately refresh your “adminsList” or any other state here
+			  })
+			  .catch(() => {
+				// user dismissed the modal
+			  });
+		}
+		
+		private viewInfoAdminBtnClick(){
+			this.ModalService.open('views/infoForAdmin.html');
+
+		}
+
 		//Clicking “Choose admins…” opens the modal, data flows two-way into vm.newAdmin, 
 		// and hitting Save sends a request to your server and then closes the modal.
 		private signUpAdminsBtnClick() {
 			this.ModalService.open('views/signUpAdmins.html')
 			  .then(newAdmin => {
 				// console.log('Administrator created:', newAdmin);
-			  });
+			});
 		}
 		  
-		  
+		// in EmuWebAppComponent class
+		private chooseResearBtnClick(): void {
+			this.ModalService.open('views/chooseResearchers.html')
+			.then(didAssign => {
+			if (didAssign) {
+				console.log('Researchers were assigned, refresh your tables…');
+				// e.g. re-load both the left and right panes
+			}
+			})
+			.catch(err => console.error('Modal closed without assignment:', err));
+		}
+
 		
 		
 	

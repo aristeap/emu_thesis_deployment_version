@@ -21,3 +21,7 @@ import "./epg-grid-canvas.component";
 import "./dots-canvas.component"; 
 import "./video-signal-canvas-markup.component";
 import "./annotationTable.component";
+import "./infoForEY.component";
+import "./adminsList.component";
+import "./researchersList.component";
+import "./assignedResearchers.component";

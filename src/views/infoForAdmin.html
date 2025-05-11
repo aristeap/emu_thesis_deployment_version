@@ -1,0 +1,36 @@
+<!-- views/chooseResearchers.html -->
+<div class="emuwebapp-modal-wrap">
+  <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+    <h3 style="margin:0;">View my researchers</h3>
+  </div>
+
+  <div class="emuwebapp-modal-body">
+    
+    <!-- replace your two floats with one flex container -->
+    <div style=" display: flex; height: calc(100% - 50px); ">
+        
+        <!-- BIG table, takes 70% of the space -->
+        <div style=" flex: 6;              
+                overflow-y: auto;
+                border-right: 2px solid #0DC5FF;
+                background: #303030;">
+
+            <assigned-researchers></assigned-researchers>
+        </div>
+
+        <!-- SMALLER admin list, takes 30% -->
+        <div style="
+                flex: 3;               /* 30% of the total */
+                overflow-y: auto;
+                background: #303030;">
+            
+            <resea-listfor-admin></resea-listfor-admin>
+        </div>
+    </div> 
+
+
+  </div>
+
+  <div class="emuwebapp-modal-footer">
+  </div>
+</div>

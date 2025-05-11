@@ -40,6 +40,12 @@ export class AuthService {
   getUser(): IUser | null {
     return this.currentUser;
   }
+
+   /** Convenience: return the logged-in user’s role, or empty string if none */
+   getRole(): string {
+    // console.log("The current's user role is this : ",this.currentUser?.role);
+    return this.currentUser ? this.currentUser.role : '';
+  }
 }
 
 angular.module('emuwebApp')

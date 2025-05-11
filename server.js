@@ -54,6 +54,42 @@ app.get('/users', async (req, res) => {
 });
 
 
+// DELETE a user and unassign them as researcher
+app.delete('/users/:email', async (req, res) => {
+  // 1) grab the raw param and decode it
+  const rawParam = req.params.email;
+  const email    = decodeURIComponent(rawParam);
+  console.log('🗑️  DELETE /users/:email hit with param:', { rawParam, email });
+
+  try {
+    // 2) remove the user document
+    const result = await Users.deleteOne({ email });
+    console.log('   → deleteOne result:', result);
+    if (result.deletedCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'No such user' });
+    }
+
+    // 3) pull that email out of any FileMetadata.researcherEmails arrays
+    const update = await FileMetadata.updateMany(
+      { researcherEmails: email },
+      { $pull: { researcherEmails: email } }
+    );
+    console.log(`   → pulled "${email}" from ${update.nModified} file(s)`);
+
+    // 4) success—204 No Content
+    return res.sendStatus(204);
+  }
+  catch (err) {
+    console.error('Error in DELETE /users/:email:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+
+
 
 app.post('/signup', async (req, res) => {
   try{
@@ -116,6 +152,43 @@ app.post('/assign-admin', async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: err.message });
+  }
+});
+
+
+// POST /assign-researcher
+app.post('/assign-researchers', async (req, res) => {
+  try {
+    const { assignments } = req.body; // array of { fileId, researcherEmails?[], researcherEmail? }
+    if (!Array.isArray(assignments) || assignments.length === 0) {
+      return res.status(400).json({ success: false, message: 'No assignments provided' });
+    }
+
+    const ops = assignments.map(a => {
+      const filter = { _id: new mongoose.Types.ObjectId(a.fileId) };
+      let update;
+      if (Array.isArray(a.researcherEmails)) {
+        // wholesale replace
+        update = { $set: { researcherEmails: a.researcherEmails } };
+      } else if (typeof a.researcherEmail === 'string' && a.researcherEmail !== '') {
+        // add a single researcher (deduped)
+        update = { $addToSet: { researcherEmails: a.researcherEmail } };
+      } else {
+        // remove a single researcher (or if empty string, clear all)
+        if (a.researcherEmail === '') {
+          update = { $set: { researcherEmails: [] } };
+        } else {
+          update = { $pull: { researcherEmails: a.researcherEmail } };
+        }
+      }
+      return { updateOne: { filter, update } };
+    });
+
+    await FileMetadata.bulkWrite(ops);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in /assign-researchers:', err);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

@@ -15,3 +15,5 @@ import "./RetrieveFromDatabase.controller";
 import  "./auth.controller";
 import "./signUpAdmins.controller";
 import "./chooseAdmins.controller";
+import "./signUpResearchers.controller";
+import "./chooseResearchers.controller";

@@ -1,4 +1,6 @@
 import * as angular from 'angular';
+import { AuthService, IUser } from '../services/auth.service';
+
 
 angular.module('emuwebApp').controller('RetrieveFromDatabase', [
   '$scope',
@@ -9,13 +11,23 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
   'IoHandlerService',
   'LoadedMetaDataService',
   'DragnDropDataService', 
-  'DragnDropService',   
+  'DragnDropService', 
+  'AuthService',  
   '$rootScope',
-  function($scope, $http, ModalService, ViewStateService, DbObjLoadSaveService, IoHandlerService, LoadedMetaDataService,DragnDropDataService,DragnDropService ,$rootScope) {
+  function($scope, $http, ModalService, ViewStateService, DbObjLoadSaveService, IoHandlerService, LoadedMetaDataService,DragnDropDataService,DragnDropService,AuthService ,$rootScope) {
     var vm = this;
     vm.files = ModalService.data.files || [];
     vm.selectedFile = null;
     vm.searchTerm = '';
+    vm.canDelete ;
+
+
+
+    const u: IUser|null  = AuthService.getUser();
+    this.user = u;
+    vm.canDelete = !!u && u.role === 'EY' ;
+
+    
 
     // Mapping function converts the file metadata from database to a bundle object.
     function mapFileToBundle(fileMetadata) {
