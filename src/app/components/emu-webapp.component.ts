@@ -54,6 +54,7 @@ let EmuWebAppComponent = {
 				<!-- PHONETIC TRANSCRIPTION (hidden in PDF mode and JPEG mode) -->
 				<div class="emuwebapp-mini-btn left" 
 					ng-show="$ctrl.LoadedMetaDataService.getCurBndlName() 
+							&& $ctrl.canEditAnnot
 							&& ($ctrl.ConfigProviderService.vals.activeButtons.addSpeaker || $ctrl.ConfigProviderService.vals.activeButtons.renameSpeaker)
 							&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
 					<ul class="emuwebapp-dropdown-container">
@@ -102,6 +103,7 @@ let EmuWebAppComponent = {
 				<!-- ORTHOGRAPHIC TRANSCRIPTION (hidden in PDF mode and JPEG mode) -->
 				<div class="emuwebapp-mini-btn left" 
 					ng-show="$ctrl.LoadedMetaDataService.getCurBndlName() 
+							&& $ctrl.canEditAnnot
 							&& ($ctrl.ConfigProviderService.vals.activeButtons.addSpeaker || $ctrl.ConfigProviderService.vals.activeButtons.renameSpeaker)
 							&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
 					<ul class="emuwebapp-dropdown-container">
@@ -156,6 +158,18 @@ let EmuWebAppComponent = {
 							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"							
 						ng-click="$ctrl.settingsBtnClick();">
 					<i class="material-icons">settings</i> settings
+				</button>
+
+				<button class="emuwebapp-mini-btn left" 
+						id="saveEverythingBtn" 
+						ng-show="
+							$ctrl.canEditAnnot &&
+          					($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"							
+						ng-click="$ctrl.saveEverythingBtnClick();">
+					<i class="material-icons">save</i> save
 				</button>
 
 				<!--<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
@@ -260,6 +274,18 @@ let EmuWebAppComponent = {
        	 				ng-click="$ctrl.signUpAdminsBtnClick()">
 							Sign up admins
 				</button>
+
+				<!-- a simple log out button,visible to everyone. It will redirect to the login.html page----------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="logOutButton" 
+        				ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded
+							|| $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay "	
+       	 				ng-click="$ctrl.logOutBtnClick()">
+							Log out
+				</button>
 				
 				<button class="emuwebapp-mini-btn left" 
 						id="showHierarchy" 
@@ -290,16 +316,17 @@ let EmuWebAppComponent = {
 				<button class="emuwebapp-mini-btn left" 
 						id="MetadataButton" 
  						ng-show="
-          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+							$ctrl.canEditAnnot &&
+          					($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
           					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
 		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
-							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"						
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"						
 		  				ng-click="$ctrl.MetadataButtonClick();">
 					<i class="material-icons">star</i>Add metadata
 				</button>
-				
+	
 				<!-- Linguistic Annotation Dropdown (PDF mode only) ------------------------------------------------------------------------------------------------------->
-				<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+				<div ng-if="$ctrl.canEditAnnot && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl" style="display: inline-block; float: left; margin-left: 5px;">
 
 					<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
 						<li style="list-style: none;">
@@ -424,7 +451,7 @@ let EmuWebAppComponent = {
 				
 				
 				<!-- Add Annotation Dropdown (JPEG mode only) ----------------------------------------------------------------------------------------->
-				<div ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+				<div ng-if="$ctrl.canEditAnnot && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="display: inline-block; float: left; margin-left: 5px;">
 					<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
 						<li style="list-style: none;">
 							<button type="button"
@@ -1051,6 +1078,7 @@ let EmuWebAppComponent = {
 		private $location;
 		private $timeout;
 		private $http;
+		private canEditAnnot: boolean;
 		private canAdd: boolean;	
 		private canChooseAdmins: boolean;
 		private openMyFiles: boolean;
@@ -1196,6 +1224,8 @@ let EmuWebAppComponent = {
 				
 				const u: IUser|null  = this.authService.getUser();
 				this.user = u;
+
+				this.canEditAnnot = !!u && (u.role === 'administrator' || u.role === 'researcher');
 
 				this.canOpen = !!u && (u.role === 'EY' || u.role === 'simple');
 
@@ -2173,6 +2203,10 @@ let EmuWebAppComponent = {
 			};
 		  }
 		  
+
+		private logOutBtnClick(){
+    		this.$location.path('../../views/login.html');
+		}
 
 		// In your main controller (or the controller that opens the modal)
 		private openFromDatabaseBtnClick() {

@@ -17,7 +17,7 @@ interface IAuthResponse {
 }
 
 export class AuthController {
-  static $inject = ['$http', '$location', 'AuthService'];
+  static $inject = ['$http', '$location', 'AuthService', 'ViewStateService'];
 
   mode: 'login' | 'signup' = 'login';
   user: IUser              = { email: '', password: '' };
@@ -28,7 +28,9 @@ export class AuthController {
   constructor(
     private $http: IHttpService,
     private $location: ILocationService,
-    private auth: AuthService
+    private auth: AuthService,
+    private ViewStateService: any
+
   ) {
     console.log('✅ AuthController initialized');
   }
@@ -70,6 +72,16 @@ export class AuthController {
           this.loginError = `Server error: ${err.statusText || err.status}`;
         }
       });
+  }
+
+  cursorInTextField() {
+    this.ViewStateService.setEditing(true);
+    this.ViewStateService.setcursorInTextField(true);
+  }
+
+  cursorOutOfTextField() {
+    this.ViewStateService.setEditing(false);
+    this.ViewStateService.setcursorInTextField(false);
   }
 }
 
