@@ -5,6 +5,7 @@ import styles from '../../styles/EMUwebAppDesign.scss';
 import { AuthService, IUser } from '../services/auth.service';
 
 
+
 interface IFileMeta {
 	_id:        string;
 	fileName:   string;
@@ -133,12 +134,12 @@ let EmuWebAppComponent = {
 									rename speaker
 								</li>
 								<li class="divider"></li>
-								<!-- New option for embodied actions -->
+								<!-- New option for embodied actions FOR THE VIDEO-->
 								<li ng-if="$root.isVideo" ng-click="($ctrl.ViewStateService.getPermission('addEmbodiedActionsBtnClick')) && $ctrl.addEmbodiedActionsBtnClick()">
 									add embodied actions
 								</li>
 								<li ng-if="$root.isVideo" class="divider"></li>
-								<!-- New option for renaming embodied actions -->
+								<!-- New option for renaming embodied actions FOR THE VIDEO -->
 								<li ng-if="$root.isVideo" ng-click="($ctrl.ViewStateService.getPermission('renameEmbodiedActionsBtnClick')) && $ctrl.renameEmbodiedActionsBtnClick()">
 									rename embodied actions
 								</li>
@@ -1237,11 +1238,6 @@ let EmuWebAppComponent = {
 
 				this.openMyResFiles = !!u && u.role === 'researcher';
 
-				
-
-				//this.recordingName = 'Example Recording Name'; // Set your desired value here
-				//this.simpleService = simpleService;
-
         };
 
         $postLink = function(){
@@ -1866,8 +1862,7 @@ let EmuWebAppComponent = {
 
 		// top menu:
 		/**
-		 *
-		 */
+		 *********************************************************************************************************************/
 		private addLevelSegBtnClick() {
 			if (this.ViewStateService.getPermission('addLevelSegBtnClick')) {
 			  
@@ -1987,7 +1982,13 @@ let EmuWebAppComponent = {
 		/**
 		 *
 		 */
+
+		//For the renaming functions,it is not correct to open three different modals for each renameLevel,renameSpeaker,renameEmbodiedActions
+		//so i will create a service (reuse auth.service.ts) that will hold a flag that will tell which functions gets called. Then the renameLevel.html modal 
+		// will use this service to read from which function it got called and show the appropriate content 
+
 		private renameSelLevelBtnClick() {
+			this.authService.setFunction('renameLevels');
 			if (this.ViewStateService.getPermission('renameSelLevelBtnClick')) {
 				if (this.ViewStateService.getcurClickLevelName() !== undefined) {
 					this.ModalService.open('views/renameLevel.html', this.ViewStateService.getcurClickLevelName());
@@ -1997,10 +1998,6 @@ let EmuWebAppComponent = {
 			}
 		};
 
-
-		/**
-		 *
-		 */
 		private downloadAnnotationBtnClick() {
 			if (this.ViewStateService.getPermission('downloadAnnotationBtnClick')) {
 				if(this.ValidationService.validateJSO('emuwebappConfigSchema', this.DataService.getData())) {
@@ -2008,6 +2005,9 @@ let EmuWebAppComponent = {
 				}
 			}
 		};
+
+		/**
+		 *********************************************************************************************************************/
 
 		private addSpeakerBtnClick(){
 			// console.log("You have clicked to add a speaker!");
@@ -2063,23 +2063,17 @@ let EmuWebAppComponent = {
 		  
 
 		private renameSpeakerBtnClick() {
+			this.authService.setFunction('renameSpeakers');
 			if (this.ViewStateService.getPermission('renameSpeakerBtnClick')) {
-			  const curLevelName = this.ViewStateService.getcurClickLevelName();
-			  if (curLevelName !== undefined) {
-				const levelDetails = this.LevelService.getLevelDetails(curLevelName);
-				if (levelDetails && levelDetails.role === 'speaker') {
-				  // Open a modal with speaker-specific text
-				  this.ModalService.open('views/renameSpeaker.html', curLevelName);
+				if (this.ViewStateService.getcurClickLevelName() !== undefined) {
+					this.ModalService.open('views/renameLevel.html', this.ViewStateService.getcurClickLevelName());
 				} else {
-				  // Fallback: if not a speaker, use the generic rename level modal
-				  this.ModalService.open('views/renameLevel.html', curLevelName);
+					this.ModalService.open('views/error.html', 'Rename Error : Please create a Level first !');
 				}
-			  } else {
-				this.ModalService.open('views/error.html', 'Rename Error: Please create a Speaker first!');
-			  }
 			}
-		}
-			  
+		};
+
+
 		private addEmbodiedActionsBtnClick() {
 			// Count existing levels with role 'embodied'
 			let embodiedCount = 0;
@@ -2134,24 +2128,35 @@ let EmuWebAppComponent = {
 			);
 		}
 		  
+		// private renameEmbodiedActionsBtnClick() {
+		// 	this.authService.setFunction('renameEmbodiedActions');
+
+		// 	if (this.ViewStateService.getPermission('renameEmbodiedActionsBtnClick')) {
+		// 	  const curLevelName = this.ViewStateService.getcurClickLevelName();
+		// 	  if (curLevelName !== undefined) {
+		// 		const levelDetails = this.LevelService.getLevelDetails(curLevelName);
+		// 		if (levelDetails && levelDetails.role === 'embodied') {
+		// 			console.log("before opening the renameLevel");
+		// 		  // Open a modal with embodied-actions–specific text/template.
+		// 		  this.ModalService.open('views/renameLevel.html', curLevelName);
+		// 		} 
+		// 	  } else {
+		// 		this.ModalService.open('views/error.html', 'Rename Error: Please create an Embodied Actions level first!');
+		// 	  }
+		// 	}
+		// };
+		  
+
 		private renameEmbodiedActionsBtnClick() {
+			this.authService.setFunction('renameEmbodiedActions');
 			if (this.ViewStateService.getPermission('renameEmbodiedActionsBtnClick')) {
-			  const curLevelName = this.ViewStateService.getcurClickLevelName();
-			  if (curLevelName !== undefined) {
-				const levelDetails = this.LevelService.getLevelDetails(curLevelName);
-				if (levelDetails && levelDetails.role === 'embodied') {
-				  // Open a modal with embodied-actions–specific text/template.
-				  this.ModalService.open('views/renameEmbodiedActions.html', curLevelName);
+				if (this.ViewStateService.getcurClickLevelName() !== undefined) {
+					this.ModalService.open('views/renameLevel.html', this.ViewStateService.getcurClickLevelName());
 				} else {
-				  // Fallback: use generic rename modal.
-				  this.ModalService.open('views/renameLevel.html', curLevelName);
+					this.ModalService.open('views/error.html', 'Rename Error : Please create a Level first !');
 				}
-			  } else {
-				this.ModalService.open('views/error.html', 'Rename Error: Please create an Embodied Actions level first!');
-			  }
 			}
 		};
-		  
 
 		private addToDatabaseBtnClick() {
 			// Create a hidden file input element

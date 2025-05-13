@@ -1,17 +1,57 @@
 <div class="emuwebapp-modal-wrap" ng-controller="ModalCtrl">
     <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
-        <h3 id="modalHeading">
+        <h3 id="modalHeading" ng-show="auth.getFunction() === 'renameLevels'">
             Rename Level
+        </h3>
+		 <h3 id="modalHeading" ng-show="auth.getFunction() === 'renameSpeakers'">
+            Rename Speaker
+        </h3>
+		 <h3 id="modalHeading" ng-show="auth.getFunction() === 'renameEmbodiedActions'">
+            Rename Embodied Actions Level
         </h3>
 	</div>
 	<div class="emuwebapp-modal-body">
-	    <div>
-	        <p> Do you really wish to <i>rename</i> the level "{{dataIn}}" ?</p>
-	    </div>
-	    <div>
-	        <p><input type="text" ng-model="data" placeholder="{{dataIn}}" ng-focus="cursorInTextField();" ng-blur="cursorOutOfTextField();" /></p>
-	    </div>
+
+		<div class="forms-row">
+
+			<!-- Files dropdown -->
+			<label for="levelSelect">Rename the level: </label>
+
+			<!--For levels-->
+			<select id="levelSelect"
+					ng-model="selectedLevel"
+					ng-options="lvl.name as lvl.name for lvl in levels"
+					ng-show="auth.getFunction() === 'renameLevels'"
+					class="chooseAdmins-input">
+				<option value="" disabled>— select level —</option>
+			</select>
+
+			<!--For speakers-->
+			<select id="levelSelect"
+					ng-model="selectedLevel"
+					ng-options="lvl.name as lvl.name for lvl in speakers"
+					ng-show="auth.getFunction() === 'renameSpeakers'"
+					class="chooseAdmins-input">
+				<option value="" disabled>— select level —</option>
+			</select>
+
+			<!--For embodied actions-->
+			<select id="levelSelect"
+					ng-model="selectedLevel"
+					ng-options="lvl.name as lvl.name for lvl in embodied"
+					ng-show="auth.getFunction() === 'renameEmbodiedActions'"
+					class="chooseAdmins-input">
+				<option value="" disabled>— select level —</option>
+			</select>
+
+			<!-- Admins dropdown -->
+			<label for="adSelect">to: </label>
+			<input class="chooseAdmins-input" type="text" ng-model="data" ng-focus="cursorInTextField();" ng-blur="cursorOutOfTextField();" />
+
+
+		</div>
 	</div>
+
 	<div class="emuwebapp-modal-footer">
 	  <button ng-click="modal.close();" id="modalCancelBtn" class="emuwebapp-mini-btn">Cancel</button>
 	  <button ng-click="renameLevel();" class="emuwebapp-mini-btn">Rename</button>

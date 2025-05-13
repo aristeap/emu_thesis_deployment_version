@@ -26,6 +26,7 @@ export interface IUser {
 export class AuthService {
   static $inject = ['$http'];
   private currentUser: IUser | null = null;
+  private currentFunction : string | null = null;
 
   constructor(private $http: angular.IHttpService) {}
 
@@ -45,6 +46,16 @@ export class AuthService {
    getRole(): string {
     // console.log("The current's user role is this : ",this.currentUser?.role);
     return this.currentUser ? this.currentUser.role : '';
+  }
+
+   /** mark which “function” just ran (e.g. renameLevels, renameSpeakers, etc.) */
+  setFunction(fnName: string|null) {
+    this.currentFunction = fnName;
+  }
+
+  /** read it back */
+  getFunction(): string|null {
+    return this.currentFunction;
   }
 }
 
