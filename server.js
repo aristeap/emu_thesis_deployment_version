@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const path = require('path');
+const path = require('path');   // “path” helps us build file-paths in a safe way
 const cors = require('cors');
-
+const fs   = require('fs');     // “fs” lets us read and write files on disk  
 
 
 const app = express();
@@ -23,6 +23,12 @@ app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'src/views'))); // For HTML and other assets
+
+// serve EMU-DB files
+app.use(
+  '/emuDB',
+  express.static(path.join(__dirname, 'emuDBrepo'))
+);
 
 const FileMetadata  = require('./FileMetadata');
 
@@ -87,6 +93,23 @@ app.delete('/users/:email', async (req, res) => {
   }
 });
 
+
+
+
+// Save posted annotJSON into EmuDB
+//a “save” endpoint that writes whatever annotation JSON you POST into the right _annot.json file in your Emu DB folder.
+app.post('/api/emuDB/:dbName/:bundleName/annot', (req, res) => {        //This says: “Whenever the server gets a POST to /api/emuDB/<yourDB>/<yourBundle>/annot, run the function inside.”
+  const { dbName, bundleName } = req.params;                  //dbName and bundleName come from the URL you called.
+  const annot = req.body;                                      //annot is the JSON your Angular app sent in the body.
+  const out = path.join(__dirname, 'emuDBrepo', dbName, `${bundleName}_annot.json`);      //Builds the exact filename where we want to save, e.g.
+  fs.writeFile(out, JSON.stringify(annot, null, 2), 'utf8', err => {
+    if (err) {
+      console.error('💥 write error:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    res.json({ success: true });
+  });
+});
 
 
 

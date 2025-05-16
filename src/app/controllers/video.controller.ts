@@ -48,7 +48,7 @@ angular.module('emuwebApp')
 
       // Draw the static waveform on the background canvas.
       vm.drawWaveformBg = function() {
-        console.log("inside the drawWaveformBg--------------");
+        // console.log("inside the drawWaveformBg--------------");
         vm.bgCanvas = document.getElementById('videoWaveformBgCanvas') as HTMLCanvasElement;
         if (!vm.bgCanvas) {
           console.error("Canvas 'videoWaveformBgCanvas' not found in the DOM");

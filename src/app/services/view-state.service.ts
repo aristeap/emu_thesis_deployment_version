@@ -457,7 +457,7 @@ class ViewStateService{
 		} else {
 			this.curState = nameOrObj;
 		}
-		console.log("setState: ",nameOrObj);
+		// console.log("setState: ",nameOrObj);
 	};
 	
 

@@ -42,31 +42,31 @@ class AppStateService{
 		 *
 		 */
 		public resetToInitState() {
-			// SIC IoHandlerService.WebSocketHandlerService is private
-			if(this.IoHandlerService.WebSocketHandlerService.isConnected()) {
-				this.IoHandlerService.WebSocketHandlerService.disconnectWarning().then(() => {
-					this.$log.info('Closing websocket connection to server');
-					this.IoHandlerService.WebSocketHandlerService.closeConnect();
-				});
+			// 1) Tear down any WebSocket
+			const ws = this.IoHandlerService.WebSocketHandlerService;
+			if (ws.isConnected()) {
+				ws.closeConnect();
 			}
-			// $scope.curBndl = {};
+
+			// 2) Clear all data services
 			this.LoadedMetaDataService.resetToInitState();
-			this.SoundHandlerService.audioBuffer = {};
+			this.SoundHandlerService.audioBuffer = null;
 			this.DataService.setData({});
 			this.DragnDropDataService.resetToInitState();
 			this.DragnDropService.resetToInitState();
 			this.SsffDataService.data = [];
 			this.HistoryService.resetToInitState();
-			console.log("is this where the setState is becoming noDBorFilesloaded->resetToInitState of app-state.service.ts");
+
+			// 3) Reset the UI
 			this.ViewStateService.setState('noDBorFilesloaded');
-			this.ViewStateService.somethingInProgress = false;
 			this.ViewStateService.resetToInitState();
-			this.HistoryService.resetToInitState();
 			this.ViewStateService.showDropZone = true;
-			this.$location.url(this.$location.path()); // reset URL without get values
+
+			// 4) Clean up the URL and let any listeners know
+			this.$location.url(this.$location.path());
 			this.$rootScope.$broadcast('resetToInitState');
-			//$scope.loadDefaultConfig();
-		};
+		}
+
 		
 		public reloadToInitState (session) {
 			// SIC IoHandlerService.WebSocketHandlerService is private

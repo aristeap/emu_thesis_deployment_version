@@ -441,7 +441,7 @@ class DragnDropService{
 			annotation = {levels: [], links: []};
 		}
 		this.ViewStateService.showDropZone = false;
-		console.log("is this where the setState is becoming loadingSaving->handleLocalFiles of drag-n-drop.service.ts");
+		// console.log("is this where the setState is becoming loadingSaving->handleLocalFiles of drag-n-drop.service.ts");
 		this.ViewStateService.setState('loadingSaving');
 		// reset history
 		this.ViewStateService.somethingInProgress = true;
@@ -460,7 +460,7 @@ class DragnDropService{
 				this.ConfigProviderService.curDbConfig = resp.data;
 				this.ViewStateService.somethingInProgressTxt = 'Parsing WAV file...';
 				this.ViewStateService.curViewPort.sS = 0;
-				this.ViewStateService.curViewPort.eS = this.SoundHandlerService.audioBuffer.length;
+				this.ViewStateService.curViewPort.eS = this.SoundHandlerService.audioBuffer?.length ?? 0;
 				this.ViewStateService.curViewPort.selectS = -1 ;
 				this.ViewStateService.curViewPort.selectE = -1;
 				this.ViewStateService.curClickSegments = [];
@@ -499,7 +499,7 @@ class DragnDropService{
 				validRes = this.ValidationService.validateJSO('annotationFileSchema', annotation);
 				if (validRes === true) {
 					this.DataService.setLinkData(annotation.links);
-					console.log("is this where the setState is becoming labeling->handleLocalFiles-2 of drag-n-drop.service.ts");
+					// console.log("is this where the setState is becoming labeling->handleLocalFiles-2 of drag-n-drop.service.ts");
 
 					this.ViewStateService.setState('labeling');
 					this.ViewStateService.somethingInProgress = false;

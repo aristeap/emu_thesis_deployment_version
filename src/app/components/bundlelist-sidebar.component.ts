@@ -3,7 +3,7 @@ import * as angular from 'angular';
 let BundleListSideBarComponent = {
 	selector: "bundleListSideBar",
 	template: /*html*/`
-	<div class="emuwebapp-bundle-outer" log-element="inside the html part of the bundlelist-sidebar.component.ts">
+	<div class="emuwebapp-bundle-outer">
 
 	<!-- <pre style="background: #f8f8f8; border: 1px solid #ccc; padding: 5px; color:black;">
   		{{ $ctrl.LoadedMetaDataService.getRendOptBndlList() | json }}
@@ -20,7 +20,7 @@ let BundleListSideBarComponent = {
 		<div id="emuwebapp-bundleListContainer" class="emuwebapp-bundle-container" ng-if="!$ctrl.ViewStateService.showDropZone">
 			<ul ng-repeat="(key, value) in $ctrl.LoadedMetaDataService.getRendOptBndlList()" ng-class="{'emuwebapp-bundle-last':$last}">
 				<!--Βαζω log element για να μπορω να δω ποτε θα επαναληφθει ο κωδικας -->
-				<div log-element="Inside the first ng-repeat, rendering session header: {{key}}" class="emuwebapp-bundle-session" ng-if="$ctrl.isSessionDefined(key)" ng-click="$ctrl.LoadedMetaDataService.toggleCollapseSession(key)">
+				<div {{key}}" class="emuwebapp-bundle-session" ng-if="$ctrl.isSessionDefined(key)" ng-click="$ctrl.LoadedMetaDataService.toggleCollapseSession(key)">
 				
 					<div ng-if="$ctrl.LoadedMetaDataService.getSessionCollapseState(key)">
 						▷{{key}}
@@ -41,7 +41,7 @@ let BundleListSideBarComponent = {
 					</div>
 
 					<!--Βαζω log element για να μπορω να δω ποτε θα επαναληφθει το δευτερο repeat -->
-					<div log-element="Inside the inner ng-repeat" ng-repeat="bundle in value | startFrom:$ctrl.ViewStateService.currentPage*$ctrl.ViewStateService.pageSize | limitTo:$ctrl.ViewStateService.pageSize | regex:$ctrl.filterText track by $index">						
+					<div ng-repeat="bundle in value | startFrom:$ctrl.ViewStateService.currentPage*$ctrl.ViewStateService.pageSize | limitTo:$ctrl.ViewStateService.pageSize | regex:$ctrl.filterText track by $index">						
 						<div class="emuwebapp-bundle-item" id="uttListItem" ng-style="$ctrl.getBndlColor(bundle);" ng-click="$ctrl.DbObjLoadSaveService.loadBundle(bundle);" dragout draggable="true" name="{{bundle.name}}">
 							<b>{{bundle.name}}</b>
 							<button ng-if="$ctrl.ConfigProviderService.vals.activeButtons.saveBundle && $ctrl.isCurBndl(bundle)" class="emuwebapp-saveBundleButton" ng-click="$ctrl.DbObjLoadSaveService.saveBundle();"><i class="material-icons">save</i></button>

@@ -1,0 +1,23 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 732887,
+          "sampleDur": 1125136,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "abcde"
+            }
+          ]
+        }
+      ],
+      "name": "levelNr0",
+      "type": "SEGMENT"
+    }
+  ],
+  "links": [],
+  "sampleRate": 44100
+}

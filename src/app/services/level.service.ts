@@ -84,15 +84,24 @@ class LevelService {
 	* returns all levels with details for a specific type
 	*    @param types
 	*/
-	public getLevelsByType(types) {
-		// console.log("inside level.service.ts-> getLevelsByType");
-		var levels: any[] = [];
-		this.DataService.getLevelData().forEach((level) => {
-			if (types.indexOf(level.type) >= 0) {
-				levels.push(level);
-			}
-		});
-		return levels;
+
+	//Old getLevelsByType, before adapting so the clear (resetToInitState doesnt throw a 'levels for each' error)
+	// public getLevelsByType(types) {
+	// 	// console.log("inside level.service.ts-> getLevelsByType");
+	// 	var levels: any[] = [];
+	// 	this.DataService.getLevelData().forEach((level) => {
+	// 		if (types.indexOf(level.type) >= 0) {
+	// 			levels.push(level);
+	// 		}
+	// 	});
+	// 	return levels;
+	// };
+
+	public getLevelsByType(types: string[]) {
+		// grab whatever DataService gives you (might be undefined)
+		const allLevels = this.DataService.getLevelData() || [];
+		// now safely filter only those with a matching type
+		return allLevels.filter(lvl => types.indexOf(lvl.type) >= 0);
 	};
 
 	/**

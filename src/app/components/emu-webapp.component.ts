@@ -91,11 +91,6 @@ let EmuWebAppComponent = {
 									rename level
 								</li>
 								<li class="divider"></li>
-								<li ng-if="$ctrl.ConfigProviderService.vals.activeButtons.downloadAnnotation" 
-									ng-click="($ctrl.ViewStateService.getPermission('downloadAnnotationBtnClick')) && $ctrl.downloadAnnotationBtnClick()">
-									save annotJSON
-								</li>
-								<li class="divider"></li>
 							</ul>
 						</li>
 					</ul>
@@ -164,13 +159,13 @@ let EmuWebAppComponent = {
 				<button class="emuwebapp-mini-btn left" 
 						id="saveEverythingBtn" 
 						ng-show="
-							$ctrl.canEditAnnot &&
+							$ctrl.isPrivileged &&
           					($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
           					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
 		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
 							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"							
 						ng-click="$ctrl.saveEverythingBtnClick();">
-					<i class="material-icons">save</i> save
+					<i class="material-icons">save</i> save changes
 				</button>
 
 				<!--<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
@@ -589,7 +584,7 @@ let EmuWebAppComponent = {
 				<bg-splitter show-two-dim-cans="{{$ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].twoDimCanvases.order.length > 0}}" ng-class="{'noSplitBar': $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay}" >					
 					
 				
-					<bg-pane type="topPane" min-size="80" max-size="500" log-element="inside the topPane of emu-webapp.component.ts">
+					<bg-pane type="topPane" min-size="80" max-size="500">
 						
 						<!-- Video Display Mode ----------------------------------------------------------->
 						<div ng-controller="VideoController as vidCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay" style="width: 100%; height: 100%;">
@@ -792,12 +787,10 @@ let EmuWebAppComponent = {
 
 							
 								<li class="emuwebapp-timeline-flexitem"
-									log-element="inside the li that contains the osci in emu-webapp.component.ts"
 									ng-repeat="curTrack in $ctrl.ConfigProviderService.vals.perspectives[$ctrl.ViewStateService.curPerspectiveIdx].signalCanvases.order track by $index"
 									ng-switch on="curTrack">
 
 										<osci ng-switch-when="OSCI" 
-											log-element="inside the osci in emu-webapp.component.ts"
 											track-name="curTrack"
 											cur-channel="$ctrl.ViewStateService.osciSettings.curChannel"
 											last-update="$ctrl.ViewStateService.lastUpdate"
@@ -952,10 +945,6 @@ let EmuWebAppComponent = {
 
 	
 			<!--*******************************************************************************************************************  -->
-
-
-
-
 			<!-- start: bottom menu bar -->
             <div class="emuwebapp-bottom-menu"  ng-if="(
          			$ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay
@@ -1125,6 +1114,8 @@ let EmuWebAppComponent = {
 		
 		public recordingName: string; 						// Define the recordingName property
 		public user: IUser | null = null;
+		public	isPrivileged: any;
+		public	isSimpleDrag: any;
 
 
 		// // Add these NEW properties here
@@ -1223,20 +1214,42 @@ let EmuWebAppComponent = {
 				// bind keys
 				this.HandleGlobalKeyStrokes.bindGlobalKeys();	
 				
-				const u: IUser|null  = this.authService.getUser();
-				this.user = u;
+				// inside your constructor, after `this.authService = authService;` etc.
+				this.$scope.$watch(
+				// watch the file origin (and user if you like)
+				() => this.authService.getFileOrigin(),
+				(origin: string|null) => {
+					const u = this.authService.getUser();
+					this.user = u;
 
-				this.canEditAnnot = !!u && (u.role === 'administrator' || u.role === 'researcher');
+					// recompute exactly the same flags you had before
+					const isPrivileged = !!u && (u.role==='administrator' || u.role==='researcher');
+					const isSimpleDrag = !!u && u.role==='simple' && origin==='drag-n-droped';
 
-				this.canOpen = !!u && (u.role === 'EY' || u.role === 'simple');
+					this.isPrivileged   = isPrivileged;               // ← add this
+					this.canEditAnnot    = isPrivileged || isSimpleDrag;
+					this.canOpen         = !!u && (u.role==='EY' || u.role==='simple');
+					this.canAdd          = !!u && u.role==='EY';
+					this.canChooseAdmins = !!u && u.role==='EY';
+					this.openMyFiles     = !!u && u.role==='administrator';
+					this.openMyResFiles  = !!u && u.role==='researcher';
 
-				this.canAdd = !!u && u.role === 'EY' ;
+					console.log(
+					'isPrivileged',				this.isPrivileged,				
+					'flags → canEditAnnot:',   	this.canEditAnnot,
+					'canOpen:',                 this.canOpen,
+					'canAdd:',                  this.canAdd,
+					'canChooseAdmins:',         this.canChooseAdmins,
+					'openMyFiles:',             this.openMyFiles,
+					'openMyResFiles:',          this.openMyResFiles,
+					'origin:',                  origin
+					);
+					}
+				);
+	
+
 				
-				this.canChooseAdmins = !!u && u.role === 'EY';
-
-				this.openMyFiles = !!u && u.role === 'administrator';
-
-				this.openMyResFiles = !!u && u.role === 'researcher';
+					
 
         };
 
@@ -1998,13 +2011,28 @@ let EmuWebAppComponent = {
 			}
 		};
 
-		private downloadAnnotationBtnClick() {
-			if (this.ViewStateService.getPermission('downloadAnnotationBtnClick')) {
-				if(this.ValidationService.validateJSO('emuwebappConfigSchema', this.DataService.getData())) {
-					this.ModalService.open('views/export.html', this.LoadedMetaDataService.getCurBndl().name + '_annot.json', angular.toJson(this.DataService.getData(), true));
+		private saveEverythingBtnClick(){
+
+			console.log("saved everything clicked");			
+			// const db   = this.LoadedMetaDataService.getCurDbName();    // e.g. "myEmuDB"
+			const db = "myEmuDB";	
+			const bndl = this.LoadedMetaDataService.getCurBndlName();  // e.g. "msajc003" 
+			const payload = this.DataService.getData();
+
+			console.log("db: ",db, "bndl: ",bndl, "payload: ",payload);
+
+			this.$http.post(
+  					'http://localhost:3019' + `/api/emuDB/${db}/${bndl}/annot`,
+				payload
+			).then(
+				() => { alert('Annotations saved to EmuDB!'); },
+				err => { 
+				console.error('Save failed', err); 
+				alert('Save failed: ' + (err.data?.message||err.statusText)); 
 				}
-			}
-		};
+			);
+		}
+
 
 		/**
 		 *********************************************************************************************************************/
@@ -2510,20 +2538,11 @@ let EmuWebAppComponent = {
 		/**
 		 *
 		 */
-		private clearBtnClick () {
-			// ViewStateService.setdragBarActive(false);
-			var modalText;
-			if ((this.HistoryService.movesAwayFromLastSave !== 0 && this.ConfigProviderService.vals.main.comMode !== 'DEMO')) {
-				modalText = 'Do you wish to clear all loaded data and if connected disconnect from the server? CAUTION: YOU HAVE UNSAVED CHANGES! These will be lost if you confirm.';
-			} else {
-				modalText = 'Do you wish to clear all loaded data and if connected disconnect from the server? You have NO unsaved changes so no changes will be lost.';
+		private clearBtnClick() {
+			if (window.confirm("Do you really wish to clear all loaded data and return to the hoome page?")) {
+				this.AppStateService.resetToInitState();
 			}
-			this.ModalService.open('views/confirmModal.html', modalText).then((res) => {
-				if (res) {
-					this.AppStateService.resetToInitState();
-				}
-			});
-		};
+		}
 		
 		
 		

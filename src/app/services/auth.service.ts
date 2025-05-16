@@ -27,6 +27,7 @@ export class AuthService {
   static $inject = ['$http'];
   private currentUser: IUser | null = null;
   private currentFunction : string | null = null;
+  private currentFileOrig : string | null = null;
 
   constructor(private $http: angular.IHttpService) {}
 
@@ -57,6 +58,19 @@ export class AuthService {
   getFunction(): string|null {
     return this.currentFunction;
   }
+
+  //marking the origin of the file, whether it is fetched from database or drag-n-droped.This happens cause i want the user to be able to annotate
+  //  the files that they drag-n-drop but NOT the fetched ones. So i am going to use this service to create a 'flag' and depending on the flag i will show the annotate buttons
+  //    to the simple user or not. 
+  setFileOrigin(fileOrigin: string|null) {
+    this.currentFileOrig = fileOrigin;
+  }
+
+  /** read it back */
+  getFileOrigin(): string|null {
+    return this.currentFileOrig;
+  }
+
 }
 
 angular.module('emuwebApp')

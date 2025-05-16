@@ -73,52 +73,67 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
     };
 
     vm.fetchSelected = function() {
-      if (!vm.selectedFile) {
-        return alert("Please select a file first!");
-      }
-    
-      // build + stash the bundle
-      const bundle = mapFileToBundle(vm.selectedFile);
-      DragnDropDataService.processFetchedBundle(bundle);
-      DragnDropDataService.setDefaultSession(
-        DragnDropDataService.convertedBundles.length - 1
-      );
-    
-      // update sidebar (minimal entry)
-      let list = LoadedMetaDataService.getBundleList() || [];
-      if (!list.some(b => b.name === bundle.name && b.session === bundle.session)) {
-        list.push({ name: bundle.name, session: bundle.session });
-        LoadedMetaDataService.setBundleList(list);
-      }
-    
-      ViewStateService.showDropZone = false;
-    
-      // **only** auto-load audio:
-      if (bundle.mediaFile.type === 'audio') {
-        DragnDropService.handleLocalFiles();
-      }
-      else if (bundle.mediaFile.type === 'video') {
-        console.log("from inside the retrieveFromDatabase controller for the video, that calls the loadBundle");
-        DbObjLoadSaveService
-        .loadBundle(bundle, '')
-        .then(() => {
-          // once loaded & broadcast, your Image/PDF/Video controllers will pick it up
-        })
-        .catch(err => {
-          console.error("Failed to auto‑load fetched bundle:", err);
-        });
-      }
-    
+    if (!vm.selectedFile) {
+      return alert("Please select a file first!");
+    }
+
+    // build bundle object
+    const bundle = mapFileToBundle(vm.selectedFile);
+    const dbName = 'myEmuDB';  // ← NEW: your EMU-DB folder name
 
 
 
+    // ← NEW: try to load existing annotations from disk
+    $http.get(`http://localhost:3019/emuDB/${dbName}/${bundle.name}_annot.json`)
+      .then(function(resp) {
+        bundle.annotation = resp.data;            // ← NEW: use loaded JSON
+      })
+      .catch(function() {
+        // ← NEW: if no file or error, start with empty annotation
+        console.log("before it creates a fallback annotation json");
+        const fallback = {
+          levels: [],
+          links: [],
+          sampleRate:  20000
+        }as any;
+        bundle.annotation = fallback;
+      })
+      .finally(function() {
+        // ← EXISTING: inject into webapp
+        DragnDropDataService.processFetchedBundle(bundle);
+        DragnDropDataService.setDefaultSession(
+          DragnDropDataService.convertedBundles.length - 1
+        );
 
+        // ← EXISTING: update sidebar
+        let list = LoadedMetaDataService.getBundleList() || [];
+        if (!list.some(b => b.name === bundle.name && b.session === bundle.session)) {
+          list.push({ name: bundle.name, session: bundle.session });
+          LoadedMetaDataService.setBundleList(list);
+        }
 
+        ViewStateService.showDropZone = false;
 
+        // ← EXISTING: auto-load media
+        if (bundle.mediaFile.type === 'audio') {
+          DragnDropService.handleLocalFiles();
+        }
+        else if (bundle.mediaFile.type === 'video') {
+          DbObjLoadSaveService
+            .loadBundle(bundle, '')
+            .then(() => {
+              // once loaded, Image/PDF/Video controllers will pick it up
+            })
+            .catch(err => {
+              console.error("Failed to auto-load fetched bundle:", err);
+            });
+        }
 
-      ModalService.close(vm.selectedFile);
-    };
-    
+        // ← EXISTING: close modal
+        ModalService.close(vm.selectedFile);
+      });
+  };
+
     
     
 

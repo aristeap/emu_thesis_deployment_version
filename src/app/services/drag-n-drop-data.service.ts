@@ -15,7 +15,7 @@ class DragnDropDataService{
 	// public api
 	
 	public getBundle(name) {
-		 console.log("drag-n-drop-data.service.ts-> getBundle(name)");
+		//  console.log("drag-n-drop-data.service.ts-> getBundle(name)");
 		var bc;
 		var defer = this.$q.defer();
 		this.convertedBundles.forEach((bundle) => {
@@ -74,7 +74,7 @@ class DragnDropDataService{
 
 	// NEW: processFetchedBundle() will inject a fetched bundle into the conversion chain.
 	public processFetchedBundle(bundle) {
-		console.log("processFetchedBundle called with bundle:", bundle);
+		// console.log("processFetchedBundle called with bundle:", bundle);
 		// Insert the fetched bundle into the convertedBundles array.
 		this.convertedBundles.push(bundle);
 		
@@ -83,7 +83,7 @@ class DragnDropDataService{
 			this.sessionDefault = bundle.name;
 		}
 		
-		console.log("Fetched bundle processed and added. Current convertedBundles:", this.convertedBundles);
+		// console.log("Fetched bundle processed and added. Current convertedBundles:", this.convertedBundles);
 		// Optionally broadcast an event or call further processing here.
 	}
 	

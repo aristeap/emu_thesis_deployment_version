@@ -1,0 +1,68 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 6476,
+          "sampleDur": 4016,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "sjkdhaidj"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "sampleStart": 27577,
+          "sampleDur": 6827,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "another label"
+            }
+          ]
+        }
+      ],
+      "name": "levelNr0",
+      "type": "SEGMENT"
+    },
+    {
+      "items": [
+        {
+          "id": 3,
+          "samplePoint": 8743.274173806609,
+          "labels": [
+            {
+              "name": "levelNr1",
+              "value": "a"
+            }
+          ]
+        }
+      ],
+      "name": "levelNr1",
+      "type": "EVENT"
+    },
+    {
+      "items": [
+        {
+          "id": 4,
+          "sampleStart": 14648,
+          "sampleDur": 7776,
+          "labels": [
+            {
+              "name": "SpeakerNr0",
+              "value": "hello there"
+            }
+          ]
+        }
+      ],
+      "name": "SpeakerNr0",
+      "type": "SEGMENT",
+      "role": "speaker"
+    }
+  ],
+  "links": [],
+  "sampleRate": 20000
+}

@@ -129,6 +129,7 @@ let LevelCanvasMarkupCanvasComponent = {
         'ConfigProviderService', 
         'LevelService', 
         'HistoryService',
+        'AuthService',
         class LevelCanvasMarkupCanvasController{
         private $scope;
         private $element;
@@ -140,6 +141,7 @@ let LevelCanvasMarkupCanvasComponent = {
         private ConfigProviderService;
         private LevelService;
         private HistoryService;
+        private AuthService;
 
         // bindings
         private level;
@@ -176,6 +178,7 @@ let LevelCanvasMarkupCanvasComponent = {
             ConfigProviderService, 
             LevelService, 
             HistoryService,
+            AuthService,
             ){
             this.$scope = $scope;
             this.$element = $element;
@@ -187,6 +190,7 @@ let LevelCanvasMarkupCanvasComponent = {
             this.ConfigProviderService = ConfigProviderService;
             this.LevelService = LevelService;
             this.HistoryService = HistoryService;
+            this.AuthService = AuthService;
 
             this.lastEventClick = undefined;
             this.lastEventMove = undefined;
@@ -236,39 +240,22 @@ let LevelCanvasMarkupCanvasComponent = {
                 this.showBodyPostureSubmenu = false;
                 this.setLastMove(event, true);
                 this.setLastClick(event);
-              });
+            });
               
-              
-              
-
-            //
-            // this.$element.bind('contextmenu', (event) => {
-            //     console.log("inside level-canvas-markup-canvas.component.ts-> bind(contextmenu event)");
-            //     console.log('contextmenu event: target=', event.target, 'currentTarget=', event.currentTarget);
-
-
-            //     event.preventDefault();
-              
-            //     // Get mouse position in canvas coordinates
-            //     const mouseX = this.ViewStateService.getX(event);
-            //     const samplesPerPixel = this.ViewStateService.getSamplesPerPixelVal(event);
-              
-            //     console.log("mouseX: ",mouseX);
-            //     console.log("samplesPerPixel: ",samplesPerPixel);
-
-            //     // Convert to absolute sample index (in the entire waveform)
-            //     this.lastRightClickSample = (mouseX * samplesPerPixel) + this.ViewStateService.curViewPort.sS;
-              
-            //     // Show context menu at screen coords
-            //     this.contextMenuX = event.clientX;
-            //     this.contextMenuY = event.clientY;
-            //     this.showContextMenu = true;
-            //     // No need for $scope.$apply if you’re already in an Angular event
-            //   });
-              
-
-            //
+                          
             this.$element.bind('dblclick', (event) => {
+                console.log("the dblclick has been clicked");
+
+                const u        = this.AuthService.getUser();
+                const origin   = this.AuthService.getFileOrigin();
+                const isPriv   = u && (u.role === 'administrator' || u.role === 'researcher');
+                const isSdrag  = u && u.role === 'simple' && origin === 'drag-n-droped';
+                if (!(isPriv || isSdrag)) {
+                    // simple user on a fetched-from-DB file: don’t even fire the normal double-click logic
+                    return;
+                }
+
+
                 this.setLastMove(event, true);
                 // If in video mode (using $root.isVideo), force open the edit area.
                 if (this.$rootScope.isVideo) {
@@ -285,10 +272,15 @@ let LevelCanvasMarkupCanvasComponent = {
             });
               
             
-
-            //
             this.$element.bind('mousemove', (event) => {
                 // console.log("inside level-canvas-markup-canvas.component.ts-> bind(mousemove event)");
+
+                 const buf = this.SoundHandlerService.audioBuffer;
+                // if no audio loaded yet, bail out immediately
+                if (!buf || typeof buf.length !== 'number') {
+                    return;
+                }
+
                 var moveLine, moveBy;
                 if (this.ViewStateService.focusOnEmuWebApp) {
                     if (!this.ViewStateService.getdragBarActive()) {
@@ -432,18 +424,26 @@ let LevelCanvasMarkupCanvasComponent = {
                 }
             });
 
-            //
-            // this.$element.bind('mousedown', (event) => {
-            //     // console.log("inside level-canvas-markup-canvas.component.ts-> bind(mousedown event)");
-
-            //     this.ViewStateService.movingBoundary = true;
-            //     this.setLastMove(event, true);
-            // });
 
              // (2) RIGHT MOUSEDOWN FOR CUSTOM MENU
                 // Show your custom menu immediately when user presses right button
                 angular.element(canvas).bind('mousedown', (event) => {
                     if (event.button === 2) {
+
+                        // --- NEW: only allow admins/researchers OR simple+dragged files ---
+                        const u = this.AuthService.getUser();
+                        const origin = this.AuthService.getFileOrigin();
+                        const isPrivileged = u && (u.role === 'administrator' || u.role === 'researcher');
+                        const isSimpleDrag = u && u.role === 'simple' && origin === 'drag-n-droped';
+                        if (! (isPrivileged || isSimpleDrag) ) {
+                            // simple user on a fetched bundle: block the menu entirely
+                            return;
+                        }
+                        // ------------------------------------------------------------------                            
+
+
+
+
                         event.preventDefault(); // we already prevented the default context menu above, but just to be safe
                         
                         // 1) Calculate the mouse position in the waveform
@@ -591,6 +591,12 @@ let LevelCanvasMarkupCanvasComponent = {
          *
          */
         private setLastMove (x, doChange) {
+            // guard: if no real audio buffer yet, bail out (for after the clear data)
+            const buf = this.SoundHandlerService.audioBuffer;
+            if (!buf || typeof buf.length !== 'number') {
+                return;
+            }
+
             this.curMouseSampleNrInView = this.ViewStateService.getX(x) * this.ViewStateService.getSamplesPerPixelVal(x);
             this.lastEventMove = this.LevelService.getClosestItem(this.curMouseSampleNrInView + this.ViewStateService.curViewPort.sS, this.level.name, this.SoundHandlerService.audioBuffer.length);
             if (doChange) {

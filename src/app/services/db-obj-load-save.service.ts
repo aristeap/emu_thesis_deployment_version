@@ -1,6 +1,8 @@
 import * as angular from 'angular';
 
 import { WavRangeReq } from '../workers/wavrangereq.worker';
+import { AuthService } from '../services/auth.service';
+
 
 /**
 * @ngdoc service
@@ -35,8 +37,9 @@ class DbObjLoadSaveService{
 	private StandardFuncsService;
 	private DragnDropDataService;
 	private VideoParserService;
+	private AuthService;
 	
-	constructor($log, $q, $http, $rootScope,$timeout, DataService, ViewStateService, HistoryService, LoadedMetaDataService, SsffDataService, IoHandlerService, BinaryDataManipHelperService, WavParserService, SoundHandlerService, SsffParserService, ValidationService, LevelService, ModalService, ConfigProviderService, AppStateService, StandardFuncsService, DragnDropDataService, VideoParserService){
+	constructor($log, $q, $http, $rootScope,$timeout, DataService, ViewStateService, HistoryService, LoadedMetaDataService, SsffDataService, IoHandlerService, BinaryDataManipHelperService, WavParserService, SoundHandlerService, SsffParserService, ValidationService, LevelService, ModalService, ConfigProviderService, AppStateService, StandardFuncsService, DragnDropDataService, VideoParserService, AuthService){
 		this.$log = $log;
 		this.$q = $q;
 		this.$http = $http;
@@ -60,13 +63,14 @@ class DbObjLoadSaveService{
 		this.StandardFuncsService = StandardFuncsService;
 		this.DragnDropDataService = DragnDropDataService;
 		this.VideoParserService = VideoParserService;
+		this.AuthService = AuthService;
 		
 	}
 	
 
 	
 	private innerLoadBundle(bndl: any, bundleData: any, arrBuff: ArrayBuffer, defer: angular.IDeferred<any>) {
-		 console.log("db-obj-load-save.service->innerLoadBundle()");
+		//  console.log("db-obj-load-save.service->innerLoadBundle()");
 		if (!bundleData.annotation) {
 		  bundleData.annotation = {
 			levels: [],
@@ -139,7 +143,7 @@ class DbObjLoadSaveService{
 			//    console.log("Before setCurBndl-->inside the innerLoadBundle() of db-obj-load-save.service.ts");
 			  this.LoadedMetaDataService.setCurBndl(bndl);
 			  // Set state explicitly for audio files:
-			  console.log("is this where the setState is becoming labeling->innerLoadBundle of db-obj-load-save.service.ts");
+			//   console.log("is this where the setState is becoming labeling->innerLoadBundle of db-obj-load-save.service.ts");
 
 			  this.ViewStateService.setState('labeling');
 			  this.ViewStateService.somethingInProgress = false;
@@ -163,7 +167,7 @@ class DbObjLoadSaveService{
 		  });
 		});
 
-		console.log("At the end of the innerLoadBundle() function");
+		// console.log("At the end of the innerLoadBundle() function");
 
 	  }
 	  
@@ -178,8 +182,8 @@ class DbObjLoadSaveService{
 
 	loadBundle(bndl, url) {
 		console.log("THE FILE ON THE LEFT PANEL HAS BEEN CLICKED");
-		console.log("db-obj-load-save.service->loadBundle()");
-		console.log("bndl at the start of the loadBundle() function: ", bndl);
+		// console.log("db-obj-load-save.service->loadBundle()");
+		//console.log("bndl at the start of the loadBundle() function: ", bndl);
 	  
 		const defer = this.$q.defer();
 		this.ViewStateService.setcurClickItem(null);
@@ -210,7 +214,7 @@ class DbObjLoadSaveService{
 		else {
 		  if (bndl !== this.LoadedMetaDataService.getCurBndl()) {
 			console.log(
-			  "inside the if(bndl !== getCurBndl()) of loadBundle()…"
+			//   "inside the if(bndl !== getCurBndl()) of loadBundle()…"
 			);
 	  
 			// reset state & start spinner
@@ -229,17 +233,23 @@ class DbObjLoadSaveService{
 			let promise;
 			if (!url) {
 			  if (bndl.session === "DB") {
-				console.log("Detected DB file; using DragnDropDataService.getBundle()");
+				// console.log("Detected DB file; using DragnDropDataService.getBundle()");
+				this.AuthService.setFileOrigin('fetched-from-database');
+				//console.log('⚙️ fileOrigin now =', this.AuthService.getFileOrigin());
+
 				promise = this.DragnDropDataService.getBundle(bndl.name, bndl.session);
 			  } else if (this.ConfigProviderService.vals.main.comMode === 'WS') {
-				console.log("Using WS mode; calling IoHandlerService.getBundle()");
+				 //console.log("Using WS mode; calling IoHandlerService.getBundle()");
 				promise = this.IoHandlerService.getBundle(
 				  bndl.name,
 				  bndl.session,
 				  this.LoadedMetaDataService.getDemoDbName()
 				);
 			  } else {
-				console.log("Using EMBEDDED mode; calling IoHandlerService.getBundle()");
+				//console.log("Using EMBEDDED mode; calling IoHandlerService.getBundle()");
+				this.AuthService.setFileOrigin('drag-n-droped');
+				//console.log('⚙️ fileOrigin now =', this.AuthService.getFileOrigin());
+
 				promise = this.IoHandlerService.getBundle(
 				  bndl.name,
 				  bndl.session,
@@ -257,17 +267,17 @@ class DbObjLoadSaveService{
 			  if (bundleData.status === 200) {
 				bundleData = bundleData.data;
 			  }
-			  console.log("Normalized bundleData:", bundleData);
+			//   console.log("Normalized bundleData:", bundleData);
 	  
 			  const validRes = this.ValidationService.validateJSO(
 				'bundleSchema',
 				bundleData
 			  );
-			  console.log("validRes:", validRes);
+			//   console.log("validRes:", validRes);
 	  
 			  if (validRes === true) {
-				console.log("Inside validRes=true");
-				console.log("bundleData.mediaFile.encoding:", bundleData.mediaFile.encoding);
+				// console.log("Inside validRes=true");
+				// console.log("bundleData.mediaFile.encoding:", bundleData.mediaFile.encoding);
 	  
 
 				// ─── PDF ───────────────────────────────────────────────────────────────
@@ -276,12 +286,13 @@ class DbObjLoadSaveService{
 				  bundleData.mediaFile.type &&
 				  (bundleData.mediaFile.type === 'PDF')
 				) {
-				  this.LoadedMetaDataService.setCurBndl(bndl);
-				  this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
-				  this.ViewStateService.setState('nonAudioDisplay');
-				  this.ViewStateService.somethingInProgress = false;
-				  this.ViewStateService.somethingInProgressTxt = 'Done!';
-				  defer.resolve();
+					console.log("inside the PDF if;")	
+					this.LoadedMetaDataService.setCurBndl(bndl);
+					this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
+					this.ViewStateService.setState('nonAudioDisplay');
+					this.ViewStateService.somethingInProgress = false;
+					this.ViewStateService.somethingInProgressTxt = 'Done!';
+					defer.resolve();
 				}
 				// ─── IMAGE ─────────────────────────────────────────────────────────────
 				else if (
@@ -289,12 +300,13 @@ class DbObjLoadSaveService{
 				  bundleData.mediaFile.type &&
 				  (bundleData.mediaFile.type === 'IMG')
 				) {
-				  this.LoadedMetaDataService.setCurBndl(bndl);
-				  this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
-				  this.ViewStateService.setState('JpegDisplay');
-				  this.ViewStateService.somethingInProgress = false;
-				  this.ViewStateService.somethingInProgressTxt = 'Done!';
-				  defer.resolve();
+					console.log("inside the IMG if;")	
+					this.LoadedMetaDataService.setCurBndl(bndl);
+					this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
+					this.ViewStateService.setState('JpegDisplay');
+					this.ViewStateService.somethingInProgress = false;
+					this.ViewStateService.somethingInProgressTxt = 'Done!';
+					defer.resolve();
 				}
 				// ─── VIDEO ─────────────────────────────────────────────────────────────
 				else if (
@@ -302,19 +314,20 @@ class DbObjLoadSaveService{
 				  bundleData.mediaFile.type &&
 				  (bundleData.mediaFile.type === 'VIDEO')
 				) {
-				  this.LoadedMetaDataService.setCurBndl(bndl);
-				  this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
-				  this.ViewStateService.setState('videoDisplay');
-				  this.ViewStateService.somethingInProgress = false;
-				  this.ViewStateService.somethingInProgressTxt = 'Done!';
-				  defer.resolve();
+					console.log("inside the VIDEO if;")	
+					this.LoadedMetaDataService.setCurBndl(bndl);
+					this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: bndl });
+					this.ViewStateService.setState('videoDisplay');
+					this.ViewStateService.somethingInProgress = false;
+					this.ViewStateService.somethingInProgressTxt = 'Done!';
+					defer.resolve();
 				}
 				// ─── AUDIO (BASE64) ─────────────────────────────────────────────────────
 				else if (bundleData.mediaFile.encoding === 'BASE64') {	
 
-					console.log("Inside the BASE64_________________________________________________________________________________");
+				console.log("Inside the BASE64_________________________________________________________________________________");
 
-				  console.log("AT THE START OF BASE64, bundleData:", bundleData);
+				//   console.log("AT THE START OF BASE64, bundleData:", bundleData);
 				  const arrBuff = this.BinaryDataManipHelperService.base64ToArrayBuffer(
 					bundleData.mediaFile.data
 				  );
@@ -323,7 +336,7 @@ class DbObjLoadSaveService{
 				// ─── AUDIO / PDF / IMG / VIDEO (GETURL) ────────────────────────────────
 				else if (bundleData.mediaFile.encoding === 'GETURL') {
 
-					console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
+					 console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
 					const fileId = bundleData.mediaFile.data;
 					const downloadUrl = `http://localhost:3019/download-file/${fileId}`;
 
@@ -354,16 +367,16 @@ class DbObjLoadSaveService{
 						this.LoadedMetaDataService.setCurBndl(fullBndl);
 						this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: fullBndl });
 
-						console.log("fullBundle() from inside the loadBUndle: ",fullBndl);
+						// console.log("fullBundle() from inside the loadBUndle: ",fullBndl);
 
 						// 4) dispatch based on the *type* field you already set in mapFileToBundle()
 						const t = bundleData.mediaFile.type.toLowerCase();
 
-						console.log("The t is-----------------------------------------------------------------: ",t);
+						// console.log("The t is-----------------------------------------------------------------: ",t);
 				
 						// ─── PDF ─────────────────────────────
 						if (t === 'pdf' || t === 'application') {
-							console.log("inside the pdf part _______________________________________________________________________");
+							 console.log("inside the pdf part _______________________________________________________________________");
 							this.LoadedMetaDataService.setCurBndl(fullBndl);
 							this.ViewStateService.setState(this.ViewStateService.states.nonAudioDisplay);
 
@@ -390,7 +403,7 @@ class DbObjLoadSaveService{
 						// ─── VIDEO ────────────────────────────
 						} else if (t === 'video' || t === 'mp4' || t.startsWith('video/')) {
 
-							console.log("inside the video part _______________________________________________________________________");
+							 console.log("inside the video part _______________________________________________________________________");
 
 							this.VideoParserService.parseVideoAudioBuf(arr)
 							.then((audioBuf) => {
@@ -484,7 +497,7 @@ class DbObjLoadSaveService{
 			  defer.reject(errMess);
 			}); // ← end promise.then
 	  
-			console.log("at the end of the normal-load branch");
+			// console.log("at the end of the normal-load branch");
 		  } // ← end if (bndl !== curBndl)
 		} // ← end outer else (unsaved-changes check)
 	  
@@ -592,7 +605,7 @@ class DbObjLoadSaveService{
 			this.ModalService.open('views/error.html', 'Somehow the data for this bundle has been corrupted. This is most likely a nasty and diffucult to spot bug. If you are at the IPS right now, please contact an EMU developer immediately. The Validation error is: ' + JSON.stringify(validRes, null, 4)).then(() => {
 				this.ViewStateService.somethingInProgressTxt = '';
 				this.ViewStateService.somethingInProgress = false;
-				console.log("is this where the setState is becoming labeling->getAnnotationAndSaveBndl of db-obj-load-save.service.ts");
+				// console.log("is this where the setState is becoming labeling->getAnnotationAndSaveBndl of db-obj-load-save.service.ts");
 
 				this.ViewStateService.setState('labeling');
 				defer.reject();
@@ -604,7 +617,7 @@ class DbObjLoadSaveService{
 				this.ViewStateService.somethingInProgress = false;
 				this.HistoryService.movesAwayFromLastSave = 0;
 				defer.resolve();
-				console.log("is this where the setState is becoming labeling->getAnnotationAndSaveBndl-2 of db-obj-load-save.service.ts");
+				// console.log("is this where the setState is becoming labeling->getAnnotationAndSaveBndl-2 of db-obj-load-save.service.ts");
 
 				this.ViewStateService.setState('labeling');
 			}, (errMess) => {
@@ -619,4 +632,4 @@ class DbObjLoadSaveService{
 }
 
 angular.module('emuwebApp')
-.service('DbObjLoadSaveService', ['$log', '$q', '$http','$rootScope','$timeout','DataService', 'ViewStateService', 'HistoryService', 'LoadedMetaDataService', 'SsffDataService', 'IoHandlerService', 'BinaryDataManipHelperService', 'WavParserService', 'SoundHandlerService', 'SsffParserService', 'ValidationService', 'LevelService', 'ModalService', 'ConfigProviderService', 'AppStateService', 'StandardFuncsService','DragnDropDataService', 'VideoParserService', DbObjLoadSaveService]);
+.service('DbObjLoadSaveService', ['$log', '$q', '$http','$rootScope','$timeout','DataService', 'ViewStateService', 'HistoryService', 'LoadedMetaDataService', 'SsffDataService', 'IoHandlerService', 'BinaryDataManipHelperService', 'WavParserService', 'SoundHandlerService', 'SsffParserService', 'ValidationService', 'LevelService', 'ModalService', 'ConfigProviderService', 'AppStateService', 'StandardFuncsService','DragnDropDataService', 'VideoParserService','AuthService', DbObjLoadSaveService]);

@@ -1,0 +1,28 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 5529,
+          "sampleDur": 4698,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "abcde"
+            }
+          ]
+        }
+      ],
+      "name": "levelNr0",
+      "type": "SEGMENT"
+    },
+    {
+      "items": [],
+      "name": "levelNr1",
+      "type": "EVENT"
+    }
+  ],
+  "links": [],
+  "sampleRate": 16000
+}
