@@ -77,7 +77,9 @@ class DbObjLoadSaveService{
 			links: [],
 			sampleRate: 16000,   // temporary, updated after WAV parse
 			annotates: bndl.name,
-			name: bndl.name
+			name: bndl.name,
+			pdfAnnotations: []
+
 		  };
 		}
 
@@ -336,7 +338,7 @@ class DbObjLoadSaveService{
 				// ─── AUDIO / PDF / IMG / VIDEO (GETURL) ────────────────────────────────
 				else if (bundleData.mediaFile.encoding === 'GETURL') {
 
-					 console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
+					console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
 					const fileId = bundleData.mediaFile.data;
 					const downloadUrl = `http://localhost:3019/download-file/${fileId}`;
 

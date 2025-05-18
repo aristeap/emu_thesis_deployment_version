@@ -1,7 +1,7 @@
 import * as angular from 'angular';
 
 angular.module('emuwebApp')
-.service('AnnotationService', function() {
+.service('AnnotationService', ['$rootScope', function($rootScope){
   const self = this;
   // Shared array of annotations.
   self.annotations = [];
@@ -53,6 +53,9 @@ angular.module('emuwebApp')
       existing.moPhrase = choice;
     }
     console.log("Current annotations:", self.annotations);
+
+    $rootScope.$broadcast('annotationChanged');
+
   };
 
   self.removeAnnotation = function(word, pdfId) {
@@ -60,5 +63,7 @@ angular.module('emuwebApp')
     if (idx !== -1) {
       self.annotations.splice(idx, 1);
     }
+    $rootScope.$broadcast('annotationChanged');
+
   };
-});
+}]);

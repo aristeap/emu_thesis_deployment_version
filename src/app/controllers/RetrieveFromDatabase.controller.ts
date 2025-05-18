@@ -13,8 +13,9 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
   'DragnDropDataService', 
   'DragnDropService', 
   'AuthService',  
+  'DataService',
   '$rootScope',
-  function($scope, $http, ModalService, ViewStateService, DbObjLoadSaveService, IoHandlerService, LoadedMetaDataService,DragnDropDataService,DragnDropService,AuthService ,$rootScope) {
+  function($scope, $http, ModalService, ViewStateService, DbObjLoadSaveService, IoHandlerService, LoadedMetaDataService,DragnDropDataService,DragnDropService,AuthService,DataService ,$rootScope) {
     var vm = this;
     vm.files = ModalService.data.files || [];
     vm.selectedFile = null;
@@ -87,6 +88,9 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
     $http.get(`http://localhost:3019/emuDB/${dbName}/${bundle.name}_annot.json`)
       .then(function(resp) {
         bundle.annotation = resp.data;            // ← NEW: use loaded JSON
+        console.log("--------------------------------------------------------------------");
+        console.log("bundle: ",bundle);
+        console.log("bundle.annotation: ",bundle.annotation);
       })
       .catch(function() {
         // ← NEW: if no file or error, start with empty annotation
@@ -94,11 +98,18 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
         const fallback = {
           levels: [],
           links: [],
-          sampleRate:  20000
+          sampleRate:  20000,
+          pdfAnnotations: []
         }as any;
         bundle.annotation = fallback;
+
+        DataService.setData(bundle.annotation);
+
       })
       .finally(function() {
+        DataService.setData(bundle.annotation);
+        $rootScope.$broadcast('annotationChanged');
+        
         // ← EXISTING: inject into webapp
         DragnDropDataService.processFetchedBundle(bundle);
         DragnDropDataService.setDefaultSession(

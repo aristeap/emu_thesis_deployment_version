@@ -2,8 +2,8 @@ import * as angular from 'angular';
 
 angular.module('emuwebApp')
 .controller('PdfController', [
-  '$scope', '$rootScope', 'DragnDropDataService', 'LoadedMetaDataService', 'PdfStateService', 'LinguisticService', 'AnnotationService',
-  function($scope, $rootScope, DragnDropDataService, LoadedMetaDataService, PdfStateService, LinguisticService, AnnotationService) {
+  '$scope', '$rootScope', 'DragnDropDataService', 'LoadedMetaDataService', 'PdfStateService', 'LinguisticService', 'AnnotationService','DataService',
+  function($scope, $rootScope, DragnDropDataService, LoadedMetaDataService, PdfStateService, LinguisticService, AnnotationService,DataService) {
     const vm = this;
     vm.linguisticService = LinguisticService;
     vm.pdfState = PdfStateService;
@@ -11,6 +11,10 @@ angular.module('emuwebApp')
     
     // Use shared annotations from AnnotationService
     vm.annotations = AnnotationService.annotations;
+
+    $rootScope.$on('annotationChanged', () => {
+      vm.annotations = AnnotationService.annotations;
+    });
     
     // Control visibility of the floating annotation window.
     vm.showAnnotationTable = false;
@@ -19,6 +23,7 @@ angular.module('emuwebApp')
     vm.highlightedAnnotations = {}; // key: pdfId, value: boolean
 
     vm.selectLinguistic = function(mode) {
+      console.log("inside the vm.selectLinguistic-----------------");
       LinguisticService.mode = mode;
       vm.linguisticMode = mode;
       $rootScope.$broadcast('linguisticModeChanged', mode);
@@ -109,6 +114,7 @@ angular.module('emuwebApp')
     });
 
     $scope.$watch(() => LinguisticService.mode, (newMode) => {
+      console.log("The linguistic.mode service changed---------------------------------");
       vm.linguisticMode = newMode;
     });
 
@@ -131,16 +137,27 @@ angular.module('emuwebApp')
       const idx    = DragnDropDataService.getDefaultSession();
       const ddBndl = DragnDropDataService.convertedBundles[idx];
 
+      // 1) rehydrate your annotations array
+      vm.annotations = DataService.getData().pdfAnnotations || [];
+
       if (ddBndl.mediaFile.encoding === 'GETURL') {
         // fetched‑file case: pull the full Base64 bundle
         const fullBndl = LoadedMetaDataService.getCurBndl();
-        console.log("PdfController falling back to fullBndl:", fullBndl);
+        console.log("PdfController falling back to fullBndl********************:", fullBndl);
+        console.log("fullBndle.session: ",fullBndl.session);
         applyBundle(fullBndl);
 
       } else if (ddBndl.mediaFile.encoding === 'BASE64') {
+        console.log("pdf encoding BASE64********************:");
         // drag‑n‑drop case: use the convertedBundles entry directly
         applyBundle(ddBndl);
       }
+      
+      // **NEW**: if this bundle came from the DB, show the annotation table immediately when the pdf loads
+      if (ddBndl.session === "DB") {
+        vm.showAnnotationTable = true;
+      }  
+      
     }
 
     // ─────────── Listen for loaded bundles ───────────

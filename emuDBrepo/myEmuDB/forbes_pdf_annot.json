@@ -1,0 +1,18 @@
+{
+  "levels": [],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [
+    {
+      "word": "billionaires",
+      "pos": "verb",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0"
+    }
+  ]
+}

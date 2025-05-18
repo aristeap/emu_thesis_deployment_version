@@ -1060,6 +1060,7 @@ let EmuWebAppComponent = {
 		'BrowserDetectorService',
 		'HierarchyLayoutService',
 		'HandleGlobalKeyStrokes',
+		'AnnotationService',
 		class EmuWebAppController{
         private $scope;
         private $element;
@@ -1095,6 +1096,7 @@ let EmuWebAppComponent = {
         private BrowserDetectorService;
 		private HierarchyLayoutService;
 		private HandleGlobalKeyStrokes;
+		private AnnotationService;
 
         // init vars
 		private connectBtnLabel;
@@ -1151,7 +1153,8 @@ let EmuWebAppComponent = {
             ModalService,
             BrowserDetectorService,
 			HierarchyLayoutService,
-			HandleGlobalKeyStrokes){
+			HandleGlobalKeyStrokes,
+			AnnotationService){
             
                 this.$scope = $scope;
                 this.$element = $element;
@@ -1181,6 +1184,7 @@ let EmuWebAppComponent = {
                 this.BrowserDetectorService = BrowserDetectorService;
                 this.HierarchyLayoutService = HierarchyLayoutService;
 				this.HandleGlobalKeyStrokes = HandleGlobalKeyStrokes;
+				this.AnnotationService = AnnotationService;
 
 				this.dropdownPhonetic = false;
 				this.dropdownOrthographic = false;
@@ -2020,6 +2024,9 @@ let EmuWebAppComponent = {
 			const payload = this.DataService.getData();
 
 			console.log("db: ",db, "bndl: ",bndl, "payload: ",payload);
+			
+			// ←── NEW: pull in pdfAnnotations from your floating table
+  			payload.pdfAnnotations = this.AnnotationService.annotations || [];
 
 			this.$http.post(
   					'http://localhost:3019' + `/api/emuDB/${db}/${bndl}/annot`,
@@ -2231,7 +2238,8 @@ let EmuWebAppComponent = {
 				links: [],
 				sampleRate: null,
 				annotates: fileMetadata.fileName,
-				name: fileMetadata.fileName
+				name: fileMetadata.fileName,
+				pdfAnnotations: []
 			  }
 			};
 		  }
