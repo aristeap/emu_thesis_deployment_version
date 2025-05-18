@@ -2,8 +2,8 @@ import * as angular from 'angular';
 
 angular.module('emuwebApp')
 .directive('imageSelectable', [
-  '$timeout', 'LinguisticService', 'AnnotationService',
-  function($timeout, LinguisticService, AnnotationService) {
+  '$timeout', 'LinguisticService', 'AnnotationService','DataService', '$rootScope',
+  function($timeout, LinguisticService, AnnotationService, DataService, $rootScope) {
     return {
       restrict: 'E',
       scope: {
@@ -157,6 +157,23 @@ angular.module('emuwebApp')
             isDragging = false;
             // Set context menu flag so endSelection doesn't clear the box.
             scope.contextMenuActive = true;
+
+             // common helper to persist into DataService + broadcast
+            function persistAndBroadcast(record: any) {
+              // AnnotationService already got it in-memory
+              // GOOD: clone first, then set
+              const current = DataService.getData();
+              // deep‐clone
+              const updated = angular.copy(current);
+              // update the clone
+              updated.imageAnnotations = updated.imageAnnotations || [];
+              updated.imageAnnotations.push(record);
+              // hand the clone back to the service
+              DataService.setData(updated);
+              $rootScope.$broadcast('annotationChanged');
+
+            }
+
             
             //For equivalent-from-english-------------------------------------------------------------------------------------------
             if (currentMode === 'equivalent-from-english') {
@@ -220,6 +237,26 @@ angular.module('emuwebApp')
                   // Update the annotation table (pass the bbox).
                   console.log("boxLabel: ",boxLabel);
                   AnnotationService.addAnnotation(boxLabel, "equivalent-from-english", selectedLetter, null, currentBbox);
+
+                  // GOOD: clone, then mutate the clone
+                  const current = DataService.getData();
+                  // deep‐clone the entire annotation bundle
+                  const updated = angular.copy(current);
+                  updated.imageAnnotations = updated.imageAnnotations || [];
+                  updated.imageAnnotations.push({
+                    word:     boxLabel,
+                    engAlpha: selectedLetter,
+                    moSymbol: "",
+                    moPhrase: "",
+                    comment:  "",
+                    pdfId:    null,
+                    bbox:     currentBbox
+                  });
+                  DataService.setData(updated);
+
+                  // tell everybody the table needs to refresh
+                  $rootScope.$broadcast('annotationChanged');
+
                 }
                 // Reset the context menu flag and clear the selection box.
                 scope.contextMenuActive = false;
@@ -312,6 +349,24 @@ angular.module('emuwebApp')
                   };
 
                   AnnotationService.addAnnotation(boxLabel, "meaning-of-symbol", comment, null, currentBbox);
+
+                  // GOOD: clone, then mutate the clone
+                  const current = DataService.getData();
+                  // deep‐clone the entire annotation bundle
+                  const updated = angular.copy(current);
+                  updated.imageAnnotations = updated.imageAnnotations || [];
+                  updated.imageAnnotations.push({
+                    word:     boxLabel,
+                    engAlpha: "",     // or “” for other modes
+                    moSymbol: comment,   // or “” for other modes
+                    moPhrase: "",   // or “” for other modes
+                    comment:  "",    // or “” for other modes
+                    pdfId:    null,
+                    bbox:     currentBbox
+                  });
+                  DataService.setData(updated);
+                  $rootScope.$broadcast('annotationChanged');
+
                 }
                 // Reset the flags and clear the drag selection box.
                 scope.contextMenuActive = false;
@@ -405,6 +460,24 @@ angular.module('emuwebApp')
                     height: scope.selectionBox.height
                   };
                   AnnotationService.addAnnotation(boxLabel, "meaning-of-phrase", comment, null, currentBbox);
+
+                  // GOOD: clone, then mutate the clone
+                  const current = DataService.getData();
+                  // deep‐clone the entire annotation bundle
+                  const updated = angular.copy(current);
+                  updated.imageAnnotations = updated.imageAnnotations || [];
+                  updated.imageAnnotations.push({
+                    word:     boxLabel,
+                    engAlpha: "",     // or “” for other modes
+                    moSymbol: "",   // or “” for other modes
+                    moPhrase: comment,   // or “” for other modes
+                    comment:  "",    // or “” for other modes
+                    pdfId:    null,
+                    bbox:     currentBbox
+                  });
+                  DataService.setData(updated);
+                  $rootScope.$broadcast('annotationChanged');
+
                 }
                 scope.contextMenuActive = false;
                 scope.selectionActive = false;
@@ -494,6 +567,22 @@ angular.module('emuwebApp')
                     height: scope.selectionBox.height
                   };
                   AnnotationService.addAnnotation(boxLabel, "other comments", comment, null, currentBbox);
+
+                  const current = DataService.getData();
+                  // GOOD: clone, then mutate the clone
+                  const updated = angular.copy(current);
+                  updated.imageAnnotations = updated.imageAnnotations || [];
+                  updated.imageAnnotations.push({
+                    word:     boxLabel,
+                    engAlpha: "",     // or “” for other modes
+                    moSymbol: "",   // or “” for other modes
+                    moPhrase: "",   // or “” for other modes
+                    comment:  comment,    // or “” for other modes
+                    pdfId:    null,
+                    bbox:     currentBbox
+                  });
+                  DataService.setData(updated);
+                  $rootScope.$broadcast('annotationChanged');
                 }
                 scope.contextMenuActive = false;
                 scope.selectionActive = false;

@@ -2022,6 +2022,9 @@ let EmuWebAppComponent = {
 			const db = "myEmuDB";	
 			const bndl = this.LoadedMetaDataService.getCurBndlName();  // e.g. "msajc003" 
 			const payload = this.DataService.getData();
+			// shove the image‐annotation array into your payload
+			payload.imageAnnotations = this.DataService.getData().imageAnnotations || [];
+
 
 			console.log("db: ",db, "bndl: ",bndl, "payload: ",payload);
 			
@@ -2239,7 +2242,8 @@ let EmuWebAppComponent = {
 				sampleRate: null,
 				annotates: fileMetadata.fileName,
 				name: fileMetadata.fileName,
-				pdfAnnotations: []
+				pdfAnnotations: [],
+				imageAnnotations: []
 			  }
 			};
 		  }

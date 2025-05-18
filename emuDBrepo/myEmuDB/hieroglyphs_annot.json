@@ -1,0 +1,133 @@
+{
+  "levels": [],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [
+    {
+      "word": "box 1",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "C",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 22,
+        "left": 172.39999389648438,
+        "width": 63,
+        "height": 54
+      }
+    },
+    {
+      "word": "box 2",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "life",
+      "moPhrase": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 8,
+        "left": 268.3999938964844,
+        "width": 60,
+        "height": 90
+      }
+    },
+    {
+      "word": "box 3",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "meaning of phrase",
+      "pdfId": null,
+      "bbox": {
+        "top": 64,
+        "left": 11.399993896484375,
+        "width": 58,
+        "height": 73
+      }
+    },
+    {
+      "word": "box 4",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "this is other comment",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 105,
+        "left": 261.3999938964844,
+        "width": 79,
+        "height": 10
+      }
+    }
+  ],
+  "imageAnnotations": [
+    {
+      "word": "box 1",
+      "engAlpha": "C",
+      "moSymbol": "",
+      "moPhrase": "",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 22,
+        "left": 172.39999389648438,
+        "width": 63,
+        "height": 54
+      }
+    },
+    {
+      "word": "box 2",
+      "engAlpha": "",
+      "moSymbol": "life",
+      "moPhrase": "",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 8,
+        "left": 268.3999938964844,
+        "width": 60,
+        "height": 90
+      }
+    },
+    {
+      "word": "box 3",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "meaning of phrase",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 64,
+        "left": 11.399993896484375,
+        "width": 58,
+        "height": 73
+      }
+    },
+    {
+      "word": "box 4",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "comment": "this is other comment",
+      "pdfId": null,
+      "bbox": {
+        "top": 105,
+        "left": 261.3999938964844,
+        "width": 79,
+        "height": 10
+      }
+    }
+  ]
+}

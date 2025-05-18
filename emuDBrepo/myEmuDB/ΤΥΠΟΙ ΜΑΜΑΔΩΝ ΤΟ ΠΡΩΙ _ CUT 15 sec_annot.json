@@ -1,0 +1,61 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 2,
+          "sampleStart": 50106,
+          "sampleDur": 52216,
+          "labels": [
+            {
+              "name": "Phonetic",
+              "value": "abcd"
+            }
+          ]
+        }
+      ],
+      "name": "Phonetic",
+      "type": "SEGMENT"
+    },
+    {
+      "items": [
+        {
+          "id": 4,
+          "sampleStart": 170888,
+          "sampleDur": 51160,
+          "labels": [
+            {
+              "name": "Anna",
+              "value": "Hello world"
+            }
+          ]
+        }
+      ],
+      "name": "Anna",
+      "type": "SEGMENT",
+      "role": "speaker"
+    },
+    {
+      "items": [
+        {
+          "id": 6,
+          "sampleStart": 267935,
+          "sampleDur": 50106,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Shake Side-to-Side"
+            }
+          ]
+        }
+      ],
+      "name": "EmbodiedActionsNr0",
+      "type": "SEGMENT",
+      "role": "embodied"
+    }
+  ],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [],
+  "imageAnnotations": []
+}

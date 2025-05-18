@@ -2,8 +2,8 @@ import * as angular from 'angular';
 
 angular.module('emuwebApp')
 .controller('ImageController', [
-  '$scope', '$rootScope', 'DragnDropDataService', 'ImageStateService', 'LinguisticService', 'AnnotationService','LoadedMetaDataService','ViewStateService',
-  function($scope, $rootScope, DragnDropDataService, ImageStateService, LinguisticService, AnnotationService, LoadedMetaDataService, ViewStateService) {
+  '$scope', '$rootScope', 'DragnDropDataService', 'ImageStateService', 'LinguisticService', 'AnnotationService','LoadedMetaDataService','ViewStateService','DataService',
+  function($scope, $rootScope, DragnDropDataService, ImageStateService, LinguisticService, AnnotationService, LoadedMetaDataService, ViewStateService, DataService) {
     var vm = this;
 
     // Injected services
@@ -16,6 +16,10 @@ angular.module('emuwebApp')
     // Shared annotations from AnnotationService
     vm.annotations = AnnotationService.annotations || [];
     
+    $rootScope.$on('annotationChanged', () => {
+      vm.annotations = DataService.getData().imageAnnotations || [];
+    });
+
     // Controls the visibility of the annotation window
     vm.showAnnotationWindow = false;
 
@@ -52,9 +56,19 @@ angular.module('emuwebApp')
         otherComments: vm.currentMode === 'other comments' ? annotationText : ""
       };
       
-        // vm.annotations.push(newAnnotation);
-        // // console.log("Annotations:", vm.annotations);
-        // vm.showAnnotationWindow = true;
+      // // 2️⃣ Push into the local UI array
+      // vm.annotations.push(newAnnotation);
+      
+      // // 3️⃣ Persist into DataService so “Save Everything” picks it up
+      // const data = DataService.getData();
+      // data.imageAnnotations = data.imageAnnotations || [];
+      // data.imageAnnotations.push(newAnnotation);
+      // DataService.setData(data);
+
+      // // 4️⃣ Tell everyone we’ve added an annotation
+      // $rootScope.$broadcast('annotationChanged');
+      
+
     };
 
 
@@ -188,6 +202,9 @@ angular.module('emuwebApp')
       // drag‑n‑drop
       const idx = DragnDropDataService.getDefaultSession();
       const ddBndl  = DragnDropDataService.convertedBundles[idx];
+      
+      // 1) rehydrate your annotations array from DataService
+      vm.annotations = DataService.getData().imageAnnotations || [];
 
       if(ddBndl.mediaFile.encoding === 'GETURL'){
         const fullBndl = LoadedMetaDataService.getCurBndl();
@@ -203,7 +220,9 @@ angular.module('emuwebApp')
         
       }
 
-
+      if (ddBndl.session === "DB") {
+        vm.showAnnotationWindow = true;
+      }
     }
     
     $scope.$on('nonAudioBundleLoaded', (_e, args: {bundle:any}) => {

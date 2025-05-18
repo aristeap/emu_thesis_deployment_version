@@ -78,7 +78,8 @@ class DbObjLoadSaveService{
 			sampleRate: 16000,   // temporary, updated after WAV parse
 			annotates: bndl.name,
 			name: bndl.name,
-			pdfAnnotations: []
+			pdfAnnotations: [],
+			imageAnnotations: []
 
 		  };
 		}

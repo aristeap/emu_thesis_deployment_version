@@ -235,7 +235,8 @@ class DragnDropService{
 					  sampleRate: audioBuffer.sampleRate,
 					  annotates: bundleName,
 					  name: bundleName,
-					  pdfAnnotations: []
+					  pdfAnnotations: [],
+					  imageAnnotations: []
 					};
 					this.convertDragnDropData(bundles, i + 1).then(() => {
 					  delete this.drandropBundles;
@@ -310,7 +311,8 @@ class DragnDropService{
 				  sampleRate: null,
 				  annotates: bundleName,
 				  name: bundleName,
-				  pdfAnnotations: []
+				  pdfAnnotations: [],
+				  imageAnnotations: []
 				};
 				this.convertDragnDropData(bundles, i + 1).then(() => {
 				  delete this.drandropBundles;
@@ -349,7 +351,8 @@ class DragnDropService{
 				  sampleRate: null,
 				  annotates: bundleName,
 				  name: bundleName,
-				  pdfAnnotations: []
+				  pdfAnnotations: [],
+				  imageAnnotations: []
 				};
 				this.convertDragnDropData(bundles, i + 1).then(() => {
 				  delete this.drandropBundles;
@@ -386,7 +389,8 @@ class DragnDropService{
 					  sampleRate: null,  // We'll set this after decoding the audio
 					  annotates: bundleName,
 					  name: bundleName,
-					  pdfAnnotations: []
+					  pdfAnnotations: [],
+					  imageAnnotations: []
 					};
 			  
 					// Decode the audio track via VideoParserService
@@ -442,7 +446,7 @@ class DragnDropService{
 			annotation = this.DragnDropDataService.convertedBundles[this.DragnDropDataService.sessionDefault].annotation;
 		}
 		else {
-			annotation = {levels: [], links: [], pdfAnnotations: []};
+			annotation = {levels: [], links: [], pdfAnnotations: [], imageAnnotations: []};
 		}
 		this.ViewStateService.showDropZone = false;
 		// console.log("is this where the setState is becoming loadingSaving->handleLocalFiles of drag-n-drop.service.ts");

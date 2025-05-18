@@ -99,7 +99,8 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
           levels: [],
           links: [],
           sampleRate:  20000,
-          pdfAnnotations: []
+          pdfAnnotations: [],
+          imageAnnotations: []
         }as any;
         bundle.annotation = fallback;
 
