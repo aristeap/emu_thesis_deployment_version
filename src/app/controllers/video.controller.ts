@@ -5,6 +5,7 @@ angular.module('emuwebApp')
   '$scope', 
   '$rootScope', 
   '$sce', 
+  '$window',
   'DragnDropDataService', 
   'SoundHandlerService', 
   'DrawHelperService',
@@ -15,6 +16,7 @@ angular.module('emuwebApp')
     $scope, 
     $rootScope, 
     $sce, 
+    $window,
     DragnDropDataService, 
     SoundHandlerService, 
     DrawHelperService, 
@@ -326,6 +328,13 @@ angular.module('emuwebApp')
         return drBndl;
       }
 
+
+      // After all your other init wrangling, add:
+      function onResize() {
+        vm.drawWaveformBg();
+        vm.updateWaveformOverlay();
+      }
+
        // ─────────── Initialization ───────────
       function init() {
         // 1) grab stub or full from DnD service
@@ -351,27 +360,44 @@ angular.module('emuwebApp')
             'data:video/mp4;base64,' + bundle.mediaFile.data
           );
 
-          // 4) once metadata is ready, draw the waveform
+          // 4) once metadata is ready, draw & wire up everything
           setTimeout(() => {
             const videoEl = document.getElementById('myVideo') as HTMLVideoElement;
             if (!videoEl) return;
 
             videoEl.onloadedmetadata = () => {
+              // store duration
               $scope.$apply(() => vm.duration = videoEl.duration);
 
-              // by now, loadBundle() has already parsed the audio track into:
-              // SoundHandlerService.audioBuffer
+              // draw static waveform
               vm.drawWaveformBg();
 
-              // attach overlay handlers
+              // attach overlay handlers & initial overlay draw
               vm.overlayCanvas = document.getElementById(
                 'videoWaveformOverlayCanvas'
               ) as HTMLCanvasElement;
               if (vm.overlayCanvas) {
                 addDragChooseHandlers();
+                vm.updateWaveformOverlay();
               }
+
+              // ✨ NEW: on any window resize, re-draw everything _and_ force levels to redraw
+              const onResize = () => {
+                vm.drawWaveformBg();
+                vm.updateWaveformOverlay();
+                addDragChooseHandlers();
+
+                // poke the level‐canvas components to redraw
+                const { sS, eS } = ViewStateService.curViewPort;
+                ViewStateService.setViewPort(sS, eS);
+              };
+              window.addEventListener('resize', onResize);
+              $scope.$on('$destroy', () => {
+                window.removeEventListener('resize', onResize);
+              });
             };
 
+            // update overlay on each timeupdate
             videoEl.ontimeupdate = () => {
               $scope.$apply(() => vm.currentTime = videoEl.currentTime);
               vm.updateWaveformOverlay();
@@ -379,6 +405,7 @@ angular.module('emuwebApp')
           }, 100);
         }
       }
+
 
       
 

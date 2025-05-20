@@ -52,9 +52,9 @@ import "../styles/animation.scss";
 import "../styles/customAngularuiModal.scss";   
 import "../styles/largeTextInputField.scss";
 import "../styles/levelCanvasesGrid.scss";
-//import "../styles/MetadataButton.scss";
 import "../styles/auth.scss";
 import "../styles/chooseAdmins.scss";
+
 
 
 // import {NgModule} from '@angular/core';

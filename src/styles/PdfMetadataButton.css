@@ -119,7 +119,7 @@
   display: block;
   margin-top: 10px;
   font-weight: bold;
-  font-size: 13px; /* Increase the font size of labels */
+  font-size: 1px; /* Increase the font size of labels */
 }
 .metadata-form input,
 .metadata-form select {

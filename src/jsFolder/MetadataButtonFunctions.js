@@ -71,7 +71,7 @@
             // Generate form content based on formType
             if (mappedFormType === 'recording') {
                 formContent = `
-                    <form action="http://localhost:3019/post-recording" id="recording-form" method="POST" class="metadata-form">
+                     <form action="http://localhost:3019/post-recording" id="recording-form" method="POST" class="metadata-form">
                         <label>Name:</label>
                         <input type="text" name="filename" placeholder="Enter the file name" ng-focus="cursorInTextField()" ng-blur="cursorOutOfTextField()"/>
                         <label>Title:</label>
@@ -694,5 +694,4 @@
 
           alert("All data cleared successfully!");
         });
-
 

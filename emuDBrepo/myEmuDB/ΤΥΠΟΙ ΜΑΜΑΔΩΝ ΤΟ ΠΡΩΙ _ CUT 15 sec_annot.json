@@ -1,54 +1,41 @@
 {
   "levels": [
     {
+      "name": "Phonetic",
+      "type": "SEGMENT",
       "items": [
         {
-          "id": 2,
-          "sampleStart": 50106,
-          "sampleDur": 52216,
+          "id": 7,
+          "sampleStart": 94410,
+          "sampleDur": 40085,
           "labels": [
             {
               "name": "Phonetic",
-              "value": "abcd"
+              "value": "abdef"
             }
           ]
         }
-      ],
-      "name": "Phonetic",
-      "type": "SEGMENT"
+      ]
     },
     {
+      "name": "Anna",
+      "type": "SEGMENT",
       "items": [
         {
-          "id": 4,
-          "sampleStart": 170888,
-          "sampleDur": 51160,
+          "id": 9,
+          "sampleStart": 175634,
+          "sampleDur": 62765,
           "labels": [
             {
               "name": "Anna",
-              "value": "Hello world"
+              "value": "hello world"
             }
           ]
         }
-      ],
-      "name": "Anna",
-      "type": "SEGMENT",
-      "role": "speaker"
+      ]
     },
     {
-      "items": [
-        {
-          "id": 6,
-          "sampleStart": 267935,
-          "sampleDur": 50106,
-          "labels": [
-            {
-              "name": "EmbodiedActionsNr0",
-              "value": "Shake Side-to-Side"
-            }
-          ]
-        }
-      ],
+      "items": [],
       "name": "EmbodiedActionsNr0",
       "type": "SEGMENT",
       "role": "embodied"

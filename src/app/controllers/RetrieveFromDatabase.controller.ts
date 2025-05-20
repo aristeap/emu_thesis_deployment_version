@@ -100,7 +100,8 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
           links: [],
           sampleRate:  20000,
           pdfAnnotations: [],
-          imageAnnotations: []
+          imageAnnotations: [],
+          videoAnnotations: []
         }as any;
         bundle.annotation = fallback;
 
@@ -134,7 +135,7 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
           DbObjLoadSaveService
             .loadBundle(bundle, '')
             .then(() => {
-              // once loaded, Image/PDF/Video controllers will pick it up
+              DragnDropService.handleLocalFiles();
             })
             .catch(err => {
               console.error("Failed to auto-load fetched bundle:", err);

@@ -5,6 +5,8 @@ import styles from '../../styles/EMUwebAppDesign.scss';
 import { AuthService, IUser } from '../services/auth.service';
 
 
+declare const require: any;
+
 
 interface IFileMeta {
 	_id:        string;
@@ -2243,7 +2245,8 @@ let EmuWebAppComponent = {
 				annotates: fileMetadata.fileName,
 				name: fileMetadata.fileName,
 				pdfAnnotations: [],
-				imageAnnotations: []
+				imageAnnotations: [],
+				videoAnnotations: []
 			  }
 			};
 		  }

@@ -236,7 +236,8 @@ class DragnDropService{
 					  annotates: bundleName,
 					  name: bundleName,
 					  pdfAnnotations: [],
-					  imageAnnotations: []
+					  imageAnnotations: [],
+					  videoAnnotations: []
 					};
 					this.convertDragnDropData(bundles, i + 1).then(() => {
 					  delete this.drandropBundles;
@@ -312,7 +313,8 @@ class DragnDropService{
 				  annotates: bundleName,
 				  name: bundleName,
 				  pdfAnnotations: [],
-				  imageAnnotations: []
+				  imageAnnotations: [],
+				  videoAnnotations: []
 				};
 				this.convertDragnDropData(bundles, i + 1).then(() => {
 				  delete this.drandropBundles;
@@ -352,7 +354,8 @@ class DragnDropService{
 				  annotates: bundleName,
 				  name: bundleName,
 				  pdfAnnotations: [],
-				  imageAnnotations: []
+				  imageAnnotations: [],
+				  videoAnnotations: []
 				};
 				this.convertDragnDropData(bundles, i + 1).then(() => {
 				  delete this.drandropBundles;
@@ -390,7 +393,8 @@ class DragnDropService{
 					  annotates: bundleName,
 					  name: bundleName,
 					  pdfAnnotations: [],
-					  imageAnnotations: []
+					  imageAnnotations: [],
+					  videoAnnotations: []
 					};
 			  
 					// Decode the audio track via VideoParserService
@@ -446,7 +450,7 @@ class DragnDropService{
 			annotation = this.DragnDropDataService.convertedBundles[this.DragnDropDataService.sessionDefault].annotation;
 		}
 		else {
-			annotation = {levels: [], links: [], pdfAnnotations: [], imageAnnotations: []};
+			annotation = {levels: [], links: [], pdfAnnotations: [], imageAnnotations: [], videoAnnotations: []};
 		}
 		this.ViewStateService.showDropZone = false;
 		// console.log("is this where the setState is becoming loadingSaving->handleLocalFiles of drag-n-drop.service.ts");

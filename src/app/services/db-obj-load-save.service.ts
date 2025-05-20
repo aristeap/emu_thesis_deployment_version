@@ -38,8 +38,9 @@ class DbObjLoadSaveService{
 	private DragnDropDataService;
 	private VideoParserService;
 	private AuthService;
+	private DragnDropService
 	
-	constructor($log, $q, $http, $rootScope,$timeout, DataService, ViewStateService, HistoryService, LoadedMetaDataService, SsffDataService, IoHandlerService, BinaryDataManipHelperService, WavParserService, SoundHandlerService, SsffParserService, ValidationService, LevelService, ModalService, ConfigProviderService, AppStateService, StandardFuncsService, DragnDropDataService, VideoParserService, AuthService){
+	constructor($log, $q, $http, $rootScope,$timeout, DataService, ViewStateService, HistoryService, LoadedMetaDataService, SsffDataService, IoHandlerService, BinaryDataManipHelperService, WavParserService, SoundHandlerService, SsffParserService, ValidationService, LevelService, ModalService, ConfigProviderService, AppStateService, StandardFuncsService, DragnDropDataService, VideoParserService, AuthService, DragnDropService){
 		this.$log = $log;
 		this.$q = $q;
 		this.$http = $http;
@@ -64,6 +65,7 @@ class DbObjLoadSaveService{
 		this.DragnDropDataService = DragnDropDataService;
 		this.VideoParserService = VideoParserService;
 		this.AuthService = AuthService;
+		this.DragnDropService = DragnDropService;
 		
 	}
 	
@@ -79,8 +81,8 @@ class DbObjLoadSaveService{
 			annotates: bndl.name,
 			name: bndl.name,
 			pdfAnnotations: [],
-			imageAnnotations: []
-
+			imageAnnotations: [],
+			videoAnnotations: []
 		  };
 		}
 
@@ -406,50 +408,38 @@ class DbObjLoadSaveService{
 						// ─── VIDEO ────────────────────────────
 						} else if (t === 'video' || t === 'mp4' || t.startsWith('video/')) {
 
-							 console.log("inside the video part _______________________________________________________________________");
-
+							console.log("inside the video part …");
 							this.VideoParserService.parseVideoAudioBuf(arr)
 							.then((audioBuf) => {
 								// 1) stash the decoded audio
 								this.SoundHandlerService.audioBuffer = audioBuf;
-						
-								// 2) seed the viewport so the waveform spans the entire audio buffer
+								// 2) seed the viewport
 								this.ViewStateService.setViewPort(0, audioBuf.length);
-						
-								// 3) now hand over the full bundle and flip to video mode
-								this.LoadedMetaDataService.setCurBndl(fullBndl);
-								this.ViewStateService.setState(this.ViewStateService.states.videoDisplay);
 
-								//**reset** the perspective index so LevelService can find it
+								// ─── bulk of our “rehydration” patch ────────────────────────────────
+								// 3a) register the fetched bundle just like DragnDrop does:
+								this.DragnDropDataService.convertedBundles.push(fullBndl);
+								this.DragnDropDataService.sessionDefault =
+								this.DragnDropDataService.convertedBundles.length - 1;
+								this.LoadedMetaDataService.setCurBndl(fullBndl);
+
+								// 3b) flip into video mode
+								this.ViewStateService.setState(this.ViewStateService.states.videoDisplay);
 								this.ViewStateService.switchPerspective(
-									0,
-									this.ConfigProviderService.vals.perspectives
+								0,
+								this.ConfigProviderService.vals.perspectives
 								);
+
+								// 3c) hydrate the DataService with exactly the annotation JSON
+								//     you saved earlier (levels, links, sampleRate, videoAnnotations, etc.)
+								this.DataService.setData(fullBndl.annotation);
+
+								// 3d) now tell your LevelControllers to redraw with that data
+								this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: fullBndl });
+								// ────────────────────────────────────────────────────────────────────
 
 								this.ViewStateService.somethingInProgress = false;
 								this.ViewStateService.somethingInProgressTxt = 'Done!';
-
-								// 4) initialize DataService.data.levels & links so your LevelController has
-								//    exactly one empty level object per canvas in the current perspective:
-								this.DataService.data = this.DataService.data || {};
-								this.DataService.data.links  = [];
-								this.DataService.data.levels = [];
-
-								const pers = this.ConfigProviderService.vals
-								.perspectives[this.ViewStateService.curPerspectiveIdx];
-									pers.levelCanvases.order.forEach((lvlName: string) => {
-										// look up the levelDefinition safely:
-										const def = this.ConfigProviderService
-													.getLevelDefinition(lvlName);
-										this.DataService.data.levels.push({
-										name: def.name || lvlName,
-										type: def.type || 'SEGMENT',
-										items: []
-										});
-									});
-
-								this.$rootScope.$broadcast('nonAudioBundleLoaded', { bundle: fullBndl });
-						
 								defer.resolve();
 							})
 							.catch(err => {
@@ -635,4 +625,4 @@ class DbObjLoadSaveService{
 }
 
 angular.module('emuwebApp')
-.service('DbObjLoadSaveService', ['$log', '$q', '$http','$rootScope','$timeout','DataService', 'ViewStateService', 'HistoryService', 'LoadedMetaDataService', 'SsffDataService', 'IoHandlerService', 'BinaryDataManipHelperService', 'WavParserService', 'SoundHandlerService', 'SsffParserService', 'ValidationService', 'LevelService', 'ModalService', 'ConfigProviderService', 'AppStateService', 'StandardFuncsService','DragnDropDataService', 'VideoParserService','AuthService', DbObjLoadSaveService]);
+.service('DbObjLoadSaveService', ['$log', '$q', '$http','$rootScope','$timeout','DataService', 'ViewStateService', 'HistoryService', 'LoadedMetaDataService', 'SsffDataService', 'IoHandlerService', 'BinaryDataManipHelperService', 'WavParserService', 'SoundHandlerService', 'SsffParserService', 'ValidationService', 'LevelService', 'ModalService', 'ConfigProviderService', 'AppStateService', 'StandardFuncsService','DragnDropDataService', 'VideoParserService','AuthService', 'DragnDropService',DbObjLoadSaveService]);
