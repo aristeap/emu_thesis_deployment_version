@@ -468,7 +468,7 @@ class ViewStateService{
 			  return stateName;
 			}
 		  }
-		  console.log("the View.stateService.curStateName:  ",stateName);
+		//   console.log("the View.stateService.curStateName:  ",stateName);
 		}
 		return 'unknownState';
 	}

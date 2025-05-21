@@ -114,26 +114,26 @@ angular.module('emuwebApp')
     });
 
     $scope.$watch(() => LinguisticService.mode, (newMode) => {
-      console.log("The linguistic.mode service changed---------------------------------");
+      // console.log("The linguistic.mode service changed---------------------------------");
       vm.linguisticMode = newMode;
     });
 
     // ─────────── Helpers to set the PDF data ───────────
     function applyBundle(bundle: any) {
-      console.log("inside applyBundle() of PdfController:", bundle);
+      // console.log("inside applyBundle() of PdfController:", bundle);
       if (
         bundle &&
         bundle.mediaFile &&
         bundle.mediaFile.encoding === 'BASE64'
       ) {
         vm.pdfState.pdfData = bundle.mediaFile.data;
-        console.log("PdfController pdfData set to Base64 payload");
+        // console.log("PdfController pdfData set to Base64 payload");
       }
     }
 
    // ─────────── Initialization ───────────
    function init() {
-      console.log("inside init() of PdfController");
+      //console.log("inside init() of PdfController");
       const idx    = DragnDropDataService.getDefaultSession();
       const ddBndl = DragnDropDataService.convertedBundles[idx];
 
@@ -143,12 +143,12 @@ angular.module('emuwebApp')
       if (ddBndl.mediaFile.encoding === 'GETURL') {
         // fetched‑file case: pull the full Base64 bundle
         const fullBndl = LoadedMetaDataService.getCurBndl();
-        console.log("PdfController falling back to fullBndl********************:", fullBndl);
-        console.log("fullBndle.session: ",fullBndl.session);
+        // console.log("PdfController falling back to fullBndl********************:", fullBndl);
+        //console.log("fullBndle.session: ",fullBndl.session);
         applyBundle(fullBndl);
 
       } else if (ddBndl.mediaFile.encoding === 'BASE64') {
-        console.log("pdf encoding BASE64********************:");
+        //console.log("pdf encoding BASE64********************:");
         // drag‑n‑drop case: use the convertedBundles entry directly
         applyBundle(ddBndl);
       }

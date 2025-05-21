@@ -173,8 +173,8 @@ angular.module('emuwebApp')
      * and stick it in vm.imgSrc.
      */
     function applyBundle(bundle: any) {
-      console.log("inside applyBundle()");
-      console.log("bundle: ",bundle);
+      // console.log("inside applyBundle()");
+      //console.log("bundle: ",bundle);
       if (
         bundle &&
         bundle.mediaFile &&
@@ -190,14 +190,14 @@ angular.module('emuwebApp')
         ) {
           const ext = bundle.name.split('.').pop().toLowerCase();
           vm.imgSrc = `data:image/${ext};base64,${bundle.mediaFile.data}`;
-          console.log("ImageController imgSrc set to:", vm.imgSrc);
+          // console.log("ImageController imgSrc set to:", vm.imgSrc);
         }
       }
     }
     
     function init() {
 
-      console.log("inside the init() of the image.controller.ts, before i call the getCur of the loaded-metadata");
+      // console.log("inside the init() of the image.controller.ts, before i call the getCur of the loaded-metadata");
 
       // drag‑n‑drop
       const idx = DragnDropDataService.getDefaultSession();

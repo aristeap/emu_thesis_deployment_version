@@ -88,9 +88,9 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
     $http.get(`http://localhost:3019/emuDB/${dbName}/${bundle.name}_annot.json`)
       .then(function(resp) {
         bundle.annotation = resp.data;            // ← NEW: use loaded JSON
-        console.log("--------------------------------------------------------------------");
+        // console.log("--------------------------------------------------------------------");
         console.log("bundle: ",bundle);
-        console.log("bundle.annotation: ",bundle.annotation);
+        // console.log("bundle.annotation: ",bundle.annotation);
       })
       .catch(function() {
         // ← NEW: if no file or error, start with empty annotation

@@ -323,122 +323,137 @@ let EmuWebAppComponent = {
 					<i class="material-icons">star</i>Add metadata
 				</button>
 	
+			
 				<!-- Linguistic Annotation Dropdown (PDF mode only) ------------------------------------------------------------------------------------------------------->
-				<div ng-if="$ctrl.canEditAnnot && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+					<div ng-if="$ctrl.canEditAnnot">
+						<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
+							<li style="list-style: none;">
+								<button type="button"
+										class="emuwebapp-mini-btn left linguistic"
+										style="
+											height: 30px;         /* match 'Add metadata' height */
+											line-height: 40px;    /* vertically center text */
+											min-width: 160px;     /* bigger width */
+											font-size: 14px;      /* bigger text if you like */
+											cursor: pointer;
+											/* Optionally override the default border or background if needed */
+										"
+										ng-click="pdfCtrl.dropdownLinguistic = !pdfCtrl.dropdownLinguistic">
+									linguistic annotation
+									<span id="emuwebapp-dropdown-arrow"></span>
 
-					<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
-						<li style="list-style: none;">
-							<button type="button"
-									class="emuwebapp-mini-btn left linguistic"
+								</button>
+
+								<!-- The dropdown menu -->
+								<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="pdfCtrl.dropdownLinguistic = false" ng-show="pdfCtrl.dropdownLinguistic"
 									style="
-										height: 30px;         /* match 'Add metadata' height */
-										line-height: 40px;    /* vertically center text */
-										min-width: 160px;     /* bigger width */
-										font-size: 14px;      /* bigger text if you like */
-										cursor: pointer;
-										/* Optionally override the default border or background if needed */
-									"
-									ng-click="pdfCtrl.dropdownLinguistic = !pdfCtrl.dropdownLinguistic">
-								linguistic annotation
-								<span id="emuwebapp-dropdown-arrow"></span>
-
-							</button>
-
-							<!-- The dropdown menu -->
-							<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="pdfCtrl.dropdownLinguistic = false" ng-show="pdfCtrl.dropdownLinguistic"
-								style="
-								position: absolute;
-								top: 40px;        /* slightly below the 40px-tall button */
-								left: 780px;          /* align with the button’s left edge */
-								background: #fff;
-								border-radius: 4px;
-								box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-								margin: 0;
-								padding: 0;
-								list-style: none;
-								width: 600px; /* match or exceed button width */
-								z-index: 9999;    /* ensure it appears on top */
-								white-space: nowrap;    /* prevents line breaks like 'part-of-\n speech' */	
-								overflow: visible; /* ensures no clipping inside the <ul> itself */
-								">
-								
-								<!-- Part of speech -->
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="pdfCtrl.selectLinguistic('part-of-speech'); pdfCtrl.dropdownLinguistic = false;">
-									<span style="font-size: 15px;">part-of-speech</span>
+									position: absolute;
+									top: 40px;        /* slightly below the 40px-tall button */
+									left: 780px;          /* align with the button’s left edge */
+									background: #fff;
+									border-radius: 4px;
+									box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+									margin: 0;
+									padding: 0;
+									list-style: none;
+									width: 600px; /* match or exceed button width */
+									z-index: 9999;    /* ensure it appears on top */
+									white-space: nowrap;    /* prevents line breaks like 'part-of-\n speech' */	
+									overflow: visible; /* ensures no clipping inside the <ul> itself */
+									">
 									
-									 <!-- Icons side-by-side in the same container -->
-									<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Indicates the grammatical category of a word (noun, verb, etc.)">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'part-of-speech' and then select the word you want, right click on it and then choose it's part-of-speech. 	
-											You can view your annotations on the table that will appear.">
-											lightbulb_outline
-										</i>
-									</span>
+									<!-- Part of speech -->
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="pdfCtrl.selectLinguistic('part-of-speech'); pdfCtrl.dropdownLinguistic = false;">
+										<span style="font-size: 15px;">part-of-speech</span>
+										
+										<!-- Icons side-by-side in the same container -->
+										<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Indicates the grammatical category of a word (noun, verb, etc.)">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'part-of-speech' and then select the word you want, right click on it and then choose it's part-of-speech. 	
+												You can view your annotations on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
 
-								</li>
-								<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
+									</li>
+									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="pdfCtrl.selectLinguistic('named entity recognition'); pdfCtrl.dropdownLinguistic = false;">
-									<span style="font-size: 15px;">named entity recognition</span>
-									
-									<!-- Icons side-by-side in the same container -->
-									<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Identifies names of persons, organizations, locations, etc.">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'named entity recognition' and then select the word you want, right click on it and then choose it's named entity recognition. 	
-											You can view your annotations on the table that will appear.">
-											lightbulb_outline
-										</i>
-									</span>
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="pdfCtrl.selectLinguistic('named entity recognition'); pdfCtrl.dropdownLinguistic = false;">
+										<span style="font-size: 15px;">named entity recognition</span>
+										
+										<!-- Icons side-by-side in the same container -->
+										<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Identifies names of persons, organizations, locations, etc.">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'named entity recognition' and then select the word you want, right click on it and then choose it's named entity recognition. 	
+												You can view your annotations on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
 
-								</li>
+									</li>
 
-								<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
+									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="pdfCtrl.selectLinguistic('sentiment analysis'); pdfCtrl.dropdownLinguistic = false;">
-									<span style="font-size: 15px;">sentiment analysis</span>
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="pdfCtrl.selectLinguistic('sentiment analysis'); pdfCtrl.dropdownLinguistic = false;">
+										<span style="font-size: 15px;">sentiment analysis</span>
 
-									 <!-- Icons side-by-side in the same container -->
-									<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Determines the emotional tone (positive, negative, neutral) of the text">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'sentiment analysis' and then select the word you want, right click on it and then choose it's sentiment analysis. 	
-											You can view your annotations on the table that will appear.">
-											lightbulb_outline
-										</i>
-									</span>
+										<!-- Icons side-by-side in the same container -->
+										<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Determines the emotional tone (positive, negative, neutral) of the text">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'sentiment analysis' and then select the word you want, right click on it and then choose it's sentiment analysis. 	
+												You can view your annotations on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
 
-								</li>
+									</li>
 
-								<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
+									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="pdfCtrl.selectLinguistic('other comments'); pdfCtrl.dropdownLinguistic = false;">
-									<span style="font-size: 15px;">other comments</span>
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="pdfCtrl.selectLinguistic('other comments'); pdfCtrl.dropdownLinguistic = false;">
+										<span style="font-size: 15px;">other comments</span>
 
-									<!-- Icons side-by-side in the same container -->
-									<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Add any comment about any word">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'other comments' and then select the word you want, right click on it and then type your comment. 	
-											You can view your comments on the table that will appear.">
-											lightbulb_outline
-										</i>
-									</span>
+										<!-- Icons side-by-side in the same container -->
+										<span style=" display: flex; align-items: center; gap: 8px; margin-left: auto;  margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Add any comment about any word">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO:Click on the 'other comments' and then select the word you want, right click on it and then type your comment. 	
+												You can view your comments on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
 
-								</li>
+									</li>
 
-							</ul>
-						</li>
-					</ul>
+								</ul>
+							</li>
+						</ul>
+					</div>
+
+					<button class="emuwebapp-mini-btn left" 
+						id="showPdfTable" 
+						ng-show="$ctrl.canOnlyViewTable "
+   					 	ng-click="pdfCtrl.showAnnotationTable = !pdfCtrl.showAnnotationTable"
+						 style="
+							height: 30px;
+							line-height: 40px;
+							min-width: 160px;
+							font-size: 13px;
+						">
+						{{ pdfCtrl.showAnnotationTable ? 'Hide' : 'Show' }} saved annotations
+					</button>
 
 					<!-- If you want the floating window to appear when user picks a mode -->
 					<floating-annotation-window annotations="pdfCtrl.annotations" ng-show="pdfCtrl.showAnnotationTable"  highlight="pdfCtrl.toggleHighlight(word, pdfId)"
@@ -449,113 +464,128 @@ let EmuWebAppComponent = {
 				
 				
 				<!-- Add Annotation Dropdown (JPEG mode only) ----------------------------------------------------------------------------------------->
-				<div ng-if="$ctrl.canEditAnnot && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="display: inline-block; float: left; margin-left: 5px;">
-					<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
-						<li style="list-style: none;">
-							<button type="button"
-									class="emuwebapp-mini-btn left linguistic"
+				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+					<div ng-if="$ctrl.canEditAnnot">
+						<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
+							<li style="list-style: none;">
+								<button type="button"
+										class="emuwebapp-mini-btn left linguistic"
+										style="
+											height: 30px;
+											line-height: 40px;
+											min-width: 160px;
+											font-size: 14px;
+											cursor: pointer;
+										"
+										ng-click="imgCtrl.dropdownAnnotation = !imgCtrl.dropdownAnnotation">
+									add annotation
+									<span id="emuwebapp-dropdown-arrow"></span>
+								</button>
+
+								<!-- The dropdown menu -->
+								<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="imgCtrl.dropdownAnnotation = false"
+									ng-show="imgCtrl.dropdownAnnotation"
 									style="
-										height: 30px;
-										line-height: 40px;
-										min-width: 160px;
-										font-size: 14px;
-										cursor: pointer;
-									"
-									ng-click="imgCtrl.dropdownAnnotation = !imgCtrl.dropdownAnnotation">
-								add annotation
-								<span id="emuwebapp-dropdown-arrow"></span>
-							</button>
-
-							<!-- The dropdown menu -->
-							<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="imgCtrl.dropdownAnnotation = false"
-								ng-show="imgCtrl.dropdownAnnotation"
-								style="
-									position: absolute;
-									top: 40px;          /* slightly below the 40px-tall button */
-									left: 780px;        /* align with the button’s left edge (adjust if needed) */
-									background: #fff;
-									border-radius: 4px;
-									box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-									margin: 0;
-									padding: 0;
-									list-style: none;
-									width: 600px;       /* match or exceed button width */
-									z-index: 9999;      /* ensure it appears on top */
-									white-space: nowrap;
-									overflow: visible;
-								">
-								<!-- New item: Equivalent from english alphabet -->
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="imgCtrl.selectAnnotation('equivalent-from-english'); imgCtrl.dropdownAnnotation = false;">
-									
-									<span style="font-size: 15px;">equivalent from english alphabet</span>
-									<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" 
-											title="Select an English letter equivalent.">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click this option and then right-click on a symbol to choose its English letter equivalent.You can view your annotations on the table that will appear.">
-											lightbulb_outline
-										</i>
-									</span>
-								</li>
-
-								<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
-
-								<!-- meaning of symbol -->
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="imgCtrl.selectAnnotation('meaning-of-symbol'); imgCtrl.dropdownAnnotation = false;">
-									
-									<span style="font-size: 15px;">meaning of symbol</span>
-									<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Identify a single symbol and add it's meaning">
-											help_outline
-										</i>
+										position: absolute;
+										top: 40px;          /* slightly below the 40px-tall button */
+										left: 780px;        /* align with the button’s left edge (adjust if needed) */
+										background: #fff;
+										border-radius: 4px;
+										box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+										margin: 0;
+										padding: 0;
+										list-style: none;
+										width: 600px;       /* match or exceed button width */
+										z-index: 9999;      /* ensure it appears on top */
+										white-space: nowrap;
+										overflow: visible;
+									">
+									<!-- New item: Equivalent from english alphabet -->
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="imgCtrl.selectAnnotation('equivalent-from-english'); imgCtrl.dropdownAnnotation = false;">
 										
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click 'meaning of symbol,' then drag a bounding box around the symbol to annotate.You can view your annotations on the table that will appear.">
-										lightbulb_outline
-										</i>
-									</span>
-								</li>
+										<span style="font-size: 15px;">equivalent from english alphabet</span>
+										<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" 
+												title="Select an English letter equivalent.">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click this option and then right-click on a symbol to choose its English letter equivalent.You can view your annotations on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
+									</li>
 
-								<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
+									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
-								<!-- meaning of phrase -->
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="imgCtrl.selectAnnotation('meaning-of-phrase'); imgCtrl.dropdownAnnotation = false;">
-									
-									<span style="font-size: 15px;">meaning of phrase</span>
-									<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;"
-											title="Identify a short phrase or multiple symbols.">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click 'meaning of phrase,' then drag a bounding box around a sequence of symbols.You can view your annotations on the table that will appear.">
+									<!-- meaning of symbol -->
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="imgCtrl.selectAnnotation('meaning-of-symbol'); imgCtrl.dropdownAnnotation = false;">
+										
+										<span style="font-size: 15px;">meaning of symbol</span>
+										<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="Identify a single symbol and add it's meaning">
+												help_outline
+											</i>
+											
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click 'meaning of symbol,' then drag a bounding box around the symbol to annotate.You can view your annotations on the table that will appear.">
 											lightbulb_outline
-										</i>
-									</span>
-								</li>
+											</i>
+										</span>
+									</li>
 
-								<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
+									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
-								<!-- other comments -->
-								<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-									ng-click="imgCtrl.selectAnnotation('other comments'); imgCtrl.dropdownAnnotation = false;">
-									
-									<span style="font-size: 15px;">other comments</span>
-									<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;"
-											title="Add a custom comment about a symbol or region.">
-											help_outline
-										</i>
-										<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click 'other comments,' then drag a bounding box. Type your note in the popup or table.You can view your comments on the table that will appear.">
-											lightbulb_outline
-										</i>
-									</span>
-								</li>
-							</ul>
-						</li>
-					</ul>
+									<!-- meaning of phrase -->
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="imgCtrl.selectAnnotation('meaning-of-phrase'); imgCtrl.dropdownAnnotation = false;">
+										
+										<span style="font-size: 15px;">meaning of phrase</span>
+										<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;"
+												title="Identify a short phrase or multiple symbols.">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click 'meaning of phrase,' then drag a bounding box around a sequence of symbols.You can view your annotations on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
+									</li>
+
+									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
+
+									<!-- other comments -->
+									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
+										ng-click="imgCtrl.selectAnnotation('other comments'); imgCtrl.dropdownAnnotation = false;">
+										
+										<span style="font-size: 15px;">other comments</span>
+										<span style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 20px;">
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;"
+												title="Add a custom comment about a symbol or region.">
+												help_outline
+											</i>
+											<i class="material-icons" style="font-size: 25px; color: #2b92bb;" title="HOW TO: Click 'other comments,' then drag a bounding box. Type your note in the popup or table.You can view your comments on the table that will appear.">
+												lightbulb_outline
+											</i>
+										</span>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+
+					<button class="emuwebapp-mini-btn left" 
+						id="showImageTable" 
+						ng-show="$ctrl.canOnlyViewTable "
+   					 	ng-click="imgCtrl.showAnnotationWindow = !imgCtrl.showAnnotationWindow"
+						 style="
+							height: 30px;
+							line-height: 40px;
+							min-width: 160px;
+							font-size: 13px;
+						">
+						{{ imgCtrl.showAnnotationWindow ? 'Hide' : 'Show' }} saved annotations
+					</button>
 
 					<!-- Floating annotation window for image annotations -->
 					<floating-image-annotation-window annotations="imgCtrl.annotations"
@@ -1077,6 +1107,7 @@ let EmuWebAppComponent = {
 		private openMyFiles: boolean;
 		private canOpen : boolean;
 		private openMyResFiles: boolean;
+		private canOnlyViewTable : boolean;
 		private ViewStateService;
         private HistoryService;
         private IoHandlerService;
@@ -1225,37 +1256,36 @@ let EmuWebAppComponent = {
 				// watch the file origin (and user if you like)
 				() => this.authService.getFileOrigin(),
 				(origin: string|null) => {
-					const u = this.authService.getUser();
-					this.user = u;
+						const u = this.authService.getUser();
+						this.user = u;
 
-					// recompute exactly the same flags you had before
-					const isPrivileged = !!u && (u.role==='administrator' || u.role==='researcher');
-					const isSimpleDrag = !!u && u.role==='simple' && origin==='drag-n-droped';
+						// recompute exactly the same flags you had before
+						const isPrivileged = !!u && (u.role==='administrator' || u.role==='researcher');
+						const isSimpleDrag = !!u && u.role==='simple' && origin==='drag-n-droped';
+						const isSimpleFetch = !!u && u.role==='simple' && origin==='fetched-from-database';
 
-					this.isPrivileged   = isPrivileged;               // ← add this
-					this.canEditAnnot    = isPrivileged || isSimpleDrag;
-					this.canOpen         = !!u && (u.role==='EY' || u.role==='simple');
-					this.canAdd          = !!u && u.role==='EY';
-					this.canChooseAdmins = !!u && u.role==='EY';
-					this.openMyFiles     = !!u && u.role==='administrator';
-					this.openMyResFiles  = !!u && u.role==='researcher';
+						this.isPrivileged   = isPrivileged;               // ← add this
+						this.canEditAnnot    = isPrivileged || isSimpleDrag;
+						this.canOpen         = !!u && (u.role==='EY' || u.role==='simple');
+						this.canAdd          = !!u && u.role==='EY';
+						this.canChooseAdmins = !!u && u.role==='EY';
+						this.openMyFiles     = !!u && u.role==='administrator';
+						this.openMyResFiles  = !!u && u.role==='researcher';
+						this.canOnlyViewTable =  isSimpleFetch;
 
-					console.log(
-					'isPrivileged',				this.isPrivileged,				
-					'flags → canEditAnnot:',   	this.canEditAnnot,
-					'canOpen:',                 this.canOpen,
-					'canAdd:',                  this.canAdd,
-					'canChooseAdmins:',         this.canChooseAdmins,
-					'openMyFiles:',             this.openMyFiles,
-					'openMyResFiles:',          this.openMyResFiles,
-					'origin:',                  origin
-					);
+						console.log(
+							'isPrivileged',				this.isPrivileged,				
+							'flags → canEditAnnot:',   	this.canEditAnnot,
+							'canOpen:',                 this.canOpen,
+							'canAdd:',                  this.canAdd,
+							'canChooseAdmins:',         this.canChooseAdmins,
+							'openMyFiles:',             this.openMyFiles,
+							'openMyResFiles:',          this.openMyResFiles,
+							'origin:',                  origin,
+							'canOnlyViewTable:',		this.canOnlyViewTable
+						);
 					}
-				);
-	
-
-				
-					
+				);			
 
         };
 

@@ -1,7 +1,8 @@
+//This is the annotation table for the image's annotations
 import * as angular from 'angular';
 
 angular.module('emuwebApp')
-.directive('floatingImageAnnotationWindow', ['$timeout', function($timeout) {
+.directive('floatingImageAnnotationWindow', ['$timeout', 'AuthService', function($timeout, AuthService) {
   return {
     restrict: 'E',
     scope: {
@@ -39,7 +40,7 @@ angular.module('emuwebApp')
                   <button ng-click="highlight({ annotation: ann })" style="background: none; border: none; cursor: pointer;">
                     <i class="material-icons" style="font-size: 15px;">search</i>
                   </button>
-                  <button ng-click="deleteAnn({ annotation: ann })" style="background: none; border: none; cursor: pointer; margin-left: 5px;">
+                  <button ng-click="deleteAnn({ annotation: ann })" ng-show="canDelete" style="background: none; border: none; cursor: pointer; margin-left: 5px;">
                     <i class="material-icons" style="font-size: 15px;">delete</i>
                   </button>
                 </td>
@@ -55,6 +56,33 @@ angular.module('emuwebApp')
     `,
     link: function(scope, element) {
       $timeout(function() {
+
+				// const u = AuthService.getUser();
+        // const canDelete = !!u && !(u.role==='simple');
+
+        scope.$watch(
+          // watch the file origin (and user if you like)
+          () => AuthService.getFileOrigin(),
+          (origin: string|null) => {
+            const u = AuthService.getUser();
+
+            //simple users can only delete an annotation, from the table, when their file is drag-n-droped (they cant make changes to the database files)
+            const canDeleteOnDrag = !!u && u.role==='simple' && origin==='drag-n-droped';
+            //admins and researchers can delete always
+            const deletePrivilege = !!u && (u.role==='administrator' || u.role==='researcher');
+
+            scope.canDelete = canDeleteOnDrag || deletePrivilege ;
+
+            console.log(
+              'canDeleteOnDrag: ',				canDeleteOnDrag,
+              'deletePrivilege: ',				deletePrivilege,
+              'canDelete: ',              scope.canDelete
+            
+            );
+				  } 
+				);
+	
+
         const container = element.find('.floating-annotation-container');
         // If jQuery UI is available, make the window draggable and resizable:
         const wnd = window as any;

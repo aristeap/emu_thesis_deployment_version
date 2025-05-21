@@ -341,7 +341,7 @@ class DbObjLoadSaveService{
 				// ─── AUDIO / PDF / IMG / VIDEO (GETURL) ────────────────────────────────
 				else if (bundleData.mediaFile.encoding === 'GETURL') {
 
-					console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
+					// console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
 					const fileId = bundleData.mediaFile.data;
 					const downloadUrl = `http://localhost:3019/download-file/${fileId}`;
 
@@ -381,7 +381,7 @@ class DbObjLoadSaveService{
 				
 						// ─── PDF ─────────────────────────────
 						if (t === 'pdf' || t === 'application') {
-							 console.log("inside the pdf part _______________________________________________________________________");
+							//  console.log("inside the pdf part _______________________________________________________________________");
 							this.LoadedMetaDataService.setCurBndl(fullBndl);
 							this.ViewStateService.setState(this.ViewStateService.states.nonAudioDisplay);
 
@@ -393,7 +393,7 @@ class DbObjLoadSaveService{
 				
 						// ─── IMAGE ────────────────────────────
 						} else if (t === 'img' || t === 'jpeg' || t === 'jpg' ||  t === 'image' || t.startsWith('image/')) {
-							console.log("inside the img part _______________________________________________________________________");
+							// console.log("inside the img part _______________________________________________________________________");
 
 							this.LoadedMetaDataService.setCurBndl(fullBndl);
 							this.ViewStateService.setState(this.ViewStateService.states.JpegDisplay);
@@ -408,7 +408,7 @@ class DbObjLoadSaveService{
 						// ─── VIDEO ────────────────────────────
 						} else if (t === 'video' || t === 'mp4' || t.startsWith('video/')) {
 
-							console.log("inside the video part …");
+							// console.log("inside the video part …");
 							this.VideoParserService.parseVideoAudioBuf(arr)
 							.then((audioBuf) => {
 								// 1) stash the decoded audio
