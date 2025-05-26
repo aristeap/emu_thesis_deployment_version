@@ -4,70 +4,15 @@
   "sampleRate": 20000,
   "pdfAnnotations": [
     {
-      "word": "billionaires",
-      "pos": "noun",
+      "word": "Most aren’t interested.",
+      "pos": "",
       "ner": "",
       "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-0"
-    },
-    {
-      "word": "interested",
-      "pos": "verb",
-      "ner": "",
-      "sa": "",
-      "comment": "",
+      "comment": "This is a comment for a sentence",
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
       "pdfId": "pdfword-1"
-    },
-    {
-      "word": "Donald",
-      "pos": "",
-      "ner": "first name",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-6"
-    },
-    {
-      "word": "Trump",
-      "pos": "",
-      "ner": "last name",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-6"
-    },
-    {
-      "word": "good",
-      "pos": "",
-      "ner": "",
-      "sa": "positive",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-15"
-    },
-    {
-      "word": "Canadian",
-      "pos": "",
-      "ner": "",
-      "sa": "",
-      "comment": "sample comment",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-32"
     }
   ],
   "imageAnnotations": []

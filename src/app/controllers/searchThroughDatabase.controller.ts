@@ -22,12 +22,10 @@ angular
             embodiedAction: '',
             label: '',
             word: '',
-            pos: {
-                verb: false,
-                noun: false,
-                pronoun: false,
-                adjective: false
-            }
+            pos: '',
+            ner: '',
+            sa: '',
+            comment: ''
 
         };
 
@@ -74,7 +72,7 @@ angular
         }
 
 
-        //SEARCH BY ANNOTATIONS**************************************************************************************************
+        //SEARCH BY ANNOTATIONS: FOR RECORDING **************************************************************************************************
         vm.searchAnnotForRecording = () =>{
             const params = {
                 fileType: vm.filters.fileType,
@@ -83,7 +81,7 @@ angular
                 label: vm.filters.label
             }
 
-            $http.get('http://localhost:3019/api/search/annotations', { params })
+            $http.get('http://localhost:3019/api/search/annotations/recordings', { params })
             .then((resp) => {
                 vm.resultsAnnotations = resp.data.results;  //save for the tile, so we can show it at the html
                 // resp.data.results is your array of Recordings
@@ -96,6 +94,37 @@ angular
             });
         }
 
+
+        //SEARCH BY ANNOTATIONS: FOR PDF **************************************************************************************************     
+        vm.searchAnnotForPdf = () =>{
+            const params = {
+                fileType: 'pdf',
+                word:      vm.filters.word,
+                pos:       vm.filters.pos,         //it will come out as ["verb","adjective",..]
+                ner:       vm.filters.ner,
+                sa:        vm.filters.sa,
+                comment:   vm.filters.comment 
+            }
+            console.log("vm.filters.word: ",params.word);
+            console.log("vm.filters.pos: ",params.pos);
+            console.log("vm.filters.ner: ",params.ner);
+            console.log("vm.filters.sa: ",params.sa);
+
+
+
+             $http.get('http://localhost:3019/api/search/annotations/pdf', { params })
+            .then((resp) => {
+                vm.resultsAnnotationsPdf = resp.data.results;  //save for the tile, so we can show it at the html
+                // resp.data.results is your array of Recordings
+                console.log("ANNOTATIONS SEARCH SUCCESS: ",resp.data.results);
+
+            })
+            .catch((err) => {
+                console.error('Search failed', err);
+                alert('Search error: ' + (err.data?.message || err.statusText));
+            });
+            
+        } 
 
     }
   ]);

@@ -123,17 +123,34 @@
         }
 
         /* override the fixed-width label just for the POS row */
-        .pos-field {
-            label {
-                flex: 0 0 auto;          // let the label size itself
-                width: auto;             // don’t reserve 7rem here
+        .filter-field.pos-field {
+            // display: flex;
+            // align-items: center;
+            // gap: 0.3rem;            // space between label and the checkbox‐group
+            margin-top: 1rem;
+
+            /* override the fixed 7rem label width */
+            > label {
+                // flex: 0 0 auto;     // size to its content
+                // width: auto;        // don’t reserve 7rem here
+                color: #eee;
+                // font-size: 0.9rem;
             }
-            .checkbox-group {
-                display: flex;
-                flex-wrap: nowrap;       // keep them all on one line
-                gap: 1rem;               // space between each checkbox
+            .radio-group {
+                flex-wrap: wrap;       //allow items to wrap which means if they are many ckeckboxes that dont fit in one line, they will go bellow
+                display: flex;      // lay out checkboxes in a row
+                gap: 0.1px;          // space between each one
             }
+
+            /* each individual checkbox+text should look good: */
+            // .checkbox-group label {
+            //     // display: flex;
+            //     // align-items: center;
+            //     color: #eee;
+            //     // font-size: 0.9rem;
+            // }
         }
+
   
     
         .filter-field input[type="date"] {
@@ -147,6 +164,7 @@
                 box-sizing: border-box;
                 line-height: 1.2;
                 padding: 0.4rem 1rem;
+                color: #eee;
         }
     }
 

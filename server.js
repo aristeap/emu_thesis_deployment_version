@@ -799,7 +799,7 @@ db.once('open', () => {
     }
 
 
-    app.get('/api/search/annotations', async (req, res) => {
+    app.get('/api/search/annotations/recordings', async (req, res) => {
       const { fileType, level, embodiedAction, label } = req.query;
       console.log("api/search/annotations: ",req.query);
       if (fileType !== 'wav/video') {
@@ -884,6 +884,53 @@ db.once('open', () => {
           .json({ message: 'Server error during annotation search' });
       }
     });
+
+
+
+    app.get('/api/search/annotations/pdf', async (req, res) => {
+      let { fileType, word='', comment='' } = req.query;
+      let pos = req.query.pos || [], ner = req.query.ner || [], sa = req.query.sa || [];
+
+      // normalize to arrays
+      if (!Array.isArray(pos)) pos = [pos];
+      if (!Array.isArray(ner)) ner = [ner];
+      if (!Array.isArray(sa))  sa  = [sa];
+
+      if (fileType !== 'pdf') {
+        return res.status(400).json({ message: 'Only pdf supported here' });
+      }
+
+      try {
+        const repoPath = path.join(__dirname, 'emuDBrepo');
+        const hits = [];
+
+        for (const dbName of fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath,d)).isDirectory())) {
+            for (const fn of fs.readdirSync(path.join(repoPath, dbName)).filter(fn => fn.endsWith('_annot.json'))) {
+              const bundleName = fn.replace('_annot.json','');
+              const { pdfAnnotations = [] } = loadAnnot(dbName, bundleName);
+
+              // does *any* one annotation record satisfy *all* of your checked boxes?
+              const match = pdfAnnotations.some(item => {
+                if (word && item.word.toLowerCase() !== word.toLowerCase()) return false;
+                if (comment && !item.comment.toLowerCase().includes(comment.toLowerCase())) return false;
+                if (pos.length    && !pos.includes(item.pos)) return false;
+                if (ner.length    && !ner.includes(item.ner)) return false;
+                if (sa.length     && !sa.includes(item.sa))  return false;
+                return true;
+              });
+
+              if (match) hits.push({ dbName, bundleName });
+            }
+        }
+
+        return res.json({ results: hits });
+      } catch (err) {
+        console.error('PDF annotation search error:', err);
+        return res.status(500).json({ message: 'Server error during PDF annotation search' });
+      }
+    });
+
+ 
 
 
       

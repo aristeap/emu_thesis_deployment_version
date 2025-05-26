@@ -143,16 +143,57 @@
                         <input type="text" id="word" ng-model="vm.filters.word" placeholder="word you want to search" class="selects-input" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />        
                     </div>
 
-                    <div class="pos-field">
-                        <label>Part-of-speech</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" ng-model="vm.filters.pos.verb">verb</label>
-                            <label><input type="checkbox" ng-model="vm.filters.pos.noun">noun</label>
-                            <label><input type="checkbox" ng-model="vm.filters.pos.pronoun">pronoun</label>
-                            <label><input type="checkbox" ng-model="vm.filters.pos.adjective">adjective</label>
+                    <div class="filter-field pos-field">
+                        <label>Part-of-speech:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" ng-model="vm.filters.pos" value="">no-tag</label>
+                            <label><input type="radio" ng-model="vm.filters.pos" value="verb">verb</label>
+                            <label><input type="radio" ng-model="vm.filters.pos" value="noun">noun</label>
+                            <label><input type="radio" ng-model="vm.filters.pos" value="pronoun">pronoun</label>
+                            <label><input type="radio" ng-model="vm.filters.pos" value="adjective">adjective</label>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-field pos-field">
+                        <label>Named-entity-recognition:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" ng-model="vm.filters.ner" value="">no-tag</label>
+                            <label><input type="radio" ng-model="vm.filters.ner" value="first name">first name</label>
+                            <label><input type="radio" ng-model="vm.filters.ner" value="last name">last name</label>
+                            <label><input type="radio" ng-model="vm.filters.ner" value="location">location</label>
+                            <label><input type="radio" ng-model="vm.filters.ner" value="organization">organization</label>
+                            <label><input type="radio" ng-model="vm.filters.ner" value="date">date</label>
+                            <label><input type="radio" ng-model="vm.filters.ner" value="time">time</label>
                         </div>
                     </div>
 
+                    <div class="filter-field pos-field">
+                        <label>Sentiment-analysis:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" ng-model="vm.filters.sa" value="">no-tag</label>
+                            <label><input type="radio" ng-model="vm.filters.sa" value="positive">positive</label>
+                            <label><input type="radio" ng-model="vm.filters.sa" value="negative">negative</label>
+                            <label><input type="radio" ng-model="vm.filters.sa" value="neutral">neutral</label>
+                        </div>
+                    </div>
+
+                    <div class="filter-field pos-field" >
+                        <label for="comment">Comment</label>
+                        <input type="text" id="comment" ng-model="vm.filters.comment" placeholder="comment you want to search" class="selects-input" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />        
+                    </div>
+
+                    <div class="filter-field search-row">
+                        <button class="search-button" ng-click="vm.searchAnnotForPdf()">Search in annotations<i class="material-icons">search</i></button>
+                    
+                        <!--The title of the returned file -->
+                        <h3 class="results-list" ng-if="vm.resultsAnnotationsPdf">
+                            <ul>
+                                <li ng-repeat="item in vm.resultsAnnotationsPdf">
+                                    {{ item.bundleName }}
+                                </li>
+                            </ul>
+                        </h3>
+                    </div>
 
                     
                 </div>    
