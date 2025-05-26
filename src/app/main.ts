@@ -54,6 +54,7 @@ import "../styles/largeTextInputField.scss";
 import "../styles/levelCanvasesGrid.scss";
 import "../styles/auth.scss";
 import "../styles/chooseAdmins.scss";
+import "../styles/searchDatabase.scss";
 
 
 

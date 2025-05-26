@@ -692,6 +692,200 @@ db.once('open', () => {
     });
       
       
+    //For the search metadata feature
+    // at top of file:
+    // const Recordings = mongoose.model('Recording', recordingSchema);
+    // (make sure that’s already defined)
+
+    app.get('/api/search', async (req, res) => {
+      const { fileType, date, location, genre, corpusType, source } = req.query;   //gives the five filters as
+
+      console.log('> /api/search req.query:', req.query);
+
+      try {
+        if (fileType === 'wav/video') {
+          // Build a mongoose query for Recordings
+          const q = {};
+
+          // 1) date exact match (you can extend to ranges later)
+          if (date) {
+            // take only the YYYY-MM-DD part
+            const [year, month, day] = date.split('-').map(Number);
+            const dayStart = new Date(Date.UTC(year, month - 1, day,   0, 0, 0));
+            const dayEnd   = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0));
+            q.date = { $gte: dayStart, $lt: dayEnd };       
+          }
+
+          // 2) location in continent, country or region
+          if (location) {
+            const re = new RegExp(location, 'i');
+            q.$or = [
+              { continent: re },
+              { country:   re },
+              { region:    re },
+              { address:   re }
+            ];
+          }
+
+          if (req.query.title) {
+            // case‐insensitive exact match
+            q.title = new RegExp(`^${req.query.title}$`, 'i');
+          }
+
+          console.log('> /api/search mongo filter q:', JSON.stringify(q, null, 2));
+
+          const results = await Recordings.find(q).lean();  // fetches only those documents and returns them as plain JS objects.
+          return res.json({ results });     //we send back the results at the searchThroughDatabase.controller.ts
+
+        }else if(fileType === 'pdf'){ 
+          const q ={}
+
+          //2)the date is pub_year (publication year) for the pdf:
+          if(date){
+            // date comes in as "YYYY-MM-DD", grab the year
+            q.pub_year = parseInt(date.split('-')[0], 10);
+
+          }
+
+          if(genre){
+            q.genre = new RegExp(`^${genre}$`, 'i');
+          }
+
+          if(corpusType){
+            q.corpus_type = new RegExp(`^${corpusType}$`, 'i');
+          }
+
+          const results = await PdfCorpus.find(q).lean();
+          return res.json({ results });
+
+        }else if(fileType === 'image'){
+            const q = {}
+
+            // 2) Capture date (same day-range logic as audio)
+            if (date) {
+              const [Y, M, D] = date.split('-').map(Number);
+              const start = new Date(Date.UTC(Y, M-1, D, 0,0,0));
+              const end   = new Date(Date.UTC(Y, M-1, D+1, 0,0,0));
+              q.capture_date = { $gte: start, $lt: end };
+            }
+            // 3) Location
+            if (location) {
+              const re = new RegExp(location, 'i');
+              q.location = re;
+            } 
+
+            if(source){
+              q.photographer = new RegExp(`^${source}$`, 'i');
+            }
+
+            const results = await ImgBasic.find(q).lean();
+            return res.json({ results });
+          }
+
+        // you can add branches for image/pdf later
+        return res.status(400).json({ message: 'Unsupported fileType' });
+      } catch (err) {
+        console.error('Search error:', err);
+        return res.status(500).json({ message: 'Server error during search' });
+      }
+    });
+
+
+
+    // helper: read & parse a JSON file
+    function loadAnnot(dbName, bundleName) {
+      const p = path.join(__dirname, 'emuDBrepo', dbName, `${bundleName}_annot.json`);
+      return JSON.parse(fs.readFileSync(p, 'utf8'));
+    }
+
+
+    app.get('/api/search/annotations', async (req, res) => {
+      const { fileType, level, embodiedAction, label } = req.query;
+      console.log("api/search/annotations: ",req.query);
+      if (fileType !== 'wav/video') {
+        return res.status(400).json({ message: 'Only wav/video supported right now' });
+      }
+
+      try {
+        const repoPath = path.join(__dirname, 'emuDBrepo');
+        const dbDirs   = fs.readdirSync(repoPath).filter(d =>
+          fs.statSync(path.join(repoPath, d)).isDirectory()
+        );
+
+        const hits = [];
+
+        for (const dbName of dbDirs) {
+          const bundleFiles = fs
+            .readdirSync(path.join(repoPath, dbName))
+            .filter(fn => fn.endsWith('_annot.json'));
+
+          for (const annotFile of bundleFiles) {
+            const bundleName = annotFile.replace('_annot.json', '');
+            const annot      = loadAnnot(dbName, bundleName);
+            const lvls       = annot.levels;
+
+            let ok = true;
+
+            // If they did type a level, filter by that
+            if (level) {
+                ok = lvls.some(l => l.name.toLowerCase() === level.toLowerCase());
+            }
+            
+            // If they did type a label, filter any label value
+            if (ok && label) {
+              ok = lvls.some(l =>
+                l.items.some(item =>
+                  item.labels.some(lbl =>
+                    lbl.value.toLowerCase() === label.toLowerCase()
+                  )
+                )
+              );
+            }
+
+            // Now handle embodiedAction *alone*
+             if (ok && embodiedAction) {
+              const ebLevel = lvls.find(l => l.role === 'embodied');
+
+              if (embodiedAction === 'nothing') {
+                // want files with *no* embodied annotations
+                // so fail if we actually find an embodied level with items
+                if (ebLevel && ebLevel.items.length > 0) {
+                  ok = false;
+                }
+              } else {
+                // want files *with* this action
+                if (
+                  !ebLevel ||
+                  !ebLevel.items.some(item =>
+                    item.labels.some(
+                      lbl =>
+                        lbl.value.toLowerCase() ===
+                        embodiedAction.toLowerCase()
+                    )
+                  )
+                ) {
+                  ok = false;
+                }
+              }
+            }
+
+            if (ok) {
+              hits.push({ dbName, bundleName });
+            }
+          }
+        }
+
+        console.log("results: ",hits);
+        return res.json({ results: hits });
+      } catch (err) {
+        console.error('Annotation search error:', err);
+        return res
+          .status(500)
+          .json({ message: 'Server error during annotation search' });
+      }
+    });
+
+
       
 
 });

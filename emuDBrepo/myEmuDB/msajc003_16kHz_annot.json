@@ -18,11 +18,26 @@
       "type": "SEGMENT"
     },
     {
-      "items": [],
-      "name": "levelNr1",
-      "type": "EVENT"
+      "items": [
+        {
+          "id": 2,
+          "sampleStart": 34475,
+          "sampleDur": 7335,
+          "labels": [
+            {
+              "name": "TheSpeaker",
+              "value": "beautiful"
+            }
+          ]
+        }
+      ],
+      "name": "TheSpeaker",
+      "type": "SEGMENT",
+      "role": "speaker"
     }
   ],
   "links": [],
-  "sampleRate": 16000
+  "sampleRate": 16000,
+  "imageAnnotations": [],
+  "pdfAnnotations": []
 }

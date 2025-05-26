@@ -214,7 +214,7 @@ let EmuWebAppComponent = {
 						ng-click="$ctrl.openFromDatabaseBtnClick()">
 							Open from database
 				</button>
-
+	
 				<!-- NEW: button that will show up only FOR THE ADMINS. It will show only their assigned files--------------------------->
 				<button class="emuwebapp-mini-btn left" 
 						id="openFromDatabaseButtonForAdmins" 
@@ -297,6 +297,18 @@ let EmuWebAppComponent = {
  						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.search && ($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay)"						
 						ng-click="$ctrl.searchBtnClick();">
 					<i class="material-icons">search</i>search
+				</button>
+
+				<button class="emuwebapp-mini-btn left" 
+ 						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"						
+						ng-click="$ctrl.searchDatabaseBtnClick();"
+						style="
+							height: 30px;
+							line-height: 40px;
+							min-width: 190px;
+							font-size: 11px;
+						">
+					<i class="material-icons">search</i>search through the database
 				</button>
 				
 				<button class="emuwebapp-mini-btn left" 
@@ -382,6 +394,7 @@ let EmuWebAppComponent = {
 									</li>
 									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
+									<!--named entity recognition -->	
 									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
 										ng-click="pdfCtrl.selectLinguistic('named entity recognition'); pdfCtrl.dropdownLinguistic = false;">
 										<span style="font-size: 15px;">named entity recognition</span>
@@ -400,7 +413,8 @@ let EmuWebAppComponent = {
 									</li>
 
 									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
-
+									
+									<!--sentiment analysis -->
 									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
 										ng-click="pdfCtrl.selectLinguistic('sentiment analysis'); pdfCtrl.dropdownLinguistic = false;">
 										<span style="font-size: 15px;">sentiment analysis</span>
@@ -420,6 +434,7 @@ let EmuWebAppComponent = {
 
 									<li class="divider-ling" style="width: 100%; box-sizing: border-box; margin: 4px 0; border-top: 2px solid #2b92bb;"></li>
 
+									<!--other comments -->
 									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
 										ng-click="pdfCtrl.selectLinguistic('other comments'); pdfCtrl.dropdownLinguistic = false;">
 										<span style="font-size: 15px;">other comments</span>
@@ -2551,6 +2566,15 @@ let EmuWebAppComponent = {
 				});
 			}
 		};
+
+		/**
+		 *
+		 */
+
+ 		private searchDatabaseBtnClick(){
+			this.ModalService.open('views/searchThroughDatabase.html');
+
+ 		}
 
 		/**
 		 *

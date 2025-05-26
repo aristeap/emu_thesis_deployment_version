@@ -1,0 +1,42 @@
+{
+  "levels": [],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [
+    {
+      "word": "Ανοιχτού",
+      "pos": "noun",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-2"
+    },
+    {
+      "word": "Ανοιχτής",
+      "pos": "pronoun",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-10"
+    },
+    {
+      "word": "2000",
+      "pos": "",
+      "ner": "date",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-93"
+    }
+  ],
+  "imageAnnotations": [],
+  "videoAnnotations": []
+}

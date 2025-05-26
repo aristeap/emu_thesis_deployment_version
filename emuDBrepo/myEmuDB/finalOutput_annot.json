@@ -8,7 +8,7 @@
           "sampleDur": 4016,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Phonetic",
               "value": "sjkdhaidj"
             }
           ]
@@ -19,13 +19,13 @@
           "sampleDur": 6827,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Phonetic",
               "value": "another label"
             }
           ]
         }
       ],
-      "name": "levelNr0",
+      "name": "Phonetic",
       "type": "SEGMENT"
     },
     {
@@ -35,13 +35,13 @@
           "samplePoint": 8743.274173806609,
           "labels": [
             {
-              "name": "levelNr1",
+              "name": "Tone",
               "value": "a"
             }
           ]
         }
       ],
-      "name": "levelNr1",
+      "name": "Tone",
       "type": "EVENT"
     },
     {
@@ -52,17 +52,24 @@
           "sampleDur": 7776,
           "labels": [
             {
-              "name": "SpeakerNr0",
+              "name": "Anna",
               "value": "hello there"
             }
           ]
         }
       ],
-      "name": "SpeakerNr0",
+      "name": "Anna",
       "type": "SEGMENT",
       "role": "speaker"
+    },
+    {
+      "items": [],
+      "name": "levelNr2",
+      "type": "SEGMENT"
     }
   ],
   "links": [],
-  "sampleRate": 20000
+  "sampleRate": 20000,
+  "imageAnnotations": [],
+  "pdfAnnotations": []
 }

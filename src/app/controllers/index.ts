@@ -17,3 +17,4 @@ import "./signUpAdmins.controller";
 import "./chooseAdmins.controller";
 import "./signUpResearchers.controller";
 import "./chooseResearchers.controller";
+import "./searchThroughDatabase.controller";

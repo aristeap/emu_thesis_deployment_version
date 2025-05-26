@@ -357,11 +357,6 @@
     });
 
 
-
-
-
-
-
     // ---- Utility: Highlight active item ----
     function highlightActiveItem(element) {
       document.querySelectorAll('.form-switch').forEach((item) => {

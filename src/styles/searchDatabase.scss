@@ -1,0 +1,165 @@
+
+.two‐column‐wrap{
+
+    display: flex;  
+    align-items: flex-start;    //both panels start at the same top
+    gap: 10rem;
+
+    .metadata-row{
+        
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 0.7rem;
+        margin-left: 10rem;
+        margin-top: 1.0rem;
+        align-items: flex-start;  //This is so all the elements of the div would be at the same spot at the x axis (one just below the other) 
+
+
+        h2 {  
+            font-size: 1.3rem;
+            color: #eee;
+        }
+
+
+        .filter-field{
+            display: flex; //row by default
+            gap: 0.9rem;
+            align-items: center;    //this will make the label be in the middle, vertically, of it's select
+
+            .selects-input {
+
+                flex: 1 0 210px;     // <-- grow to fill remaining space, max 210px
+                width: 100%;                //always fill the parent, no matter how wide that parent got
+                max-width: 210px;           //upper limit if the parent is too large 
+                padding: 0.4rem 1rem;
+                font-size: 0.9rem;
+                border: 2px solid #555;
+                border-radius: 4px;
+                background: #0ebff5;
+                color: #242222;
+                padding-right: 2.5rem;
+                vertical-align: middle;
+                
+
+                &:focus {
+                    outline: none;
+                    border-color: #3dccff;
+                }
+            }
+
+            label{
+                flex: 0 0 7rem;      // <-- reserve exactly 7rem for every label
+                white-space: normal;      // allow wrapping instead of overflow            font-size: 1rem;
+                color: #eee;
+                word-break: break-word;   // break long words
+                line-height: 1.2;         // tighten up the line spacing
+                font-size: 0.9rem;
+
+            }
+
+            &.search-row {
+                /* no label here, so push button right by (7rem label + 0.9rem gap) */
+                display: flex;
+                align-items: center;
+                gap: 1rem;  // space between button and title
+                margin-top: 40px;
+            
+                .search-button {
+                    margin: 0;  
+                    margin-top: 20px;
+                    padding: 0.1rem 0.7rem;
+                    font-size: 0.95rem;
+                    background: #0ebff5;
+                    color: #242222;
+                    border: none;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    transition: background 0.2s;
+                    &:hover {
+                        background: #0bc0e0;
+                    }
+                }
+
+                .results-list {
+                    margin-top: 1rem;
+                    h3 {
+                        color: #eee;
+                        margin-bottom: 0.5rem;
+                    }
+                    ul {
+                        list-style: disc;
+                        padding-left: 1.5rem;
+                        li {
+                            color: rgb(226, 226, 56);
+                            margin-bottom: 0.3rem;
+                            font-size: 0.9rem;
+                        }
+                    }
+                }
+            }
+
+
+            // .checkbox-group{
+            //     flex: 1;
+            //     flex-wrap: wrap;
+            //     gap: 0.5rem;
+
+            //     label{
+            //         display: flex;
+            //         align-items: center;
+            //         font-size: 0.9rem;
+            //         color: #eee;
+
+            //         input{
+            //             margin-right: 0.25rem;
+            //             background: transparent;
+            //         }
+
+            //     }
+
+            // }
+
+        }
+
+        /* override the fixed-width label just for the POS row */
+        .pos-field {
+            label {
+                flex: 0 0 auto;          // let the label size itself
+                width: auto;             // don’t reserve 7rem here
+            }
+            .checkbox-group {
+                display: flex;
+                flex-wrap: nowrap;       // keep them all on one line
+                gap: 1rem;               // space between each checkbox
+            }
+        }
+  
+    
+        .filter-field input[type="date"] {
+                box-sizing: border-box;
+                line-height: 1.2;
+                padding: 0.4rem 1rem;
+
+        }
+        .filter-field input[type="text"] {
+                background: transparent;
+                box-sizing: border-box;
+                line-height: 1.2;
+                padding: 0.4rem 1rem;
+        }
+    }
+
+
+    .annotation-row{
+        display: flex;
+        margin-left: 0 !important;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+
+
+
+
+
+}

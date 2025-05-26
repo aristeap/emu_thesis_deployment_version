@@ -35,7 +35,30 @@
       ]
     },
     {
-      "items": [],
+      "items": [
+        {
+          "id": 10,
+          "sampleStart": 294834,
+          "sampleDur": 44304,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Closed Fist"
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "sampleStart": 417725,
+          "sampleDur": 45886,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Frown"
+            }
+          ]
+        }
+      ],
       "name": "EmbodiedActionsNr0",
       "type": "SEGMENT",
       "role": "embodied"

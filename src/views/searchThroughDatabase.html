@@ -1,0 +1,202 @@
+<!-- views/chooseResearchers.html -->
+<div class="emuwebapp-modal-wrap" ng-controller="SearchThroughDatabase as vm">
+  <div class="emuwebapp-modal-header-large emuwebapp-modal-header">
+    <h3 style="margin:0;">Search through the database <i class="material-icons">search</i></h3>
+  </div>
+
+  <div class="emuwebapp-modal-body">
+
+    <div class="two‐column‐wrap">
+        <!--Filter by metadata (left panel)--------------------------------------------------------------------------------------------------------------------------------------->
+        <div class="metadata-row">
+            <h2>Filter by metadata</h2>
+
+            <div class="filter-field">
+                <!--File Type-->
+                <label for="fileType">File type</label>
+                <select id="fileType" ng-model="vm.filters.fileType" name="fileType" class="selects-input">
+                    <option value="">--select--</option>
+                    <option value="wav/video">wav/video</option>
+                    <option value="image">image</option>
+                    <option value="pdf">pdf</option>
+                </select>
+            </div>    
+
+            <div class="filter-field">
+                <!--Date: for all file types, even though for pdf its publication year-->
+                <label for="Date">Date/Publication Year</label>
+                <input type="date" id="Date" ng-model="vm.filters.date" name="Date" placeholder="mm/dd/yy" class="selects-input">
+            </div> 
+        
+            <div class="filter-field">
+                <!--Location:for wav,video,image, disabled for pdf -->
+                <label for="location">Location</label>
+                <input type="text" id="location" name="text" ng-model="vm.filters.location" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" placeholder="country/region/city" class="selects-input" ng-disabled="vm.filters.fileType==='pdf'">
+            </div>
+
+            <div class="filter-field">
+                <!--Genre : only for pdf-->
+                <label for="genre">Genre</label>
+                <select id="genre" ng-model="vm.filters.genre" name="genre" class="selects-input" ng-disabled="vm.filters.fileType!=='pdf'" >
+                    <option value="Fiction" >Fiction</option>
+                    <option value="news" >News</option>
+                    <option value="interview">Interview</option>
+                    <option value="medicine">Medicine</option>
+                    <option value="law">Law</option>
+                    <option value="historic">Historic</option>
+                </select>
+            </div>    
+
+            <div class="filter-field">
+                <!--Corpus type : only for pdf-->
+                <label for="corpusType">Corpus Type</label>
+                <select id="corpusType" ng-model="vm.filters.corpusType" name="corpusType" class="selects-input" ng-disabled="vm.filters.fileType!=='pdf'" >
+                    <option value="Academic">Academic</option>
+                    <option value="Conversation">Conversation</option>
+                </select>
+            </div> 
+        
+            <div class="filter-field">
+                <!--Photographer/Source only for image -->
+                <label for="source">Source/Photographer</label>
+                <input type="text" id="source" name="source" ng-model="vm.filters.source" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" placeholder="source or Photographer " class="selects-input" ng-disabled="vm.filters.fileType!=='image'">
+            </div>
+
+            <div class="filter-field search-row">
+                <button class="search-button" ng-click="vm.search()">Search in metadata<i class="material-icons">search</i></button>
+                
+                <!--The title of the returned file -->
+                <h3 class="results-list" ng-if="vm.resultsMetadata">
+                    <ul>
+                        <li ng-repeat="item in vm.resultsMetadata">
+                            File's title: {{ (item.title || item.doc_title)}}
+                        </li>
+                    </ul>
+                </h3>
+            </div>
+            
+
+        </div>
+
+
+        <!--Filter by annotations(right panel)--------------------------------------------------------------------------------------------------------------------------------------->
+        <div class="metadata-row annotation-row" ng-switch="vm.filters.fileType">            
+                <h2>Filter by annotations</h2>
+
+            
+
+                <!--For wav/video--------------------------------------------------------------------------------------------->
+                <div ng-switch-when="wav/video" class="filter-field">
+                    <label for="level">Level/Speaker</label>
+                    <input type="text" id="level" ng-model="vm.filters.level" placeholder="segment or event" class="selects-input" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />          
+                </div>
+                <div ng-switch-when="wav/video" class="filter-field">
+                    <label for="embodied-actions">Embodied action</label>
+                    <select id="embodied-actions" name="embodied-actions" ng-model="vm.filters.embodiedAction" class="selects-input">
+                        <option value="">--select--</option>
+                        <option value="Nod Up-Down">Nod Up-Down</option>
+                        <option value="Shake Side-to-Side">Shake Side-to-Side</option>
+                        <option value="Tilt Head Left">Tilt Head Left</option>
+                        <option value="Tilt Head Right">Tilt Head Right</option>
+                        <option value="Raised Eyebrows">Raised Eyebrows</option>
+                        <option value="Frown">Frown</option>
+                        <option value="Smile">Smile</option>
+                        <option value="Squint Narrowed Eyes">Squint/Narrowed Eyes</option>
+                        <option value="Open Palm">Open Palm</option>
+                        <option value="Closed Fist">Closed Fist</option>
+                        <option value="Pointing">Pointing</option>
+                        <option value="Circular Gesture">Circular Gesture</option>
+                        <option value="Lean Forward">Lean Forward</option>
+                        <option value="Lean Backward">Lean-Backward</option>
+                        <option value="Shoulder Shrug">Shoulder Shrug</option>
+                        <option value="Torso Twist">Torso Twist</option>
+                    </select>                
+                </div>
+                <div ng-switch-when="wav/video" class="filter-field">
+                    <label for="label">Label/Text</label>
+                    <input type="text" id="label" ng-model="vm.filters.label" placeholder="label or text" class="selects-input" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />        
+                </div>
+
+
+                <div ng-switch-when="wav/video" class="filter-field search-row">
+                    <button class="search-button" ng-click="vm.searchAnnotForRecording()">Search in annotations<i class="material-icons">search</i></button>
+                
+                    <!--The title of the returned file -->
+                    <h3 class="results-list" ng-if="vm.resultsAnnotations">
+                        <ul>
+                            <li ng-repeat="item in vm.resultsAnnotations">
+                                {{ item.bundleName }}
+                            </li>
+                        </ul>
+                    </h3>
+                </div>
+
+
+
+
+
+                <!--For pdf--------------------------------------------------------------------------------------------->    
+                <div ng-switch-when="pdf">
+                    
+                    <div class="filter-field" >
+                        <label for="word">Word</label>
+                        <input type="text" id="word" ng-model="vm.filters.word" placeholder="word you want to search" class="selects-input" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />        
+                    </div>
+
+                    <div class="pos-field">
+                        <label>Part-of-speech</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" ng-model="vm.filters.pos.verb">verb</label>
+                            <label><input type="checkbox" ng-model="vm.filters.pos.noun">noun</label>
+                            <label><input type="checkbox" ng-model="vm.filters.pos.pronoun">pronoun</label>
+                            <label><input type="checkbox" ng-model="vm.filters.pos.adjective">adjective</label>
+                        </div>
+                    </div>
+
+
+                    
+                </div>    
+
+            
+
+
+
+
+
+
+
+
+
+
+
+                <div ng-switch-when="image" class="filter-field">
+                    <label for="sampleForImage">Sample for image</label>
+                    <input
+                        type="text"
+                        id="sampleForImage"
+                        ng-model="vm.filters.sampleForImage"
+                        placeholder="sample for image"
+                        class="selects-input"
+                        ng-focus="vm.cursorInTextField()"
+                        ng-blur="vm.cursorOutOfTextField()" />
+
+                </div>
+
+
+        
+
+
+
+
+        </div>
+    </div>
+
+
+
+  </div>
+
+  <div class="emuwebapp-modal-footer">
+    <button ng-click="vm.cancel()" class="emuwebapp-mini-btn">Cancel</button>
+    <button ng-click="vm.save()"   class="emuwebapp-mini-btn">Save</button>
+  </div>
+</div>

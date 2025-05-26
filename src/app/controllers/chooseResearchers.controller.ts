@@ -29,6 +29,11 @@ class ChooseResearchersCtrl {
   ) {
     // 1️⃣ fetch *only* the files where you are the admin
     const me: IUser|null = this.AuthService.getUser();
+    if (!me) {
+      // no user → bail out or redirect
+      console.error('ChooseResearchersCtrl: no logged-in user. This probably happens cause you reloaded the application and didnt logged in again');
+    return;
+    }
     const myEmail = me!.email;
 
     this.$http.get<IFileMeta[]>('http://localhost:3019/files')
