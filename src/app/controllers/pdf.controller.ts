@@ -133,13 +133,23 @@ angular.module('emuwebApp')
 
    // ─────────── Initialization ───────────
    function init() {
-      //console.log("inside init() of PdfController");
+      //new code: the problem with the old one was that when tried to add a new linguistic annotaion in the pdf
+        //the old saved annotations in the annotation table were getting replaced by the new one and not being added to the saved ones.
       const idx    = DragnDropDataService.getDefaultSession();
       const ddBndl = DragnDropDataService.convertedBundles[idx];
 
-      // 1) rehydrate your annotations array
-      vm.annotations = DataService.getData().pdfAnnotations || [];
+       // 1) grab whatever came back from the DB
+      const saved = DataService.getData().pdfAnnotations || [];
 
+      // 2) but only seed the service once (so we don’t blow away any user‐added rows!)
+      if (AnnotationService.annotations.length === 0 && saved.length > 0) {
+          // copy in the saved ones
+          AnnotationService.annotations = saved.slice();
+      }
+
+      // 3) now bind the controller’s array to the service
+      vm.annotations = AnnotationService.annotations;
+      
       if (ddBndl.mediaFile.encoding === 'GETURL') {
         // fetched‑file case: pull the full Base64 bundle
         const fullBndl = LoadedMetaDataService.getCurBndl();

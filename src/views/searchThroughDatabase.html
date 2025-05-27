@@ -198,28 +198,64 @@
                     
                 </div>    
 
-            
+
+                <!--For image--------------------------------------------------------------------------------------------->    
+                <div ng-switch-when="image">
+                
+                    <div class="filter-field pos-field">
+                        <!--equivalent from english alphabet-->
+                        <label for="engAlpha">From-english-alphabet</label>
+                        <select type="text" id="engAlpha" ng-model="vm.filters.engAlpha" class="selects-input">
+                            <option value="">--select a letter--</option>
+                            <option ng-repeat="letter in vm.alphaList" value="{{letter}}">{{letter}}</option>
+                        </select>    
+                    </div>
+
+                    <div class="filter-field pos-field">
+                        <!--meaning of symbol-->
+                        <label for="moSymbol">Meaning-of-symbol</label>
+                        <select type="text" id="moSymbol" ng-model="vm.filters.moSymbol" class="selects-input">
+                            <option value="">--select--</option>
+                            <option ng-repeat="s in vm.symbolOptions" value="{{s}}">{{s}}</option>
+                        </select> 
+
+                        <i class="material-icons" style="font-size: 25px; color: #2b92bb; cursor: pointer; " title="Only the saved 'meanings of symbols' will appear on the drop-down menu">
+						    lightbulb_outline
+						</i>
+                    </div>
+
+                    <div class="filter-field pos-field">
+                        <!--meaning of phrase-->
+                        <label for="moPhrase">Meaning-of-phrase</label>
+                        <select type="text" id="moPhrase" ng-model="vm.filters.moPhrase" class="selects-input">
+                            <option value="">--select--</option>
+                            <option ng-repeat="p in vm.phraseOptions" value="{{p}}">{{p}}</option>
+                        </select> 
+
+                         <i class="material-icons" style="font-size: 25px; color: #2b92bb; cursor: pointer; " title="Only the saved 'meanings of phrases' will appear on the drop-down menu">
+						    lightbulb_outline
+						</i>
+                    </div>
 
 
+                    <div class="filter-field pos-field" >
+                        <label for="comment">Comment</label>
+                        <input type="text" id="comment" ng-model="vm.filters.comment" placeholder="comment you want to search" class="selects-input" ng-focus="vm.cursorInTextField()" ng-blur="vm.cursorOutOfTextField()" />        
+                    </div>
 
+                    <div class="filter-field search-row">
+                        <button class="search-button" ng-click="vm.searchAnnotForImage()">Search in annotations<i class="material-icons">search</i></button>
+                    
+                        <!--The title of the returned file -->
+                        <h3 class="results-list" ng-if="vm.resultsAnnotationsImg">
+                            <ul>
+                                <li ng-repeat="item in vm.resultsAnnotationsImg">
+                                    {{ item.bundleName }}
+                                </li>
+                            </ul>
+                        </h3>
+                    </div>
 
-
-
-
-
-
-
-
-                <div ng-switch-when="image" class="filter-field">
-                    <label for="sampleForImage">Sample for image</label>
-                    <input
-                        type="text"
-                        id="sampleForImage"
-                        ng-model="vm.filters.sampleForImage"
-                        placeholder="sample for image"
-                        class="selects-input"
-                        ng-focus="vm.cursorInTextField()"
-                        ng-blur="vm.cursorOutOfTextField()" />
 
                 </div>
 

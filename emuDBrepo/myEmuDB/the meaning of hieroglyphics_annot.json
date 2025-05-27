@@ -1,0 +1,72 @@
+{
+  "levels": [],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [
+    {
+      "word": "box 1",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "glory days",
+      "pdfId": null,
+      "bbox": {
+        "top": 137,
+        "left": 98,
+        "width": 190,
+        "height": 101
+      }
+    },
+    {
+      "word": "box 2",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "past life",
+      "pdfId": null,
+      "bbox": {
+        "top": 342.8000030517578,
+        "left": 552,
+        "width": 152,
+        "height": 91
+      }
+    }
+  ],
+  "imageAnnotations": [
+    {
+      "word": "box 1",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "glory days",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 137,
+        "left": 98,
+        "width": 190,
+        "height": 101
+      }
+    },
+    {
+      "word": "box 2",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "past life",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 342.8000030517578,
+        "left": 552,
+        "width": 152,
+        "height": 91
+      }
+    }
+  ],
+  "videoAnnotations": []
+}

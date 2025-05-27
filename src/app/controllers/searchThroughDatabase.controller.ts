@@ -8,6 +8,10 @@ angular
     'ViewStateService',
     function($scope,$http,ModalService,ViewStateService) {
         const vm = this;
+        vm.alphaList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        vm.symbolOptions = [];
+        vm.phraseOptions = [];
+
 
         //if we didnt have added this and just kept the ng-model="vm.filters.fileType" and ng-disabled="vm.filters.fileType==='image"
         // the <select ng-model="vm.filters.fileType"> won’t actually write anything, and i’ll get undefined everywhere.
@@ -25,10 +29,14 @@ angular
             pos: '',
             ner: '',
             sa: '',
-            comment: ''
+            comment: '',
+            engAlpha: '',
+            moSymbol: '',
+            moPhrase: '',
 
         };
 
+        
         vm.cursorInTextField = function (){
             ViewStateService.setEditing(true);
             ViewStateService.setcursorInTextField(true);
@@ -105,14 +113,8 @@ angular
                 sa:        vm.filters.sa,
                 comment:   vm.filters.comment 
             }
-            console.log("vm.filters.word: ",params.word);
-            console.log("vm.filters.pos: ",params.pos);
-            console.log("vm.filters.ner: ",params.ner);
-            console.log("vm.filters.sa: ",params.sa);
 
-
-
-             $http.get('http://localhost:3019/api/search/annotations/pdf', { params })
+            $http.get('http://localhost:3019/api/search/annotations/pdf', { params })
             .then((resp) => {
                 vm.resultsAnnotationsPdf = resp.data.results;  //save for the tile, so we can show it at the html
                 // resp.data.results is your array of Recordings
@@ -125,6 +127,57 @@ angular
             });
             
         } 
+
+        // immediately fetch our live list of moSymbol,moPhrases values:
+        $http.get('http://localhost:3019/api/annotations/image/symbolsAndPhrases')
+        .then((resp) => {
+            vm.symbolOptions = resp.data.symbols;
+            vm.phraseOptions = resp.data.phrases;
+            console.log('got image symbol options:', vm.symbolOptions);
+        })
+        .catch((err) => {
+            console.error('could not load image symbol options', err);
+        });
+
+    
+        //SEARCH BY ANNOTATIONS: FOR IMAGE **************************************************************************************************     
+        vm.searchAnnotForImage = () => {
+            const params = {
+                letter: vm.filters.engAlpha,
+                moSymbol: vm.filters.moSymbol,
+                moPhrase: vm.filters.moPhrase,
+                comment: vm.filters.comment
+            };
+
+            // Find exactly which keys have a truthy value
+            const activeKeys = Object
+                .keys(params)
+                .filter(key => !!params[key as keyof typeof params]);
+
+            // console.log("activeKeys: ",activeKeys);
+            const activeCount = activeKeys.length; 
+            if (activeCount === 0) {
+                alert('Please choose one image‐annotation filter');
+                return;
+            }
+            if (activeCount > 1) {
+                alert('Pick only one criterion at a time');
+                return;
+            }
+
+            $http
+            .get('http://localhost:3019/api/search/annotations/image', { params })
+            .then((resp) => {
+                vm.resultsAnnotationsImg = resp.data.results;
+                console.log('IMAGE ANNOT SEARCH SUCCESS:', resp.data.results);
+            })
+            .catch((err) => {
+                console.error('Search failed', err);
+                alert('Search error: ' + (err.data?.message || err.statusText));
+            });
+
+        }
+        
 
     }
   ]);

@@ -9,15 +9,15 @@
       "ner": "",
       "sa": "",
       "comment": "",
-      "engAlpha": "C",
-      "moSymbol": "",
+      "engAlpha": "",
+      "moSymbol": "past",
       "moPhrase": "",
       "pdfId": null,
       "bbox": {
-        "top": 22,
-        "left": 172.39999389648438,
-        "width": 63,
-        "height": 54
+        "top": 50,
+        "left": 99.5999755859375,
+        "width": 55,
+        "height": 41
       }
     },
     {
@@ -27,48 +27,14 @@
       "sa": "",
       "comment": "",
       "engAlpha": "",
-      "moSymbol": "life",
+      "moSymbol": "sun",
       "moPhrase": "",
       "pdfId": null,
       "bbox": {
-        "top": 8,
-        "left": 268.3999938964844,
-        "width": 60,
-        "height": 90
-      }
-    },
-    {
-      "word": "box 3",
-      "pos": "",
-      "ner": "",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "meaning of phrase",
-      "pdfId": null,
-      "bbox": {
-        "top": 64,
-        "left": 11.399993896484375,
-        "width": 58,
-        "height": 73
-      }
-    },
-    {
-      "word": "box 4",
-      "pos": "",
-      "ner": "",
-      "sa": "",
-      "comment": "this is other comment",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": null,
-      "bbox": {
-        "top": 105,
-        "left": 261.3999938964844,
-        "width": 79,
-        "height": 10
+        "top": 211,
+        "left": 179.5999755859375,
+        "width": 56,
+        "height": 40
       }
     }
   ],
@@ -127,6 +93,34 @@
         "left": 261.3999938964844,
         "width": 79,
         "height": 10
+      }
+    },
+    {
+      "word": "box 1",
+      "engAlpha": "",
+      "moSymbol": "past",
+      "moPhrase": "",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 50,
+        "left": 99.5999755859375,
+        "width": 55,
+        "height": 41
+      }
+    },
+    {
+      "word": "box 2",
+      "engAlpha": "",
+      "moSymbol": "sun",
+      "moPhrase": "",
+      "comment": "",
+      "pdfId": null,
+      "bbox": {
+        "top": 211,
+        "left": 179.5999755859375,
+        "width": 56,
+        "height": 40
       }
     }
   ]

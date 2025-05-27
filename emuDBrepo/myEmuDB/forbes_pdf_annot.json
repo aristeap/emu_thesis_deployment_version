@@ -13,6 +13,39 @@
       "moSymbol": "",
       "moPhrase": "",
       "pdfId": "pdfword-1"
+    },
+    {
+      "word": "weigh",
+      "pos": "verb",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0"
+    },
+    {
+      "word": "billionaires",
+      "pos": "noun",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0"
+    },
+    {
+      "word": "dozen",
+      "pos": "",
+      "ner": "",
+      "sa": "neutral",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0"
     }
   ],
   "imageAnnotations": []

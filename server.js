@@ -930,6 +930,102 @@ db.once('open', () => {
       }
     });
 
+
+    // return unique "moSymbol" and "moPhrase" values found across all imageAnnotations
+    app.get('/api/annotations/image/symbolsAndPhrases', async (req, res) => {
+      try {
+        const repoPath = path.join(__dirname, 'emuDBrepo');
+        const dbDirs   = fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
+        const symbols  = new Set();
+        const phrases = new Set();
+        console.log("repoPath: ",repoPath, " dbDirs: ",dbDirs," symbols: ",symbols);
+
+        for (const db of dbDirs) {
+          const files = fs.readdirSync(path.join(repoPath, db)).filter(fn => fn.endsWith('_annot.json'));
+          console.log("files: ",files);
+          for (const fn of files) {
+            const bundle = loadAnnot(db, fn.replace('_annot.json',''));
+            console.log("bundle: ",bundle);
+            console.log("bundle.imageAnnotations: ",bundle.imageAnnotations);
+            (bundle.imageAnnotations || []).forEach(ann => {
+              if (ann.moSymbol) symbols.add(ann.moSymbol);
+              console.log("ann.moSymbol: ",ann.moSymbol);
+
+              if (ann.moPhrase) phrases.add(ann.moPhrase);
+              console.log("ann.moPhrase: ",ann.moPhrase);
+
+            });
+          }
+        }
+
+        return res.json({ 
+          symbols: Array.from(symbols).sort() ,
+          phrases: Array.from(phrases).sort()
+        });
+        
+        
+      } catch (err) {
+        console.error('Error collecting image symbol options:', err);
+        return res.status(500).json({ message: 'Server error' });
+      }
+    });
+
+
+    app.get('/api/search/annotations/image', async (req, res) => {
+      const { letter, moSymbol, moPhrase, comment } = req.query;
+
+      // figure out which single filter was used
+      const filters = { letter, moSymbol, moPhrase, comment };
+      const activeKeys = Object.keys(filters).filter(k => filters[k]);
+      if (activeKeys.length !== 1) {
+        // require exactly one criterion
+        return res.json({ results: [] });
+      }
+      const key = activeKeys[0];
+      const value = filters[key].toString().toLowerCase();
+
+      try {
+        const repoPath = path.join(__dirname, 'emuDBrepo');
+        const dbDirs = fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
+
+        const hits = [];
+
+        for (const dbName of dbDirs) {
+          const annotFiles = fs.readdirSync(path.join(repoPath, dbName)).filter(fn => fn.endsWith('_annot.json'));
+
+          for (const fn of annotFiles) {
+            const bundleName = fn.replace('_annot.json', '');
+            const annot = loadAnnot(dbName, bundleName);
+            const items = annot.imageAnnotations || [];
+
+            // check if *any* annotation item matches your single filter:
+            let match = false;
+            if (key === 'letter') {
+              match = items.some(i => i.engAlpha.toLowerCase() === value);
+            } else if (key === 'moSymbol') {
+              match = items.some(i => i.moSymbol.toLowerCase() === value);
+            } else if (key === 'moPhrase') {
+              match = items.some(i => i.moPhrase.toLowerCase() === value);
+            } else if (key === 'comment') {
+              match = items.some(i => i.comment.toLowerCase().includes(value));
+            }
+
+            if (match) {
+              hits.push({ dbName, bundleName });
+            }
+          }
+        }
+
+        return res.json({ results: hits });
+      } catch (err) {
+        console.error('Image annotation search error:', err);
+        return res.status(500).json({ message: 'Server error during image‐annotation search' });
+      }
+    });
+
+
+
+
  
 
 
