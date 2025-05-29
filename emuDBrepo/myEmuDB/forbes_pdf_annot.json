@@ -46,6 +46,17 @@
       "moSymbol": "",
       "moPhrase": "",
       "pdfId": "pdfword-0"
+    },
+    {
+      "word": "example",
+      "pos": "noun",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-15"
     }
   ],
   "imageAnnotations": []

@@ -5,8 +5,8 @@
   "pdfAnnotations": [
     {
       "word": "corpora",
-      "pos": "",
-      "ner": "first name",
+      "pos": "noun",
+      "ner": "",
       "sa": "",
       "comment": "",
       "engAlpha": "",
@@ -17,29 +17,7 @@
     {
       "word": "should",
       "pos": "",
-      "ner": "last name",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-3"
-    },
-    {
-      "word": "edit",
-      "pos": "",
-      "ner": "organization",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-3"
-    },
-    {
-      "word": "accepts",
-      "pos": "verb",
-      "ner": "",
+      "ner": "location",
       "sa": "",
       "comment": "",
       "engAlpha": "",
@@ -48,5 +26,6 @@
       "pdfId": "pdfword-3"
     }
   ],
-  "imageAnnotations": []
+  "imageAnnotations": [],
+  "videoAnnotations": []
 }

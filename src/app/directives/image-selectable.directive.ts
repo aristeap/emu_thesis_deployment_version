@@ -175,7 +175,7 @@ angular.module('emuwebApp')
             }
 
             
-            //For equivalent-from-english-------------------------------------------------------------------------------------------
+            //For equivalent-from-english-------------------------------------------------------------------------------------------------------------------
             if (currentMode === 'equivalent-from-english') {
               // Create a context menu with a scrollable list of letters and an Ok button.
               const menuDiv = document.createElement('div') as HTMLDivElement;
@@ -224,23 +224,40 @@ angular.module('emuwebApp')
                 e.stopPropagation();
                 console.log("Selected letter:", selectedLetter);
                 if (selectedLetter) {
-                  // Dynamically determine the box label based on current annotations count.
-                  const boxLabel = "box " + (AnnotationService.annotations.length + 1);
-                  console.log("boxLabel:", boxLabel);
-                  // Capture the current selection box coordinates.
+                  // 1) pull down the *saved* imageAnnotations from DataService
+                  const saved = DataService.getData().imageAnnotations || [];
+                  // 2) extract only the numeric parts of “box N”
+                  const existingNums = saved
+                    .map(a => {
+                      const m = /^box\s+(\d+)$/.exec(a.word || '');
+                      return m ? parseInt(m[1], 10) : NaN;
+                    })
+                    .filter(n => !isNaN(n));
+
+                  // 3) pick the next free number
+                  const nextNum  = existingNums.length
+                                ? Math.max(...existingNums) + 1
+                                  : 1;
+                  const boxLabel = `box ${nextNum}`;
+                  
                   const currentBbox = {
-                    top: scope.selectionBox.top,
-                    left: scope.selectionBox.left,
+                    top:   scope.selectionBox.top,
+                    left:  scope.selectionBox.left,
                     width: scope.selectionBox.width,
                     height: scope.selectionBox.height
                   };
-                  // Update the annotation table (pass the bbox).
-                  console.log("boxLabel: ",boxLabel);
-                  AnnotationService.addAnnotation(boxLabel, "equivalent-from-english", selectedLetter, null, currentBbox);
 
-                  // GOOD: clone, then mutate the clone
+                  // add to the in-memory service
+                  AnnotationService.addAnnotation(
+                    boxLabel,
+                    "equivalent-from-english",
+                    selectedLetter,
+                    null,
+                    currentBbox
+                  );
+
+                  // persist back into DataService
                   const current = DataService.getData();
-                  // deep‐clone the entire annotation bundle
                   const updated = angular.copy(current);
                   updated.imageAnnotations = updated.imageAnnotations || [];
                   updated.imageAnnotations.push({
@@ -253,8 +270,6 @@ angular.module('emuwebApp')
                     bbox:     currentBbox
                   });
                   DataService.setData(updated);
-
-                  // tell everybody the table needs to refresh
                   $rootScope.$broadcast('annotationChanged');
 
                 }
@@ -289,7 +304,7 @@ angular.module('emuwebApp')
               document.addEventListener('click', handleClickOutside);
             } 
             
-            //For meaning-of-symbol-------------------------------------------------------------------------------------------
+            //For meaning-of-symbol------------------------------------------------------------------------------------------------------------------
             if (currentMode === 'meaning-of-symbol') {
               // Create a popup container.
               const popup = document.createElement('div') as HTMLDivElement;
@@ -339,33 +354,48 @@ angular.module('emuwebApp')
                 e.stopPropagation();
                 const comment = currentComment.trim();
                 if (comment) {
-                  const boxLabel = "box " + (AnnotationService.annotations.length + 1);
-
+                  const saved = DataService.getData().imageAnnotations || [];
+                  const existingNums = saved
+                    .map(a => {
+                      const m = /^box\s+(\d+)$/.exec(a.word || '');
+                      return m ? parseInt(m[1], 10) : NaN;
+                    })
+                    .filter(n => !isNaN(n));
+                  const nextNum = existingNums.length
+                  ? Math.max(...existingNums) + 1
+                  : 1;
+                  const boxLabel = `box ${nextNum}`;
                   const currentBbox = {
-                    top: scope.selectionBox.top,
-                    left: scope.selectionBox.left,
+                    top:   scope.selectionBox.top,
+                    left:  scope.selectionBox.left,
                     width: scope.selectionBox.width,
                     height: scope.selectionBox.height
                   };
 
-                  AnnotationService.addAnnotation(boxLabel, "meaning-of-symbol", comment, null, currentBbox);
+                  AnnotationService.addAnnotation(
+                    boxLabel,
+                    "meaning-of-symbol",
+                    comment,
+                    null,
+                    currentBbox
+                  );
 
-                  // GOOD: clone, then mutate the clone
+                  // now persist using the same “saved” array
                   const current = DataService.getData();
-                  // deep‐clone the entire annotation bundle
                   const updated = angular.copy(current);
                   updated.imageAnnotations = updated.imageAnnotations || [];
                   updated.imageAnnotations.push({
                     word:     boxLabel,
-                    engAlpha: "",     // or “” for other modes
-                    moSymbol: comment,   // or “” for other modes
-                    moPhrase: "",   // or “” for other modes
-                    comment:  "",    // or “” for other modes
+                    engAlpha: "",
+                    moSymbol: comment,
+                    moPhrase: "",
+                    comment:  "",
                     pdfId:    null,
                     bbox:     currentBbox
                   });
                   DataService.setData(updated);
                   $rootScope.$broadcast('annotationChanged');
+                  
 
                 }
                 // Reset the flags and clear the drag selection box.
@@ -451,32 +481,55 @@ angular.module('emuwebApp')
                 e.stopPropagation();
                 const comment = currentComment.trim();
                 if (comment) {
-                  const boxLabel = "box " + (AnnotationService.annotations.length + 1);
-                  // Capture the current bounding box from the selection.
-                  const currentBbox = {
-                    top: scope.selectionBox.top,
-                    left: scope.selectionBox.left,
-                    width: scope.selectionBox.width,
-                    height: scope.selectionBox.height
-                  };
-                  AnnotationService.addAnnotation(boxLabel, "meaning-of-phrase", comment, null, currentBbox);
+                    // pull the *saved* annotations (not just the in-memory ones)
+                    const saved = DataService.getData().imageAnnotations || [];
+                    // extract the existing “box N” numbers
+                    const existingNums = saved
+                      .map(a => {
+                        const m = /^box\s+(\d+)$/.exec(a.word || '');
+                        return m ? parseInt(m[1], 10) : NaN;
+                      })
+                      .filter(n => !isNaN(n));
 
-                  // GOOD: clone, then mutate the clone
-                  const current = DataService.getData();
-                  // deep‐clone the entire annotation bundle
-                  const updated = angular.copy(current);
-                  updated.imageAnnotations = updated.imageAnnotations || [];
-                  updated.imageAnnotations.push({
-                    word:     boxLabel,
-                    engAlpha: "",     // or “” for other modes
-                    moSymbol: "",   // or “” for other modes
-                    moPhrase: comment,   // or “” for other modes
-                    comment:  "",    // or “” for other modes
-                    pdfId:    null,
-                    bbox:     currentBbox
-                  });
-                  DataService.setData(updated);
-                  $rootScope.$broadcast('annotationChanged');
+                    // next box number is max+1 (or 1 if none yet)
+                    const nextNum = existingNums.length
+                      ? Math.max(...existingNums) + 1
+                      : 1;
+                    const boxLabel = `box ${nextNum}`;
+
+                    const currentBbox = {
+                      top:   scope.selectionBox.top,
+                      left:  scope.selectionBox.left,
+                      width: scope.selectionBox.width,
+                      height: scope.selectionBox.height
+                    };
+
+                    // update in-memory
+                    AnnotationService.addAnnotation(
+                      boxLabel,
+                      "meaning-of-phrase",
+                      comment,
+                      null,
+                      currentBbox
+                    );
+
+                    // persist into DataService
+                    const current = DataService.getData();
+                    const updated = angular.copy(current);
+                    updated.imageAnnotations = updated.imageAnnotations || [];
+                    updated.imageAnnotations.push({
+                      word:     boxLabel,
+                      engAlpha: "",
+                      moSymbol: "",
+                      moPhrase: comment,
+                      comment:  "",
+                      pdfId:    null,
+                      bbox:     currentBbox
+                    });
+                    DataService.setData(updated);
+
+                    // let the table refresh
+                    $rootScope.$broadcast('annotationChanged');
 
                 }
                 scope.contextMenuActive = false;
@@ -559,7 +612,21 @@ angular.module('emuwebApp')
                 e.stopPropagation();
                 const comment = currentComment.trim();
                 if (comment) {
-                  const boxLabel = "box " + (AnnotationService.annotations.length + 1);
+                  // const boxLabel = "box " + (AnnotationService.annotations.length + 1);
+                  // Dynamically determine the next unused box number:
+                  //  • pull all existing “box N” labels
+                  //  • extract N as integers
+                  //  • take max (or 0 if none) and add 1
+                  const existingNums = AnnotationService.annotations
+                   .map(a => {
+                     const m = /^box\s+(\d+)$/.exec(a.word || '');
+                     return m ? parseInt(m[1], 10) : NaN;
+                   })
+                   .filter(n => !isNaN(n));
+                  
+                  const nextNum = existingNums.length ? Math.max(...existingNums) + 1 : 1;
+                  const boxLabel = `box ${nextNum}`;
+
                   const currentBbox = {
                     top: scope.selectionBox.top,
                     left: scope.selectionBox.left,

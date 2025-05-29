@@ -6,21 +6,12 @@
 
   <div class="emuwebapp-modal-body">
 
-    <div class="two‐column‐wrap">
+    <div class="two-column-wrap">
+        
+        
         <!--Filter by metadata (left panel)--------------------------------------------------------------------------------------------------------------------------------------->
         <div class="metadata-row">
             <h2>Filter by metadata</h2>
-
-            <div class="filter-field">
-                <!--File Type-->
-                <label for="fileType">File type</label>
-                <select id="fileType" ng-model="vm.filters.fileType" name="fileType" class="selects-input">
-                    <option value="">--select--</option>
-                    <option value="wav/video">wav/video</option>
-                    <option value="image">image</option>
-                    <option value="pdf">pdf</option>
-                </select>
-            </div>    
 
             <div class="filter-field">
                 <!--Date: for all file types, even though for pdf its publication year-->
@@ -78,6 +69,19 @@
 
         </div>
 
+        <div class="file-type-panel">
+            <div class="filter-field">
+                    <!--File Type-->
+                    <label for="fileType">File type</label>
+                    <select id="fileType" ng-model="vm.filters.fileType" name="fileType" class="selects-input">
+                        <option value="">--select--</option>
+                        <option value="wav/video">wav/video</option>
+                        <option value="image">image</option>
+                        <option value="pdf">pdf</option>
+                    </select>
+            </div>
+        </div>
+
 
         <!--Filter by annotations(right panel)--------------------------------------------------------------------------------------------------------------------------------------->
         <div class="metadata-row annotation-row" ng-switch="vm.filters.fileType">            
@@ -126,6 +130,7 @@
                         <ul>
                             <li ng-repeat="item in vm.resultsAnnotations">
                                 {{ item.bundleName }}
+                               <button ng-click="vm.saveCroppedSegmentForWav(item)"><i class="material-icons" title="download the segment">save</i> </button>   
                             </li>
                         </ul>
                     </h3>
@@ -273,7 +278,6 @@
   </div>
 
   <div class="emuwebapp-modal-footer">
-    <button ng-click="vm.cancel()" class="emuwebapp-mini-btn">Cancel</button>
-    <button ng-click="vm.save()"   class="emuwebapp-mini-btn">Save</button>
+    
   </div>
 </div>

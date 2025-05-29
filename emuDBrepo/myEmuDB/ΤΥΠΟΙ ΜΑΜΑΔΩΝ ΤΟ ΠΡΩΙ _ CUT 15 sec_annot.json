@@ -57,6 +57,17 @@
               "value": "Frown"
             }
           ]
+        },
+        {
+          "id": 13,
+          "sampleStart": 485397,
+          "sampleDur": 36866,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Open Palm"
+            }
+          ]
         }
       ],
       "name": "EmbodiedActionsNr0",

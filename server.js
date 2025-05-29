@@ -4,6 +4,11 @@ const path = require('path');   // “path” helps us build file-paths in a saf
 const cors = require('cors');
 const fs   = require('fs');     // “fs” lets us read and write files on disk  
 
+// const archiver = require('archiver');
+// const os = require('os');
+
+const ffmpeg = require('fluent-ffmpeg');
+
 
 const app = express();
 const port = 3019;
@@ -801,16 +806,15 @@ db.once('open', () => {
 
     app.get('/api/search/annotations/recordings', async (req, res) => {
       const { fileType, level, embodiedAction, label } = req.query;
-      console.log("api/search/annotations: ",req.query);
       if (fileType !== 'wav/video') {
         return res.status(400).json({ message: 'Only wav/video supported right now' });
       }
 
       try {
         const repoPath = path.join(__dirname, 'emuDBrepo');
-        const dbDirs   = fs.readdirSync(repoPath).filter(d =>
-          fs.statSync(path.join(repoPath, d)).isDirectory()
-        );
+        const dbDirs   = fs
+          .readdirSync(repoPath)
+          .filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
 
         const hits = [];
 
@@ -824,66 +828,56 @@ db.once('open', () => {
             const annot      = loadAnnot(dbName, bundleName);
             const lvls       = annot.levels;
 
-            let ok = true;
+            // For each level & each item, test your filters:
+            for (const l of lvls) {
+              for (const it of l.items) {
+                let match = true;
 
-            // If they did type a level, filter by that
-            if (level) {
-                ok = lvls.some(l => l.name.toLowerCase() === level.toLowerCase());
-            }
-            
-            // If they did type a label, filter any label value
-            if (ok && label) {
-              ok = lvls.some(l =>
-                l.items.some(item =>
-                  item.labels.some(lbl =>
-                    lbl.value.toLowerCase() === label.toLowerCase()
-                  )
-                )
-              );
-            }
-
-            // Now handle embodiedAction *alone*
-             if (ok && embodiedAction) {
-              const ebLevel = lvls.find(l => l.role === 'embodied');
-
-              if (embodiedAction === 'nothing') {
-                // want files with *no* embodied annotations
-                // so fail if we actually find an embodied level with items
-                if (ebLevel && ebLevel.items.length > 0) {
-                  ok = false;
+                // level filter
+                if (level) {
+                  match = match && l.name.toLowerCase() === level.toLowerCase();
                 }
-              } else {
-                // want files *with* this action
-                if (
-                  !ebLevel ||
-                  !ebLevel.items.some(item =>
-                    item.labels.some(
-                      lbl =>
-                        lbl.value.toLowerCase() ===
-                        embodiedAction.toLowerCase()
-                    )
-                  )
-                ) {
-                  ok = false;
+
+                // label filter
+                if (match && label) {
+                  match = it.labels.some(lbl =>
+                    lbl.value.toLowerCase() === label.toLowerCase()
+                  );
+                }
+
+                // embodiedAction filter
+                if (match && embodiedAction) {
+                  if (l.role !== 'embodied') {
+                    match = false;
+                  } else if (embodiedAction === 'nothing') {
+                    match = it.labels.length === 0;
+                  } else {
+                    match = it.labels.some(lbl =>
+                      lbl.value.toLowerCase() === embodiedAction.toLowerCase()
+                    );
+                  }
+                }
+
+                if (match) {
+                  hits.push({
+                    dbName,
+                    bundleName,
+                    level: l.name,
+                    itemId: it.id
+                  });
                 }
               }
-            }
-
-            if (ok) {
-              hits.push({ dbName, bundleName });
             }
           }
         }
 
-        console.log("results: ",hits);
         return res.json({ results: hits });
       } catch (err) {
         console.error('Annotation search error:', err);
-        return res
-          .status(500)
-          .json({ message: 'Server error during annotation search' });
+        return res.status(500).json({ message: 'Server error during annotation search' });
       }
     });
+
 
 
 
@@ -938,21 +932,21 @@ db.once('open', () => {
         const dbDirs   = fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
         const symbols  = new Set();
         const phrases = new Set();
-        console.log("repoPath: ",repoPath, " dbDirs: ",dbDirs," symbols: ",symbols);
+        // console.log("repoPath: ",repoPath, " dbDirs: ",dbDirs," symbols: ",symbols);
 
         for (const db of dbDirs) {
           const files = fs.readdirSync(path.join(repoPath, db)).filter(fn => fn.endsWith('_annot.json'));
-          console.log("files: ",files);
+          // console.log("files: ",files);
           for (const fn of files) {
             const bundle = loadAnnot(db, fn.replace('_annot.json',''));
-            console.log("bundle: ",bundle);
-            console.log("bundle.imageAnnotations: ",bundle.imageAnnotations);
+            // console.log("bundle: ",bundle);
+            //console.log("bundle.imageAnnotations: ",bundle.imageAnnotations);
             (bundle.imageAnnotations || []).forEach(ann => {
               if (ann.moSymbol) symbols.add(ann.moSymbol);
-              console.log("ann.moSymbol: ",ann.moSymbol);
+              //console.log("ann.moSymbol: ",ann.moSymbol);
 
               if (ann.moPhrase) phrases.add(ann.moPhrase);
-              console.log("ann.moPhrase: ",ann.moPhrase);
+              //console.log("ann.moPhrase: ",ann.moPhrase);
 
             });
           }
@@ -1022,6 +1016,143 @@ db.once('open', () => {
         return res.status(500).json({ message: 'Server error during image‐annotation search' });
       }
     });
+
+
+
+    //for the 'Filter by annotations' searches, the user does, the applicaiton should returning to him the correct sliced wav, etc.
+    //for example is he searches for the label 'abcd' in the 'Phonetic' level, this part should be cropped fromt he wav and returned to him so he can listen to it!
+    
+    // helper: slice one file’s annotations (returns Promise<void>) (from the wav-cutter.js)
+    // async function sliceAnnotations(meta, filters, tmpDir, clipDir) {
+    //   const base = path.basename(meta.fileName, '.wav');
+    //   const annotPath = path.join(__dirname, 'emuDBrepo', 'myEmuDB', `${base}_annot.json`);
+    //   const json = JSON.parse(fs.readFileSync(annotPath, 'utf8'));
+    //   const { levels, sampleRate } = json;
+
+    //   // download full WAV
+    //   const tmpWav = path.join(tmpDir, `${base}.wav`);
+    //   await fetchFromGridFS(bucket, meta.gridFSRef, tmpWav);
+
+    //   // for each level/item matching your filters, slice…
+    //   for (const lvl of levels) {
+    //     if (filters.level && lvl.name !== filters.level) continue;
+    //     for (const item of lvl.items) {
+    //       // (reuse the same EVENT/SEGMENT window logic you already tested)
+    //       const [ startSec, durSec ] = computeWindow(lvl, item, sampleRate);
+    //       if (!isFinite(startSec) || !isFinite(durSec)) continue;
+    //       const clipName = `${base}_${lvl.name}_${item.id}.wav`;
+    //       await extractAudio(tmpWav, path.join(clipDir, clipName), startSec, durSec);
+    //     }
+    //   }
+
+    //   fs.unlinkSync(tmpWav);
+    // }
+
+    // app.post('/api/search/export', async (req, res) => {
+    //   const filters = req.body; // assume you POST the same filter object
+    //   const tmpDir  = path.join(os.tmpdir(), `export-${Date.now()}`);
+    //   const clipDir = path.join(tmpDir, 'clips');
+    //   fs.mkdirSync(clipDir, { recursive: true });
+
+    //   // 1) find all matching filemetadatas via Mongo + req.body filters
+    //   const metas = await db.collection('filemetadatas')
+    //     .find({ fileType: 'audio' /* add metadata‐level filters here */ })
+    //     .toArray();
+
+    //   // 2) slice each one
+    //   await Promise.all(metas.map(meta =>
+    //     sliceAnnotations(meta, filters, tmpDir, clipDir)
+    //   ));
+
+    //   // 3) ZIP the clips/
+    //   res.attachment('search-clips.zip');
+    //   const archive = archiver('zip');
+    //   archive.pipe(res);
+    //   archive.directory(clipDir, false);
+    //   archive.finalize();
+    // });
+
+
+  
+    // Single‐segment export endpoint
+    app.get('/api/export/segment', async (req, res) => {
+      try {
+        console.log("------------------------------------------------------");
+        const { dbName, bundle, level, itemId } = req.query;
+        console.log("dbName: ",dbName, " bundle: ",bundle, " level: ", level," itemId: ",itemId);
+        if (!dbName || !bundle || !level || !itemId) {
+          return res.status(400).send('Missing parameters');
+        }
+
+        console.log("req.query: ",req.query);
+        // 1) Load annotations JSON
+        const annotPath = path.join(__dirname, 'emuDBrepo', dbName, `${bundle}_annot.json`);
+        if (!fs.existsSync(annotPath)) {
+          return res.status(404).send('Annotations not found');
+        }
+        const { levels, sampleRate } = JSON.parse(fs.readFileSync(annotPath, 'utf8'));
+
+        // 2) Find the right level & item
+        const lvl = levels.find(l => l.name === level);
+        if (!lvl) return res.status(404).send('Level not found');
+        const item = lvl.items.find(i => String(i.id) === String(itemId));
+        if (!item) return res.status(404).send('Annotation item not found');
+
+        // 3) Compute start/duration in seconds (handle SEGMENT vs EVENT)
+        let { sampleStart, sampleDur } = item;
+        if (lvl.type === 'EVENT') {
+          // 200 ms window around the timestamp
+          const halfSamples = Math.floor(0.2 * sampleRate / 2);
+          sampleStart = Math.max(0, sampleStart - halfSamples);
+          sampleDur   = halfSamples * 2;
+        }
+        const startSec = sampleStart / sampleRate;
+        const durSec   = sampleDur   / sampleRate;
+        if (!isFinite(startSec) || !isFinite(durSec) || durSec <= 0) {
+          return res.status(500).send('Invalid start/duration');
+        }
+
+        // 4) Look up the file’s GridFS _id
+        const meta = await FileMetadata.findOne({ fileName: bundle + '.wav' });
+        if (!meta) {
+          return res.status(404).send('File metadata not found');
+        }
+
+        // 5) Set headers for download
+        res.setHeader('Content-Type', 'audio/wav');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${bundle}_${level}_${itemId}.wav"`
+        );
+
+        // 6) Stream from GridFS -> ffmpeg (trim) -> response
+        const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+        const inputStream = bucket.openDownloadStream(meta.gridFSRef);
+        ffmpeg()
+          .input(inputStream)         //open the stream
+          .inputFormat('wav')         //its a wav file
+          .outputOptions([               // duration option
+              `-ss ${startSec}`,         // seek after -i
+              `-t ${durSec}`          // clip length
+          ])
+          .format('wav')
+          .on('start', cmd => console.log('FFmpeg command:', cmd))
+          .on('error', err => {
+            console.error('FFmpeg error during segment export:', err);
+            // if an error happens before piping any data, close the response
+            if (!res.headersSent) res.status(500).end();
+          })
+          .on('end', () => console.log(`Finished exporting ${bundle}_${level}_${itemId}.wav`))
+          .pipe(res, { end: true });
+      } catch (err) {
+        console.error('Error in /api/export/segment:', err);
+        res.status(500).send('Server error');
+      }
+    });
+
+
+
+
 
 
 

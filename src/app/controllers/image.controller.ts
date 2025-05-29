@@ -73,16 +73,32 @@ angular.module('emuwebApp')
 
 
     vm.deleteAnnotation = function(annotation) {
+
+      console.log("-----------------------------------------------deleteAnnotation has been clicked");
        // If this annotation is currently highlighted, remove its overlay.
       if (vm.currentHighlightAnnotation === annotation) {
         if (vm.currentHighlight && vm.currentHighlight.parentNode) {
           vm.currentHighlight.parentNode.removeChild(vm.currentHighlight);
+          console.log("inside the if in the deleteAnnotation");
         }
         vm.currentHighlight = null;
         vm.currentHighlightAnnotation = null;
       }
-      // Remove the annotation from the AnnotationService.
+
+      console.log("annotation.word: ",annotation.word, " annotation.pdfId: ",annotation.pdfId);
+      // 2) remove from AnnotationService
       AnnotationService.removeAnnotation(annotation.word, annotation.pdfId);
+      
+      // 2) clone the store’s data, filter out that annotation, then overwrite the store
+      const current = DataService.getData();
+      const updated = angular.copy(current);                    // brand-new object
+      updated.imageAnnotations = (updated.imageAnnotations || [])
+      .filter(a => !(a.word === annotation.word && a.pdfId === annotation.pdfId));
+      DataService.setData(updated);                             // now src !== dest, so no error
+      
+
+      // 4) re-broadcast so your ImageController picks up the change
+      $rootScope.$broadcast('annotationChanged');    
     };
 
 

@@ -1,4 +1,5 @@
 import * as angular from 'angular';
+declare function saveAs(blob: Blob, filename: string): void;
 
 angular
   .module('emuwebApp').controller('SearchThroughDatabase', [
@@ -177,6 +178,44 @@ angular
             });
 
         }
+
+        //Crop the result of the search (for annotations): FOR WAV **************************************************************************************************     
+        // make sure FileSaver.js is loaded: <script src="path/to/FileSaver.min.js"></script>
+        vm.saveCroppedSegmentForWav = item => {
+            console.log("the export has been clicked");
+            //for the params:
+            //->the dbName and bundle are coming from the vm.resultsAnnotations = resp.data.results; that are getting returned and also we have adapted the api/search/annotations/recordings
+            //  so it also returns the itemId
+            //->level is whatever the user types in the vm.filters.level
+
+            console.log("item: ",item);
+
+            const params = {
+                dbName:     item.dbName,
+                bundle:     item.bundleName,
+                level:      item.level,
+                itemId:       item.itemId       
+            };
+
+            console.log("dbName: ",params.dbName, " bundle: ",params.bundle, " level: ", params.level," itemId: ",params.itemId);
+
+            $http.get('http://localhost:3019/api/export/segment',{
+                params,
+                responseType: 'arraybuffer'
+            })
+            //the saveAs comes from the FileSaver.js library that trigger downloads of in-memory blobs (like the WAV data we get back from $http)
+            //we download the library, place it in the assets folder and then reference it from the index.html
+            .then(resp => {
+                const blob = new Blob([resp.data], { type: 'audio/wav' });
+                console.log("item.bundleName: ",item.bundleName," item.level: ", item.level," item.itemId: ",item.itemId);
+                saveAs(blob, `${item.bundleName}_${item.level}_${item.itemId}.wav`);
+            })
+            .catch(err => {
+                console.error('Segment download failed', err);
+                alert('Could not download segment');
+            });
+        };
+
         
 
     }

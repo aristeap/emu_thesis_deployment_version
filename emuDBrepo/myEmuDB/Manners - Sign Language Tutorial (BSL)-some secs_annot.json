@@ -1,0 +1,88 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 242413,
+          "sampleDur": 131767,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "hello"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "sampleStart": 488849,
+          "sampleDur": 81474,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "yes"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "sampleStart": 701085,
+          "sampleDur": 76446,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "please"
+            }
+          ]
+        }
+      ],
+      "name": "levelNr0",
+      "type": "SEGMENT"
+    },
+    {
+      "items": [
+        {
+          "id": 3,
+          "sampleStart": 242413,
+          "sampleDur": 131768,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Circular Gesture"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "sampleStart": 488849,
+          "sampleDur": 81475,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Nod Up-Down"
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "sampleStart": 701085,
+          "sampleDur": 76447,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Open Palm"
+            }
+          ]
+        }
+      ],
+      "name": "EmbodiedActionsNr0",
+      "type": "SEGMENT",
+      "role": "embodied"
+    }
+  ],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [],
+  "imageAnnotations": [],
+  "videoAnnotations": []
+}

@@ -20,7 +20,7 @@
           "labels": [
             {
               "name": "Phonetic",
-              "value": "another label"
+              "value": "ha, ha , ha"
             }
           ]
         }
@@ -47,25 +47,59 @@
     {
       "items": [
         {
-          "id": 4,
-          "sampleStart": 14648,
-          "sampleDur": 7776,
+          "id": 6,
+          "sampleStart": 24593,
+          "sampleDur": 3607,
           "labels": [
             {
-              "name": "Anna",
-              "value": "hello there"
+              "name": "William level",
+              "value": "jciok"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "sampleStart": 39952,
+          "sampleDur": 12755,
+          "labels": [
+            {
+              "name": "William level",
+              "value": "there is"
             }
           ]
         }
       ],
-      "name": "Anna",
-      "type": "SEGMENT",
-      "role": "speaker"
+      "name": "William level",
+      "type": "SEGMENT"
     },
     {
-      "items": [],
-      "name": "levelNr2",
-      "type": "SEGMENT"
+      "items": [
+        {
+          "id": 12,
+          "sampleStart": 3168,
+          "sampleDur": 8106,
+          "labels": [
+            {
+              "name": "Kate",
+              "value": "there is a true"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "sampleStart": 11356,
+          "sampleDur": 10040,
+          "labels": [
+            {
+              "name": "Kate",
+              "value": "true romantic"
+            }
+          ]
+        }
+      ],
+      "name": "Kate",
+      "type": "SEGMENT",
+      "role": "speaker"
     }
   ],
   "links": [],

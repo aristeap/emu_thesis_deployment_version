@@ -1,0 +1,66 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 124950,
+          "sampleDur": 86077,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "good afternoun"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "sampleStart": 571068,
+          "sampleDur": 87002,
+          "labels": [
+            {
+              "name": "levelNr0",
+              "value": "good night"
+            }
+          ]
+        }
+      ],
+      "name": "levelNr0",
+      "type": "SEGMENT"
+    },
+    {
+      "items": [
+        {
+          "id": 11,
+          "sampleStart": 124950,
+          "sampleDur": 86078,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Smile"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "sampleStart": 571068,
+          "sampleDur": 87003,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Lean Forward"
+            }
+          ]
+        }
+      ],
+      "name": "EmbodiedActionsNr0",
+      "type": "SEGMENT",
+      "role": "embodied"
+    }
+  ],
+  "links": [],
+  "sampleRate": 20000,
+  "pdfAnnotations": [],
+  "imageAnnotations": [],
+  "videoAnnotations": []
+}

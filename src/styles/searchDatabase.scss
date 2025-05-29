@@ -1,17 +1,17 @@
 
-.two‐column‐wrap{
+.two-column-wrap{
 
     display: flex;  
     align-items: flex-start;    //both panels start at the same top
-    gap: 10rem;
+    gap: 6rem;     //this gap is between the two sections of the modal
 
     .metadata-row{
         
         display: flex;
         align-items: center;
         flex-direction: column;
-        gap: 0.7rem;
-        margin-left: 10rem;
+        gap: 0.7rem;                //this is the gap between each label/input and the one bellow it
+        margin-left: 5rem;
         margin-top: 1.0rem;
         align-items: flex-start;  //This is so all the elements of the div would be at the same spot at the x axis (one just below the other) 
 
@@ -19,12 +19,13 @@
         h2 {  
             font-size: 1.3rem;
             color: #eee;
+            margin-bottom: 2.9rem;   //space between headers and the first label/input
         }
 
 
         .filter-field{
             display: flex; //row by default
-            gap: 0.9rem;
+            gap: 0.9rem;               
             align-items: center;    //this will make the label be in the middle, vertically, of it's select
 
             .selects-input {
@@ -91,34 +92,24 @@
                         list-style: disc;
                         padding-left: 1.5rem;
                         li {
-                            color: rgb(226, 226, 56);
+                            color: #3dccff;
                             margin-bottom: 0.3rem;
                             font-size: 0.9rem;
+                            align-items: center;
+
+                            button{
+                                margin-right: 1rem;
+                                background: #0ebff5;
+                                vertical-align: middle;
+                                &:hover {
+                                    background: #0bc0e0;
+                                }
+
+                            }
                         }
                     }
                 }
             }
-
-
-            // .checkbox-group{
-            //     flex: 1;
-            //     flex-wrap: wrap;
-            //     gap: 0.5rem;
-
-            //     label{
-            //         display: flex;
-            //         align-items: center;
-            //         font-size: 0.9rem;
-            //         color: #eee;
-
-            //         input{
-            //             margin-right: 0.25rem;
-            //             background: transparent;
-            //         }
-
-            //     }
-
-            // }
 
         }
 
@@ -142,13 +133,6 @@
                 gap: 0.1px;          // space between each one
             }
 
-            /* each individual checkbox+text should look good: */
-            // .checkbox-group label {
-            //     // display: flex;
-            //     // align-items: center;
-            //     color: #eee;
-            //     // font-size: 0.9rem;
-            // }
         }
 
   
@@ -165,6 +149,39 @@
                 line-height: 1.2;
                 padding: 0.4rem 1rem;
                 color: #eee;
+        }
+    }
+
+    .file-type-panel {
+        /* center it in the row */
+        margin-top: 50px;
+        display: flex;
+        align-items: flex-end;  // align the select with the inputs’ baseline, or tweak as you like
+        /* you can set a fixed width or let it size to content */
+        .filter-field { 
+            label { 
+                flex: 0 0 auto; 
+                font-size: 0.9rem;
+                margin-bottom: 2px;
+                
+            }
+            .selects-input { 
+                width: 100%;                //always fill the parent, no matter how wide that parent got
+                max-width: 210px;           //upper limit if the parent is too large 
+                padding: 0.2rem 1rem;
+                font-size: 0.9rem;
+                border: 2px solid #555;
+                border-radius: 4px;
+                background: #0ebff5;
+                color: #242222;
+                padding-right: 2.5rem;
+                vertical-align: middle;
+                
+
+                &:focus {
+                    outline: none;
+                    border-color: #3dccff;
+                }            }
         }
     }
 
