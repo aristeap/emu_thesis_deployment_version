@@ -1,0 +1,66 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 59825,
+          "sampleDur": 375330,
+          "labels": [
+            {
+              "name": "Meaning",
+              "value": "sorry and safe trip"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "sampleStart": 524180,
+          "sampleDur": 123923,
+          "labels": [
+            {
+              "name": "Meaning",
+              "value": "be careful"
+            }
+          ]
+        }
+      ],
+      "name": "Meaning",
+      "type": "SEGMENT"
+    },
+    {
+      "items": [
+        {
+          "id": 4,
+          "sampleStart": 59825,
+          "sampleDur": 375331,
+          "labels": [
+            {
+              "name": "Gestures",
+              "value": "Closed Fist"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "sampleStart": 524180,
+          "sampleDur": 123924,
+          "labels": [
+            {
+              "name": "Gestures",
+              "value": "Smile"
+            }
+          ]
+        }
+      ],
+      "name": "Gestures",
+      "type": "SEGMENT",
+      "role": "embodied"
+    }
+  ],
+  "links": [],
+  "sampleRate": 44100,
+  "pdfAnnotations": [],
+  "imageAnnotations": [],
+  "videoAnnotations": []
+}

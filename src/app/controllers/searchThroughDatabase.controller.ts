@@ -181,7 +181,7 @@ angular
 
         //Crop the result of the search (for annotations): FOR WAV **************************************************************************************************     
         // make sure FileSaver.js is loaded: <script src="path/to/FileSaver.min.js"></script>
-        vm.saveCroppedSegmentForWav = item => {
+        vm.saveCroppedSegmentForWavAndVideo = item => {
             console.log("the export has been clicked");
             //for the params:
             //->the dbName and bundle are coming from the vm.resultsAnnotations = resp.data.results; that are getting returned and also we have adapted the api/search/annotations/recordings
@@ -206,9 +206,13 @@ angular
             //the saveAs comes from the FileSaver.js library that trigger downloads of in-memory blobs (like the WAV data we get back from $http)
             //we download the library, place it in the assets folder and then reference it from the index.html
             .then(resp => {
-                const blob = new Blob([resp.data], { type: 'audio/wav' });
-                console.log("item.bundleName: ",item.bundleName," item.level: ", item.level," item.itemId: ",item.itemId);
-                saveAs(blob, `${item.bundleName}_${item.level}_${item.itemId}.wav`);
+                console.log("file.Type: ", item.fileType);
+                const extension = item.fileType === 'video' ? 'mp4' : 'wav';
+                const mimeType = item.fileType === 'video' ? 'video/mp4' : 'audio/wav';
+                const blob = new Blob([resp.data], { type: mimeType });
+                console.log("blob: ",blob, "extension: ",extension);
+                saveAs(blob, `${item.bundleName}_${item.level}_${item.itemId}.${extension}`);
+
             })
             .catch(err => {
                 console.error('Segment download failed', err);

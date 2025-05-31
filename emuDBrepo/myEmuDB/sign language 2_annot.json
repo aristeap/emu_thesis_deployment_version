@@ -8,7 +8,7 @@
           "sampleDur": 86077,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Level1",
               "value": "good afternoun"
             }
           ]
@@ -19,13 +19,13 @@
           "sampleDur": 87002,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Level1",
               "value": "good night"
             }
           ]
         }
       ],
-      "name": "levelNr0",
+      "name": "Level1",
       "type": "SEGMENT"
     },
     {
@@ -36,7 +36,7 @@
           "sampleDur": 86078,
           "labels": [
             {
-              "name": "EmbodiedActionsNr0",
+              "name": "Gestures",
               "value": "Smile"
             }
           ]
@@ -47,19 +47,19 @@
           "sampleDur": 87003,
           "labels": [
             {
-              "name": "EmbodiedActionsNr0",
+              "name": "Gestures",
               "value": "Lean Forward"
             }
           ]
         }
       ],
-      "name": "EmbodiedActionsNr0",
+      "name": "Gestures",
       "type": "SEGMENT",
       "role": "embodied"
     }
   ],
   "links": [],
-  "sampleRate": 20000,
+  "sampleRate": 44100,
   "pdfAnnotations": [],
   "imageAnnotations": [],
   "videoAnnotations": []

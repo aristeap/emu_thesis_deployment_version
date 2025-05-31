@@ -8,7 +8,7 @@
           "sampleDur": 131767,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Words",
               "value": "hello"
             }
           ]
@@ -19,7 +19,7 @@
           "sampleDur": 81474,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Words",
               "value": "yes"
             }
           ]
@@ -30,13 +30,13 @@
           "sampleDur": 76446,
           "labels": [
             {
-              "name": "levelNr0",
+              "name": "Words",
               "value": "please"
             }
           ]
         }
       ],
-      "name": "levelNr0",
+      "name": "Words",
       "type": "SEGMENT"
     },
     {
@@ -47,7 +47,7 @@
           "sampleDur": 131768,
           "labels": [
             {
-              "name": "EmbodiedActionsNr0",
+              "name": "Gestures",
               "value": "Circular Gesture"
             }
           ]
@@ -58,7 +58,7 @@
           "sampleDur": 81475,
           "labels": [
             {
-              "name": "EmbodiedActionsNr0",
+              "name": "Gestures",
               "value": "Nod Up-Down"
             }
           ]
@@ -69,19 +69,19 @@
           "sampleDur": 76447,
           "labels": [
             {
-              "name": "EmbodiedActionsNr0",
+              "name": "Gestures",
               "value": "Open Palm"
             }
           ]
         }
       ],
-      "name": "EmbodiedActionsNr0",
+      "name": "Gestures",
       "type": "SEGMENT",
       "role": "embodied"
     }
   ],
   "links": [],
-  "sampleRate": 20000,
+  "sampleRate": 44100,
   "pdfAnnotations": [],
   "imageAnnotations": [],
   "videoAnnotations": []

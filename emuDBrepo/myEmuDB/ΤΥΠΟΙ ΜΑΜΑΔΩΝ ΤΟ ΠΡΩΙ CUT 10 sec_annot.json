@@ -31,7 +31,7 @@
     }
   ],
   "links": [],
-  "sampleRate": 20000,
+  "sampleRate": 44100,
   "pdfAnnotations": [],
   "imageAnnotations": [],
   "videoAnnotations": []

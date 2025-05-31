@@ -5,10 +5,12 @@ const cors = require('cors');
 const fs   = require('fs');     // “fs” lets us read and write files on disk  
 
 // const archiver = require('archiver');
-// const os = require('os');
+const os = require('os');
+const tmp = require('tmp');
 
 const ffmpeg = require('fluent-ffmpeg');
-
+const {ObjectId } = require('mongodb');
+const {MongoClient} = require('mongodb');
 
 const app = express();
 const port = 3019;
@@ -795,14 +797,11 @@ db.once('open', () => {
       }
     });
 
-
-
     // helper: read & parse a JSON file
     function loadAnnot(dbName, bundleName) {
       const p = path.join(__dirname, 'emuDBrepo', dbName, `${bundleName}_annot.json`);
       return JSON.parse(fs.readFileSync(p, 'utf8'));
     }
-
 
     app.get('/api/search/annotations/recordings', async (req, res) => {
       const { fileType, level, embodiedAction, label } = req.query;
@@ -828,24 +827,20 @@ db.once('open', () => {
             const annot      = loadAnnot(dbName, bundleName);
             const lvls       = annot.levels;
 
-            // For each level & each item, test your filters:
             for (const l of lvls) {
               for (const it of l.items) {
                 let match = true;
 
-                // level filter
                 if (level) {
                   match = match && l.name.toLowerCase() === level.toLowerCase();
                 }
 
-                // label filter
                 if (match && label) {
                   match = it.labels.some(lbl =>
                     lbl.value.toLowerCase() === label.toLowerCase()
                   );
                 }
 
-                // embodiedAction filter
                 if (match && embodiedAction) {
                   if (l.role !== 'embodied') {
                     match = false;
@@ -859,11 +854,17 @@ db.once('open', () => {
                 }
 
                 if (match) {
+                  // 🔍 Lookup fileType from metadata
+                  const meta = await FileMetadata.findOne({
+                    fileName: { $regex: new RegExp(`^${bundleName}\\.(wav|mp4)$`, 'i') }
+                  });
+
                   hits.push({
                     dbName,
                     bundleName,
                     level: l.name,
-                    itemId: it.id
+                    itemId: it.id,
+                    fileType: meta?.fileType || 'audio'  // fallback to 'audio'
                   });
                 }
               }
@@ -877,6 +878,7 @@ db.once('open', () => {
         return res.status(500).json({ message: 'Server error during annotation search' });
       }
     });
+
 
 
 
@@ -1019,72 +1021,55 @@ db.once('open', () => {
 
 
 
-    //for the 'Filter by annotations' searches, the user does, the applicaiton should returning to him the correct sliced wav, etc.
-    //for example is he searches for the label 'abcd' in the 'Phonetic' level, this part should be cropped fromt he wav and returned to him so he can listen to it!
-    
-    // helper: slice one file’s annotations (returns Promise<void>) (from the wav-cutter.js)
-    // async function sliceAnnotations(meta, filters, tmpDir, clipDir) {
-    //   const base = path.basename(meta.fileName, '.wav');
-    //   const annotPath = path.join(__dirname, 'emuDBrepo', 'myEmuDB', `${base}_annot.json`);
-    //   const json = JSON.parse(fs.readFileSync(annotPath, 'utf8'));
-    //   const { levels, sampleRate } = json;
+    // Helper: download a GridFS file to disk
+    function fetchFromGridFS(bucket, fileId, outPath) {
+      return new Promise((resolve, reject) => {
+        bucket
+          .openDownloadStream(new ObjectId(fileId))
+          .pipe(fs.createWriteStream(outPath))
+          .on('error', reject)
+          .on('finish', resolve);
+      });
+    }
 
-    //   // download full WAV
-    //   const tmpWav = path.join(tmpDir, `${base}.wav`);
-    //   await fetchFromGridFS(bucket, meta.gridFSRef, tmpWav);
+    // Extract video segment with precise seek after input
+    function extractVideo(inPath, outPath, startSec, durSec) {
+      return new Promise((resolve, reject) => {
+        ffmpeg(inPath)
+          .outputOptions([
+            `-ss ${startSec}`,              // precise seek after input
+            `-t ${durSec}`,                 // clip duration
+            '-avoid_negative_ts make_zero',  // reset timestamps
+            '-c:v libx264',                  // re-encode video smoothly
+            '-preset veryfast',              // speed/quality tradeoff
+            '-c:a copy'                      // copy audio unchanged
+          ])
+          .format('mp4')
+          .save(outPath)
+          .on('start', cmd => console.log('FFmpeg command:', cmd))
+          .on('error', err => reject(err))
+          .on('end', () => resolve());
+      });
+    }
 
-    //   // for each level/item matching your filters, slice…
-    //   for (const lvl of levels) {
-    //     if (filters.level && lvl.name !== filters.level) continue;
-    //     for (const item of lvl.items) {
-    //       // (reuse the same EVENT/SEGMENT window logic you already tested)
-    //       const [ startSec, durSec ] = computeWindow(lvl, item, sampleRate);
-    //       if (!isFinite(startSec) || !isFinite(durSec)) continue;
-    //       const clipName = `${base}_${lvl.name}_${item.id}.wav`;
-    //       await extractAudio(tmpWav, path.join(clipDir, clipName), startSec, durSec);
-    //     }
-    //   }
-
-    //   fs.unlinkSync(tmpWav);
-    // }
-
-    // app.post('/api/search/export', async (req, res) => {
-    //   const filters = req.body; // assume you POST the same filter object
-    //   const tmpDir  = path.join(os.tmpdir(), `export-${Date.now()}`);
-    //   const clipDir = path.join(tmpDir, 'clips');
-    //   fs.mkdirSync(clipDir, { recursive: true });
-
-    //   // 1) find all matching filemetadatas via Mongo + req.body filters
-    //   const metas = await db.collection('filemetadatas')
-    //     .find({ fileType: 'audio' /* add metadata‐level filters here */ })
-    //     .toArray();
-
-    //   // 2) slice each one
-    //   await Promise.all(metas.map(meta =>
-    //     sliceAnnotations(meta, filters, tmpDir, clipDir)
-    //   ));
-
-    //   // 3) ZIP the clips/
-    //   res.attachment('search-clips.zip');
-    //   const archive = archiver('zip');
-    //   archive.pipe(res);
-    //   archive.directory(clipDir, false);
-    //   archive.finalize();
-    // });
-
-
-  
-    // Single‐segment export endpoint
+    // ----------------------------------------------------------------------------
+    // Single‐segment export endpoint (handles both .wav and .mp4 clips):
+    // ----------------------------------------------------------------------------
     app.get('/api/export/segment', async (req, res) => {
       try {
         console.log("------------------------------------------------------");
         const { dbName, bundle, level, itemId } = req.query;
-        console.log("dbName: ",dbName, " bundle: ",bundle, " level: ", level," itemId: ",itemId);
+        console.log(
+          "dbName:", dbName,
+          "bundle:", bundle,
+          "level:", level,
+          "itemId:", itemId
+        );
+
         if (!dbName || !bundle || !level || !itemId) {
           return res.status(400).send('Missing parameters');
         }
 
-        console.log("req.query: ",req.query);
         // 1) Load annotations JSON
         const annotPath = path.join(__dirname, 'emuDBrepo', dbName, `${bundle}_annot.json`);
         if (!fs.existsSync(annotPath)) {
@@ -1102,54 +1087,181 @@ db.once('open', () => {
         let { sampleStart, sampleDur } = item;
         if (lvl.type === 'EVENT') {
           // 200 ms window around the timestamp
-          const halfSamples = Math.floor(0.2 * sampleRate / 2);
+          const halfSamples = Math.floor((0.2 * sampleRate) / 2);
           sampleStart = Math.max(0, sampleStart - halfSamples);
           sampleDur   = halfSamples * 2;
         }
         const startSec = sampleStart / sampleRate;
-        const durSec   = sampleDur   / sampleRate;
+        let   durSec   = sampleDur / sampleRate;
         if (!isFinite(startSec) || !isFinite(durSec) || durSec <= 0) {
           return res.status(500).send('Invalid start/duration');
         }
 
-        // 4) Look up the file’s GridFS _id
-        const meta = await FileMetadata.findOne({ fileName: bundle + '.wav' });
+        // 4) Look up the file’s GridFS _id (match .wav or .mp4)
+        const meta = await FileMetadata.findOne({
+          fileName: { $regex: new RegExp(`^${bundle}\\.(wav|mp4)$`, 'i') }
+        });
         if (!meta) {
           return res.status(404).send('File metadata not found');
         }
+        console.log("--------------meta: ", meta);
 
-        // 5) Set headers for download
-        res.setHeader('Content-Type', 'audio/wav');
-        res.setHeader(
-          'Content-Disposition',
-          `attachment; filename="${bundle}_${level}_${itemId}.wav"`
-        );
+        // Derive extension & detect video vs. audio
+        const ext     = path.extname(meta.fileName).toLowerCase();   // “.wav” or “.mp4”
+        const isVideo = (meta.fileType === 'video' || ext === '.mp4');
 
-        // 6) Stream from GridFS -> ffmpeg (trim) -> response
-        const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
-        const inputStream = bucket.openDownloadStream(meta.gridFSRef);
-        ffmpeg()
-          .input(inputStream)         //open the stream
-          .inputFormat('wav')         //its a wav file
-          .outputOptions([               // duration option
-              `-ss ${startSec}`,         // seek after -i
-              `-t ${durSec}`          // clip length
-          ])
-          .format('wav')
-          .on('start', cmd => console.log('FFmpeg command:', cmd))
-          .on('error', err => {
-            console.error('FFmpeg error during segment export:', err);
-            // if an error happens before piping any data, close the response
-            if (!res.headersSent) res.status(500).end();
-          })
-          .on('end', () => console.log(`Finished exporting ${bundle}_${level}_${itemId}.wav`))
-          .pipe(res, { end: true });
+        if (isVideo) {
+          // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+          // VIDEO BRANCH (only modify inside here)
+          // ───────────────────────────────────────────────
+        console.log(`→ Entering VIDEO branch for ${meta.fileName}`);
+
+          // (a) Build a “tmp” path under YOUR application’s ./tmp/ folder:
+          const tmpDir      = path.resolve(__dirname, 'tmp');
+          const tmpFilename = `${bundle}_${level}_${itemId}_${Date.now()}.mp4`;
+          const tmpVideoPath = path.join(tmpDir, tmpFilename);
+
+          // Ensure ./tmp/ exists:
+          if (!fs.existsSync(tmpDir)) {
+            fs.mkdirSync(tmpDir, { recursive: true });
+          }
+
+          console.log("tmpVideoPath", tmpVideoPath);
+          console.log(`  Downloading ${meta.fileName} → ${tmpVideoPath}`);
+
+          // (b) Download from GridFS into tmpVideoPath
+          await new Promise((resolve, reject) => {
+            const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+            bucket.openDownloadStream(new ObjectId(meta.gridFSRef))
+              .pipe(fs.createWriteStream(tmpVideoPath))
+              .on('error', reject)
+              .on('finish', resolve);
+          });
+
+          // (c) Probe the actual video duration so we can clamp durSec
+          let videoDur = Infinity;
+          try {
+            const probeData = await new Promise((resolve, reject) => {
+              ffmpeg.ffprobe(tmpVideoPath, (err, data) =>
+                err ? reject(err) : resolve(data)
+              );
+            });
+            videoDur = probeData.format.duration || Infinity;
+            console.log(`  Video duration of ${bundle}: ${videoDur}s`);
+
+            if (startSec > videoDur) {
+              console.warn(
+                `  Skipping ${bundle}_${level}_${itemId}: start ${startSec}s beyond video duration ${videoDur}s`
+              );
+              fs.unlinkSync(tmpVideoPath);
+              return res.status(416).send('Requested start beyond video duration');
+            }
+
+            // Clamp durSec so that (startSec + durSec) ≤ videoDur
+            durSec = Math.min(durSec, Math.max(0, videoDur - startSec));
+            if (durSec <= 0) {
+              console.warn(
+                `  Skipping ${bundle}_${level}_${itemId}: zero‐length video segment`
+              );
+              fs.unlinkSync(tmpVideoPath);
+              return res.status(416).send('Requested zero‐length video');
+            }
+          } catch (probeErr) {
+            console.warn(`  Could not ffprobe “${bundle}”: ${probeErr.message}`);
+            // We’ll try anyway—if truly out of range, FFmpeg will error.
+          }
+
+          // (d) Set response headers so the client knows to expect an MP4
+          // Set headers
+          res.setHeader('Content-Type', 'video/mp4');
+          res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${bundle}_${level}_${itemId}.mp4"`
+          );
+
+          const clippedPath = path.join(tmpDir, `clipped_${Date.now()}.mp4`);
+
+          ffmpeg(tmpVideoPath)
+            .outputOptions([
+              `-ss ${startSec}`,     // now placed AFTER input
+              `-t ${durSec}`,
+              '-avoid_negative_ts make_zero',
+              '-c:v libx264',
+              '-preset veryfast',
+              '-c:a aac',            // re-encode audio too
+              '-movflags +faststart' // for smoother start playback
+            ])
+            .format('mp4')
+            .on('start', cmd => {
+              console.log('FFmpeg command:', cmd);
+            })
+            .on('error', err => {
+              console.error('FFmpeg export error:', err.message);
+              if (!res.headersSent) {
+                res.status(500).send('FFmpeg video trim failed');
+              }
+              try { fs.unlinkSync(tmpVideoPath); } catch {}
+              try { fs.unlinkSync(clippedPath); } catch {}
+            })
+            .on('end', () => {
+              console.log('Video segment exported successfully:', clippedPath);
+
+              const stream = fs.createReadStream(clippedPath);
+              stream.pipe(res);
+
+              stream.on('close', () => {
+                try { fs.unlinkSync(tmpVideoPath); } catch {}
+                try { fs.unlinkSync(clippedPath); } catch {}
+              });
+            })
+            .save(clippedPath);
+
+
+          // ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+          // End of VIDEO branch
+          // ─────────────────────────────────────────────────────────────────
+
+
+        } else {
+          // ───────────────────────────────────────────────
+          // AUDIO BRANCH (WAV)
+          // ───────────────────────────────────────────────
+
+          // (a) Set headers so the browser knows it’s getting a WAV:
+          res.setHeader('Content-Type', 'audio/wav');
+          res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${bundle}_${level}_${itemId}.wav"`
+          );
+
+          // (b) Open a GridFS read stream, feed it into FFmpeg, and immediately pipe to `res`
+          const bucket      = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+          const inputStream = bucket.openDownloadStream(new ObjectId(meta.gridFSRef));
+
+          ffmpeg(inputStream)
+            .inputFormat('wav')
+            .outputOptions([
+              `-ss ${startSec}`,   // seek after “-i”
+              `-t ${durSec}`       // clip length
+            ])
+            .format('wav')
+            .on('start', cmd => console.log('FFmpeg (audio) command:', cmd))
+            .on('error', err => {
+              console.error('FFmpeg error during segment export:', err);
+              if (!res.headersSent) res.status(500).end();
+            })
+            .on('end', () => {
+              console.log(`Finished exporting ${bundle}_${level}_${itemId}.wav`);
+            })
+            .pipe(res, { end: true });
+        }
       } catch (err) {
         console.error('Error in /api/export/segment:', err);
-        res.status(500).send('Server error');
+        if (!res.headersSent) {
+          res.status(500).send('Server error');
+        }
       }
     });
-
 
 
 

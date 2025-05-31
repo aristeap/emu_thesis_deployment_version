@@ -1,0 +1,48 @@
+{
+  "levels": [
+    {
+      "items": [
+        {
+          "id": 1,
+          "sampleStart": 145857,
+          "sampleDur": 188078,
+          "labels": [
+            {
+              "name": "Gestures",
+              "value": "yes"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "sampleStart": 479792,
+          "sampleDur": 245653,
+          "labels": [
+            {
+              "name": "Gestures",
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "sampleStart": 882817,
+          "sampleDur": 176563,
+          "labels": [
+            {
+              "name": "Gestures",
+              "value": "maybe"
+            }
+          ]
+        }
+      ],
+      "name": "Gestures",
+      "type": "SEGMENT"
+    }
+  ],
+  "links": [],
+  "sampleRate": 44100,
+  "pdfAnnotations": [],
+  "imageAnnotations": [],
+  "videoAnnotations": []
+}

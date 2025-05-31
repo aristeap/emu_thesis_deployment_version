@@ -94,11 +94,13 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
       })
       .catch(function() {
         // ← NEW: if no file or error, start with empty annotation
+        const defaultRate = bundle.mediaFile.type === 'video' ? 44100 : 20000;
+
         console.log("before it creates a fallback annotation json");
         const fallback = {
           levels: [],
           links: [],
-          sampleRate:  20000,
+          sampleRate:  defaultRate,
           pdfAnnotations: [],
           imageAnnotations: [],
           videoAnnotations: []
