@@ -12,10 +12,16 @@ angular.module('emuwebApp')
    * @param mode - the annotation mode.
    * @param choice - the chosen annotation text.
    * @param pdfId - an identifier (for PDF) or null (for image).
+   * @param page   - (PDF only) the 1-based page number where this annotation was made
+   * @param sentence - the exact sentence string containing `word`
    * @param bbox - (optional) bounding box.
    */
-  self.addAnnotation = function(word: string, mode: string, choice: string, pdfId: string | null, bbox?: any) {
-    let existing = self.annotations.find(a => a.word === word && a.pdfId === pdfId);
+  self.addAnnotation = function(word: string, mode: string, choice: string, pdfId: string | null, page?:number,sentence?:string ,bbox?: any) {
+    let existing = self.annotations.find(a =>
+      a.word === word &&
+      a.pdfId === pdfId &&
+      (pdfId === null || (page !== undefined && a.page === page))
+    );
     if (!existing) {
       existing = {
         word: word,
@@ -26,7 +32,10 @@ angular.module('emuwebApp')
         engAlpha: '',
         moSymbol: '',
         moPhrase: '',
-        pdfId: pdfId || null
+        pdfId: pdfId || null,
+        page: page,  //we store the page number here
+        sentence: sentence || '',
+        bbox: undefined
       };
       // For image annotations, explicitly set bbox.
       if (pdfId === null && bbox) {
@@ -58,12 +67,16 @@ angular.module('emuwebApp')
 
   };
 
-  self.removeAnnotation = function(word, pdfId) {
-    const idx = self.annotations.findIndex(a => a.word === word && a.pdfId === pdfId);
+     self.removeAnnotation = function(word: string, pdfId: string | null, page?: number) {
+    const idx = self.annotations.findIndex(a =>
+      a.word  === word &&
+      a.pdfId === pdfId &&
+      (pdfId === null || (page !== undefined && a.page === page))
+    );
     if (idx !== -1) {
       self.annotations.splice(idx, 1);
     }
     $rootScope.$broadcast('annotationChanged');
-
   };
+
 }]);

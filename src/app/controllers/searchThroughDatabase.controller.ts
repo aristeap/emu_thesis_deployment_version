@@ -220,6 +220,38 @@ angular
             });
         };
 
+    
+        vm.saveCroppedSegmentForPdf = item => {
+            const params = {
+                dbName: item.dbName,
+                bundle: item.bundleName,
+                word:   item.word,
+                pos:    item.pos,
+                page:   item.page       // now this is defined!
+            };
+
+            //console.log("vm.resultsAnnotationsPdf: ",vm.resultsAnnotationsPdf);
+            console.log("item: ",item);
+
+            $http.get('http://localhost:3019/api/export/pdfSegment', {
+                params,
+                responseType: 'arraybuffer'
+                })
+                .then(resp => {
+                const blob = new Blob([resp.data], { type: 'text/plain' });
+                saveAs(blob, `${item.bundleName}_${item.word}_p${item.page}.txt`);
+                })
+                .catch(err => {
+                console.error('PDF export failed:', err);
+                alert('Could not download PDF context');
+                });
+        };
+
+
+
+
+
+
         
 
     }

@@ -4,17 +4,6 @@
   "sampleRate": 20000,
   "pdfAnnotations": [
     {
-      "word": "Most aren’t interested.",
-      "pos": "",
-      "ner": "",
-      "sa": "",
-      "comment": "This is a comment for a sentence",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-1"
-    },
-    {
       "word": "weigh",
       "pos": "verb",
       "ner": "",
@@ -23,40 +12,61 @@
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": "pdfword-0"
+      "pdfId": "pdfword-0",
+      "page": 1,
+      "sentence": "A dozen and a half billionaires from across the world weigh in on the president’s newly  proposed “gold card” visa."
     },
     {
-      "word": "billionaires",
-      "pos": "noun",
-      "ner": "",
+      "word": "Trump",
+      "pos": "",
+      "ner": "last name",
       "sa": "",
       "comment": "",
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": "pdfword-0"
+      "pdfId": "pdfword-11",
+      "page": 1,
+      "sentence": "By   Forbes Wealth Team     On Tuesday,   Donald Trump announced a plan to sell $5 million “gold card” visas that offer  permanent residency and work authorization in the U.S."
     },
     {
-      "word": "dozen",
+      "word": "good",
       "pos": "",
       "ner": "",
-      "sa": "neutral",
+      "sa": "positive",
       "comment": "",
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": "pdfword-0"
+      "pdfId": "pdfword-15",
+      "page": 1,
+      "sentence": "And if you  add up the numbers, they’re pretty good."
     },
     {
-      "word": "example",
-      "pos": "noun",
+      "word": "United States",
+      "pos": "",
+      "ner": "location",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0",
+      "page": 2,
+      "sentence": "card holders “won’t have to pay any tax on income outside of the United States,” potentially  giving them   a huge tax break   not afforded to other visa holders or even U.S."
+    },
+    {
+      "word": "billionaire",
+      "pos": "adjective",
       "ner": "",
       "sa": "",
       "comment": "",
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": "pdfword-15"
+      "pdfId": "pdfword-32",
+      "page": 1,
+      "sentence": "“If you’re a billionaire, you don’t need it,” says one Canadian billionaire."
     }
   ],
   "imageAnnotations": []

@@ -56,18 +56,30 @@ angular.module('emuwebApp')
       }
     }
 
+    // vm.deleteAnnotation = function(ann) {
+    //   // 1. If it’s highlighted, remove highlight
+    //   if (ann.pdfId && vm.highlightedAnnotations[ann.pdfId]) {
+    //     removeHighlight(ann.pdfId);
+    //     delete vm.highlightedAnnotations[ann.pdfId];
+    //   }
+      
+    //   // 2. Remove from the annotation array
+    //   AnnotationService.removeAnnotation(ann.word, ann.pdfId);
+      
+    //   console.log("Deleted annotation for word:", ann.word);
+    // };
+
     vm.deleteAnnotation = function(ann) {
       // 1. If it’s highlighted, remove highlight
       if (ann.pdfId && vm.highlightedAnnotations[ann.pdfId]) {
         removeHighlight(ann.pdfId);
         delete vm.highlightedAnnotations[ann.pdfId];
       }
-      
-      // 2. Remove from the annotation array
-      AnnotationService.removeAnnotation(ann.word, ann.pdfId);
-      
+      // 2. Remove from the annotation array, now including `page`
+      AnnotationService.removeAnnotation(ann.word, ann.pdfId, ann.page);
       console.log("Deleted annotation for word:", ann.word);
     };
+
 
     function removeHighlight(pdfId: string) {
       const target = document.querySelector(`[data-pdfid="${pdfId}"]`) as HTMLElement;
@@ -142,10 +154,13 @@ angular.module('emuwebApp')
       const saved = DataService.getData().pdfAnnotations || [];
 
       // 2) but only seed the service once (so we don’t blow away any user‐added rows!)
-      if (AnnotationService.annotations.length === 0 && saved.length > 0) {
-          // copy in the saved ones
-          AnnotationService.annotations = saved.slice();
-      }
+      // if (AnnotationService.annotations.length === 0 && saved.length > 0) {
+      //     // copy in the saved ones
+      //     AnnotationService.annotations = saved.slice();
+      // }
+
+      AnnotationService.annotations = saved.slice();
+
 
       // 3) now bind the controller’s array to the service
       vm.annotations = AnnotationService.annotations;

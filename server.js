@@ -7,10 +7,13 @@ const fs   = require('fs');     // “fs” lets us read and write files on disk
 // const archiver = require('archiver');
 const os = require('os');
 const tmp = require('tmp');
+const PDFDocument = require('pdfkit'); // If not installed: npm install pdfkit
 
 const ffmpeg = require('fluent-ffmpeg');
 const {ObjectId } = require('mongodb');
 const {MongoClient} = require('mongodb');
+const pdfParse = require('pdf-parse');
+
 
 const app = express();
 const port = 3019;
@@ -884,7 +887,7 @@ db.once('open', () => {
 
 
     app.get('/api/search/annotations/pdf', async (req, res) => {
-      let { fileType, word='', comment='' } = req.query;
+      let { fileType, word = '', comment = '' } = req.query;
       let pos = req.query.pos || [], ner = req.query.ner || [], sa = req.query.sa || [];
 
       // normalize to arrays
@@ -900,23 +903,54 @@ db.once('open', () => {
         const repoPath = path.join(__dirname, 'emuDBrepo');
         const hits = [];
 
-        for (const dbName of fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath,d)).isDirectory())) {
-            for (const fn of fs.readdirSync(path.join(repoPath, dbName)).filter(fn => fn.endsWith('_annot.json'))) {
-              const bundleName = fn.replace('_annot.json','');
-              const { pdfAnnotations = [] } = loadAnnot(dbName, bundleName);
+        // iterate over every EMU‐DB folder
+        for (const dbName of fs
+          .readdirSync(repoPath)
+          .filter(d => fs.statSync(path.join(repoPath, d)).isDirectory())
+        ) {
+          // for each bundle in that dbName
+          const bundleFiles = fs
+            .readdirSync(path.join(repoPath, dbName))
+            .filter(fn => fn.endsWith('_annot.json'));
 
-              // does *any* one annotation record satisfy *all* of your checked boxes?
-              const match = pdfAnnotations.some(item => {
-                if (word && item.word.toLowerCase() !== word.toLowerCase()) return false;
-                if (comment && !item.comment.toLowerCase().includes(comment.toLowerCase())) return false;
-                if (pos.length    && !pos.includes(item.pos)) return false;
-                if (ner.length    && !ner.includes(item.ner)) return false;
-                if (sa.length     && !sa.includes(item.sa))  return false;
-                return true;
+          for (const annotFile of bundleFiles) {
+            const bundleName = annotFile.replace('_annot.json', '');
+            const { pdfAnnotations = [] } = loadAnnot(dbName, bundleName);
+
+            // instead of .some(…), we loop through each annotation record
+            for (const ann of pdfAnnotations) {
+              // check all filters
+              if (word && (!ann.word || ann.word.toLowerCase() !== word.toLowerCase())) {
+                continue;
+              }
+              if (comment && (!ann.comment || !ann.comment.toLowerCase().includes(comment.toLowerCase()))) {
+                continue;
+              }
+              if (pos.length && (!ann.pos || !pos.includes(ann.pos))) {
+                continue;
+              }
+              if (ner.length && (!ann.ner || !ner.includes(ann.ner))) {
+                continue;
+              }
+              if (sa.length && (!ann.sa || !sa.includes(ann.sa))) {
+                continue;
+              }
+
+              // If we reach here, this annotation `ann` matches all requested filters.
+              // Push a richer object back to the client.
+              hits.push({
+                dbName,
+                bundleName,
+                word:   ann.word,
+                pos:    ann.pos,
+                ner:    ann.ner,
+                sa:     ann.sa,
+                comment: ann.comment,
+                page:   ann.page,      // <-- the new page field
+                pdfId:  ann.pdfId
               });
-
-              if (match) hits.push({ dbName, bundleName });
             }
+          }
         }
 
         return res.json({ results: hits });
@@ -925,6 +959,8 @@ db.once('open', () => {
         return res.status(500).json({ message: 'Server error during PDF annotation search' });
       }
     });
+
+
 
 
     // return unique "moSymbol" and "moPhrase" values found across all imageAnnotations
@@ -1020,40 +1056,8 @@ db.once('open', () => {
     });
 
 
-
-    // Helper: download a GridFS file to disk
-    function fetchFromGridFS(bucket, fileId, outPath) {
-      return new Promise((resolve, reject) => {
-        bucket
-          .openDownloadStream(new ObjectId(fileId))
-          .pipe(fs.createWriteStream(outPath))
-          .on('error', reject)
-          .on('finish', resolve);
-      });
-    }
-
-    // Extract video segment with precise seek after input
-    function extractVideo(inPath, outPath, startSec, durSec) {
-      return new Promise((resolve, reject) => {
-        ffmpeg(inPath)
-          .outputOptions([
-            `-ss ${startSec}`,              // precise seek after input
-            `-t ${durSec}`,                 // clip duration
-            '-avoid_negative_ts make_zero',  // reset timestamps
-            '-c:v libx264',                  // re-encode video smoothly
-            '-preset veryfast',              // speed/quality tradeoff
-            '-c:a copy'                      // copy audio unchanged
-          ])
-          .format('mp4')
-          .save(outPath)
-          .on('start', cmd => console.log('FFmpeg command:', cmd))
-          .on('error', err => reject(err))
-          .on('end', () => resolve());
-      });
-    }
-
     // ----------------------------------------------------------------------------
-    // Single‐segment export endpoint (handles both .wav and .mp4 clips):
+    // Single‐segment export endpoint WAV AND VIDEO:
     // ----------------------------------------------------------------------------
     app.get('/api/export/segment', async (req, res) => {
       try {
@@ -1262,6 +1266,70 @@ db.once('open', () => {
         }
       }
     });
+
+
+    // ----------------------------------------------------------------------------
+    // Single‐segment export endpoint (handles .pdf exports)
+    // ----------------------------------------------------------------------------
+    app.get('/api/export/pdfSegment', async (req, res) => {
+      try {
+        const { dbName, bundle, word, pos, page } = req.query;
+        if (!dbName || !bundle || !word || !page) {
+          return res.status(400).send('Missing parameters (need dbName, bundle, word, and page)');
+        }
+        const pageNum = parseInt(page, 10);
+        if (isNaN(pageNum) || pageNum < 1) {
+          return res.status(400).send('Invalid page number');
+        }
+
+        // 1) Load the annotation JSON
+        const annotPath = path.join(__dirname, 'emuDBrepo', dbName, `${bundle}_annot.json`);
+        if (!fs.existsSync(annotPath)) {
+          return res.status(404).send('Annotations not found');
+        }
+        const { pdfAnnotations = [] } = JSON.parse(fs.readFileSync(annotPath, 'utf8'));
+
+        // 2) Find the exact annotation
+        const matches = pdfAnnotations.filter(item => {
+          if (!item.word || item.word.toLowerCase() !== word.toLowerCase()) {
+            return false;
+          }
+          if (item.page !== pageNum) {
+            return false;
+          }
+          if (pos && item.pos && item.pos.toLowerCase() !== pos.toLowerCase()) {
+            return false;
+          }
+          return true;
+        });
+        if (matches.length === 0) {
+          console.warn(`→ no matching pdfAnnotations for word="${word}", pos="${pos||''}", page=${pageNum}`);
+          return res.status(404).send('No matching annotation found');
+        }
+
+        // (We’ll just take the first match)
+        const ann = matches[0];
+        if (!ann.sentence) {
+          console.warn(`→ annotation ${ann.word} has no sentence saved!`);
+          return res.status(500).send('Annotation missing its sentence field');
+        }
+
+        // 3) Send back that exact sentence
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${bundle}_${word}_p${pageNum}.txt"`
+        );
+        return res.send(ann.sentence.trim() + '\n');
+      }
+      catch (err) {
+        console.error('Error in /api/export/pdfSegment:', err);
+        if (!res.headersSent) {
+          res.status(500).send('Server error');
+        }
+      }
+    });
+
 
 
 

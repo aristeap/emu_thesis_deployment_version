@@ -194,7 +194,10 @@
                         <h3 class="results-list" ng-if="vm.resultsAnnotationsPdf">
                             <ul>
                                 <li ng-repeat="item in vm.resultsAnnotationsPdf">
-                                    {{ item.bundleName }}
+                                    {{ item.bundleName }} – “{{ item.word }}” on page {{ item.page }}
+                                    <button ng-click="vm.saveCroppedSegmentForPdf(item)">
+                                        <i class="material-icons" title="download that sentence">save</i>
+                                    </button>
                                 </li>
                             </ul>
                         </h3>

@@ -19,10 +19,16 @@ angular.module('emuwebApp')
     `,
     link: function(scope, element) {
       let pdfDoc: any = null;
+      let activePageNum = 1 //a local variable to track the current page number
+
+      // ←– NEW: keep a map of “pageNumber → fullTextOfThatPage”
+      let pageTexts: { [pageNum: number]: string } = {};
 
       // Watch for PDF data, page, or zoom changes
       scope.$watchGroup(['base64Pdf', 'currentPage', 'pdfScale'], function([newPdf, newPage, newScale]) {
         if (!newPdf) return;
+        //remember new page in our closure
+        activePageNum = newPage || 1;
         if (!pdfDoc) {
           loadPdf(newPdf).then(() => {
             renderPage(newPage || 1, newScale || 1.0);
@@ -64,6 +70,7 @@ angular.module('emuwebApp')
 
       function renderPage(pageNum: number, manualScale: number) {
         if (!pdfDoc) return;
+        activePageNum = pageNum;
         pdfDoc.getPage(pageNum)
           .then((page: any) => {
             const container = element[0].querySelector('#pdfContainer');
@@ -118,6 +125,16 @@ angular.module('emuwebApp')
 
       function processTextLayer(pageNum: number, scaledViewport: any, textContent: any, textLayerDiv: HTMLDivElement) {
         if (!textContent) return;
+
+        // ←– NEW: Build the “entire page text” as one string
+        // Each textContent.items[i].str is one text chunk; joining them gives us all page text.
+        const fullPageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        // Store it so that later, when user right–clicks, we know “what was on pageNum.”
+        pageTexts[pageNum] = fullPageText;
+
+
         textLayerDiv.innerHTML = '';
         const eventBus = new pdfjsViewer.EventBus();
         const textLayer = new pdfjsViewer.TextLayerBuilder({
@@ -197,6 +214,38 @@ angular.module('emuwebApp')
         console.log("Context menu for text:", selectedText, "with pdfId:", pdfId);
         }
 
+        // ←– NEW: Look up the full text of the current page from scope.pageTexts
+        const pageNum = activePageNum;
+        const pageText = pageTexts[pageNum] || '';
+
+        // Split pageText into sentences (hard split on “. ”, “? ”, “! ”)
+        // The same logic you’ll use on the server, but here in the browser:
+        const sentenceBoundaries = pageText
+          .split(/(?<=[.?!])\s+/g)
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        // Build a regex that matches the *exact* word boundary for selectedText
+        const escaped = selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const wordRe = new RegExp(`\\b${escaped}\\b`, 'i');
+
+        // Find the first sentence that actually contains selectedText
+        let chosenSentence = '';
+        for (const s of sentenceBoundaries) {
+          if (wordRe.test(s)) {
+            chosenSentence = s;
+            break;
+          }
+        }
+        // Fallback: if none matched, just use the entire page
+        if (!chosenSentence) {
+          console.warn(`Could not find an exact sentence containing “${selectedText}” on page ${pageNum}; using full page text.`);
+          chosenSentence = pageText.trim();
+        }
+
+        // **NEW**: collapse all runs of whitespace into one space
+        chosenSentence = chosenSentence.replace(/\s+/g, ' ').trim();
+        
         // Branch for "other comments"
         if (currentMode === 'other comments') {
           const popup = document.createElement('div');
@@ -233,7 +282,7 @@ angular.module('emuwebApp')
             const comment = currentComment.trim();
             if (comment) {
               scope.$apply(() => {
-                AnnotationService.addAnnotation(selectedText, currentMode, comment, pdfId);
+                AnnotationService.addAnnotation(selectedText, currentMode, comment, pdfId, activePageNum, chosenSentence);
               });
               if (document.body.contains(popup)) {
                 document.body.removeChild(popup);
@@ -291,7 +340,7 @@ angular.module('emuwebApp')
           btn.style.margin = '5px 0';
           btn.addEventListener('click', () => {
             scope.$apply(() => {
-              AnnotationService.addAnnotation(selectedText, currentMode, choice, pdfId);
+              AnnotationService.addAnnotation(selectedText, currentMode, choice, pdfId, activePageNum, chosenSentence);
             });
             if (document.body.contains(menuDiv)) {
               document.body.removeChild(menuDiv);
