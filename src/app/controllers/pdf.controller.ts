@@ -2,8 +2,8 @@ import * as angular from 'angular';
 
 angular.module('emuwebApp')
 .controller('PdfController', [
-  '$scope', '$rootScope', 'DragnDropDataService', 'LoadedMetaDataService', 'PdfStateService', 'LinguisticService', 'AnnotationService','DataService',
-  function($scope, $rootScope, DragnDropDataService, LoadedMetaDataService, PdfStateService, LinguisticService, AnnotationService,DataService) {
+  '$scope', '$rootScope', 'DragnDropDataService', 'LoadedMetaDataService', 'PdfStateService', 'LinguisticService', 'AnnotationService','DataService','ModalService','ValidationService',
+  function($scope, $rootScope, DragnDropDataService, LoadedMetaDataService, PdfStateService, LinguisticService, AnnotationService,DataService, ModalService, ValidationService) {
     const vm = this;
     vm.linguisticService = LinguisticService;
     vm.pdfState = PdfStateService;
@@ -11,16 +11,16 @@ angular.module('emuwebApp')
     
     // Use shared annotations from AnnotationService
     vm.annotations = AnnotationService.annotations;
+    vm.ValidationService = ValidationService;    
+    // Control visibility of the floating annotation window.
+    vm.showAnnotationTable = false;
+    // Dictionary to track highlighted annotations by their unique pdfId.
+    vm.highlightedAnnotations = {}; // key: pdfId, value: boolean
+
 
     $rootScope.$on('annotationChanged', () => {
       vm.annotations = AnnotationService.annotations;
     });
-    
-    // Control visibility of the floating annotation window.
-    vm.showAnnotationTable = false;
-    
-    // Dictionary to track highlighted annotations by their unique pdfId.
-    vm.highlightedAnnotations = {}; // key: pdfId, value: boolean
 
     vm.selectLinguistic = function(mode) {
       console.log("inside the vm.selectLinguistic-----------------");
@@ -78,6 +78,12 @@ angular.module('emuwebApp')
       // 2. Remove from the annotation array, now including `page`
       AnnotationService.removeAnnotation(ann.word, ann.pdfId, ann.page);
       console.log("Deleted annotation for word:", ann.word);
+
+      DataService.setData({
+        ...DataService.getData(),
+        pdfAnnotations: AnnotationService.annotations.slice()
+      });
+
     };
 
 
@@ -153,14 +159,19 @@ angular.module('emuwebApp')
        // 1) grab whatever came back from the DB
       const saved = DataService.getData().pdfAnnotations || [];
 
-      // 2) but only seed the service once (so we don’t blow away any user‐added rows!)
-      // if (AnnotationService.annotations.length === 0 && saved.length > 0) {
-      //     // copy in the saved ones
-      //     AnnotationService.annotations = saved.slice();
-      // }
+       // ── Guard: if no bundle or no mediaFile yet, do nothing and return ──
+      if (!ddBndl || !ddBndl.mediaFile) {
+            return;
+      }
 
       AnnotationService.annotations = saved.slice();
 
+      // also “kick off” DataService.pdfAnnotations so it’s in sync
+      //that means that when we click at the download annot.json button for the pdf, the annotations we have added in the annotationTable, will be picked up by the modal
+      DataService.setData({
+        ...DataService.getData(),
+        pdfAnnotations: AnnotationService.annotations.slice()
+      });
 
       // 3) now bind the controller’s array to the service
       vm.annotations = AnnotationService.annotations;
@@ -181,7 +192,8 @@ angular.module('emuwebApp')
       // **NEW**: if this bundle came from the DB, show the annotation table immediately when the pdf loads
       if (ddBndl.session === "DB") {
         vm.showAnnotationTable = true;
-      }  
+      }
+    
       
     }
 
@@ -198,6 +210,26 @@ angular.module('emuwebApp')
         vm.pdfState.currentPage = totalPages;
       }
     });
+
+
+    vm.downloadAnnotationBtnClick  = function() {
+      // 1) Validate that the current annotation object in DataService is well-formed
+      const payload = DataService.getData();
+      console.log("=========+++++++====== payload: ",payload);
+      if (!vm.ValidationService.validateJSO('emuwebappConfigSchema', payload)) {
+        return;
+      }
+
+      // 3) Open `export.html` exactly as the WAV/video code does:
+      const filename = LoadedMetaDataService.getCurBndl().name + '_annot.json';
+      ModalService.open(
+        'views/export.html',
+        filename,
+        angular.toJson(payload, true)
+      );
+    };
+
+
     init();
   }
 ]);

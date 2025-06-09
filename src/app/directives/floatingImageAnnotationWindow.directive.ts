@@ -9,7 +9,9 @@ angular.module('emuwebApp')
       annotations: '=',    // Shared annotations array from your ImageController
       highlight: '&',      // Callback to highlight a specific annotation
       deleteAnn: '&',      // Callback to delete an annotation
-      export: '&'          // Callback to export annotations (if needed)
+      export: '&',          // Callback to export annotations (if needed)
+      saveCrop: '&'        // Callback to save the cropped image for one annotation  (if i dont add these nothing will happen if i click at an icon eg!Even if everything else is set up correctly)
+
     },
     template: `
       <div class="floating-annotation-container" 
@@ -42,6 +44,10 @@ angular.module('emuwebApp')
                   </button>
                   <button ng-click="deleteAnn({ annotation: ann })" ng-show="canDelete" style="background: none; border: none; cursor: pointer; margin-left: 5px;">
                     <i class="material-icons" style="font-size: 15px;">delete</i>
+                  </button>
+                  <!--the saveCrop says that whatever i pass on to the save-crop on the <floating-image...> on emu-webapp.compoennt.ts, will happen when we click -->
+                  <button ng-click="saveCrop({ annotation: ann })" style="background: none; border: none; cursor: pointer; margin-left: 5px;">
+                    <i class="material-icons" style="font-size: 15px;">save</i>
                   </button>
                 </td>
                 <td style="border: 1px solid #0DC5FF; padding: 10px;">{{ ann.engAlpha || '' }}</td>

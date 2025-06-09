@@ -12,6 +12,7 @@ angular
         vm.alphaList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
         vm.symbolOptions = [];
         vm.phraseOptions = [];
+        vm.resultsAnnotationsImage = []; // new array to hold image‐search results
 
 
         //if we didnt have added this and just kept the ng-model="vm.filters.fileType" and ng-disabled="vm.filters.fileType==='image"
@@ -149,6 +150,7 @@ angular
                 moPhrase: vm.filters.moPhrase,
                 comment: vm.filters.comment
             };
+            console.log("params: ",params);
 
             // Find exactly which keys have a truthy value
             const activeKeys = Object
@@ -247,6 +249,34 @@ angular
                 });
         };
 
+
+        vm.saveCroppedSegmentForImage = item =>{
+            
+            const params = {
+                dbName: item.dbName,
+                bundle: item.bundleName,
+                top:    item.bbox.top,
+                left:   item.bbox.left,
+                width:  item.bbox.width,
+                height: item.bbox.height
+            };
+
+            $http.get('http://localhost:3019/api/export/imageSegment', {
+                params,
+                responseType: 'arraybuffer'
+            })
+            .then(resp => {
+                const blob = new Blob([resp.data], { type: 'image/png' });
+                // use FileSaver.js (saveAs) to prompt download:
+                saveAs(blob, `${item.bundle}_${item.word}.png`);
+            })
+            .catch(err => {
+                console.error('Image export failed:', err);
+                alert('Could not download cropped image');
+            });
+
+
+        }
 
 
 

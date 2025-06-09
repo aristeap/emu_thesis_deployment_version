@@ -14,7 +14,6 @@ const {ObjectId } = require('mongodb');
 const {MongoClient} = require('mongodb');
 const pdfParse = require('pdf-parse');
 
-
 const app = express();
 const port = 3019;
 
@@ -675,32 +674,60 @@ db.once('open', () => {
         }
     });
 
-    app.delete('/delete-file/:id', async (req, res) => {
-        try {
-          const fileId = new mongoose.Types.ObjectId(req.params.id);
-      
-          // Check if the file exists in GridFS
-          const files = await bucket.find({ _id: fileId }).toArray();
-          if (!files || files.length === 0) {
-            console.error('File not found in GridFS for id', fileId);
-            return res.status(404).send('File not found in GridFS.');
-          }
-      
-          // Delete the file from GridFS
-          await bucket.delete(fileId);
-      
-          // Delete metadata record
-          const FileMetadata = require('./FileMetadata');
-          await FileMetadata.deleteOne({ gridFSRef: fileId });
-      
-          console.log('File deleted successfully, ID:', fileId);
-          res.send('File deleted successfully.');
-        } catch (err) {
-          console.error('Error deleting file:', err);
-          res.status(500).send('Error deleting file.');
+app.delete('/delete-file/:id', async (req, res) => {
+  try {
+    // 1) Parse the ObjectId from the URL
+    const fileId = new mongoose.Types.ObjectId(req.params.id);
+
+    // 2) Check if the file exists in GridFS
+    const files = await bucket.find({ _id: fileId }).toArray();
+    if (!files || files.length === 0) {
+      console.error('File not found in GridFS for id', fileId.toString());
+      return res.status(404).send('File not found in GridFS.');
+    }
+
+    // 3) Extract the original filename from the files collection
+    //    (MongoDB stores the original filename under files[0].filename by default)
+    const originalFilename = files[0].filename;
+    //    Example: "msajc003.wav"
+
+    // 4) Delete the file from GridFS
+    await bucket.delete(fileId);
+
+    // 5) Delete metadata record from your Mongoose model
+    const FileMetadata = require('./FileMetadata');
+    await FileMetadata.deleteOne({ gridFSRef: fileId });
+
+    // 6) Build the corresponding "<basename>_annot.json" path and remove it from disk
+    //    Strip off the extension (e.g. ".wav", ".mp4", etc.)
+    const basename = path.basename(originalFilename, path.extname(originalFilename));
+    const annotFilename = `${basename}_annot.json`;
+
+    //    Adjust this to wherever your emuDBrepo lives on disk.
+    //    In this example, we assume the server file is one level under "emuDBrepo/myEmuDB":
+    const annotPath = path.join(__dirname, 'emuDBrepo', 'myEmuDB', annotFilename);
+    
+    fs.unlink(annotPath, (unlinkErr) => {
+      if (unlinkErr) {
+        if (unlinkErr.code === 'ENOENT') {
+          // File did not exist—ignore
+          console.warn(`No annotation file to delete at ${annotPath}`);
+        } else {
+          // Some other I/O error
+          console.error(`Failed to delete annotation file at ${annotPath}:`, unlinkErr);
         }
+      } else {
+        console.log(`Deleted annotation JSON: ${annotPath}`);
+      }
     });
-      
+
+    console.log('File deleted successfully (GridFS + metadata + annotation), ID:', fileId.toString());
+    return res.send('File deleted successfully.');
+  } catch (err) {
+    console.error('Error deleting file:', err);
+    return res.status(500).send('Error deleting file.');
+  }
+});
       
     //For the search metadata feature
     // at top of file:
@@ -1004,46 +1031,61 @@ db.once('open', () => {
 
 
     app.get('/api/search/annotations/image', async (req, res) => {
-      const { letter, moSymbol, moPhrase, comment } = req.query;
+      const { letter = '', moSymbol = '', moPhrase = '', comment = '' } = req.query;
 
       // figure out which single filter was used
-      const filters = { letter, moSymbol, moPhrase, comment };
+      const filters    = { letter, moSymbol, moPhrase, comment };
       const activeKeys = Object.keys(filters).filter(k => filters[k]);
       if (activeKeys.length !== 1) {
         // require exactly one criterion
         return res.json({ results: [] });
       }
-      const key = activeKeys[0];
+
+      const key   = activeKeys[0];
       const value = filters[key].toString().toLowerCase();
 
       try {
         const repoPath = path.join(__dirname, 'emuDBrepo');
-        const dbDirs = fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
+        const dbDirs   = fs
+          .readdirSync(repoPath)
+          .filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
 
         const hits = [];
 
         for (const dbName of dbDirs) {
-          const annotFiles = fs.readdirSync(path.join(repoPath, dbName)).filter(fn => fn.endsWith('_annot.json'));
+          const annotFiles = fs
+            .readdirSync(path.join(repoPath, dbName))
+            .filter(fn => fn.endsWith('_annot.json'));
 
           for (const fn of annotFiles) {
             const bundleName = fn.replace('_annot.json', '');
-            const annot = loadAnnot(dbName, bundleName);
-            const items = annot.imageAnnotations || [];
+            const { imageAnnotations = [] } = loadAnnot(dbName, bundleName);
 
-            // check if *any* annotation item matches your single filter:
-            let match = false;
-            if (key === 'letter') {
-              match = items.some(i => i.engAlpha.toLowerCase() === value);
-            } else if (key === 'moSymbol') {
-              match = items.some(i => i.moSymbol.toLowerCase() === value);
-            } else if (key === 'moPhrase') {
-              match = items.some(i => i.moPhrase.toLowerCase() === value);
-            } else if (key === 'comment') {
-              match = items.some(i => i.comment.toLowerCase().includes(value));
-            }
+            // Loop through every single annotation entry
+            for (const item of imageAnnotations) {
+              let doesMatch = false;
 
-            if (match) {
-              hits.push({ dbName, bundleName });
+              if (key === 'letter' && item.engAlpha) {
+                doesMatch = item.engAlpha.toLowerCase() === value;
+              }
+              else if (key === 'moSymbol' && item.moSymbol) {
+                doesMatch = item.moSymbol.toLowerCase() === value;
+              }
+              else if (key === 'moPhrase' && item.moPhrase) {
+                doesMatch = item.moPhrase.toLowerCase() === value;
+              }
+              else if (key === 'comment' && item.comment) {
+                doesMatch = item.comment.toLowerCase().includes(value);
+              }
+
+              if (doesMatch) {
+                hits.push({
+                  dbName,
+                  bundleName,
+                  word: item.word,
+                  bbox: item.bbox
+                });
+              }
             }
           }
         }
@@ -1331,7 +1373,83 @@ db.once('open', () => {
     });
 
 
+    // ----------------------------------------------------------------------------
+    // Single‐segment export endpoint (handles .image exports)
+    // ----------------------------------------------------------------------------
+    app.get('/api/export/imageSegment', async (req, res) => {
+      try {
+        const { dbName, bundle, top, left, width, height } = req.query;
 
+        if (!dbName || !bundle || top == null || left == null || width == null || height == null) {
+          return res.status(400).send('Missing parameters: need dbName, bundle, top, left, width, height');
+        }
+
+        // Parse the parameters into integers:
+        const x = parseInt(left,  10);
+        const y = parseInt(top,   10);
+        const w = parseInt(width, 10);
+        const h = parseInt(height,10);
+
+        if ([x, y, w, h].some(n => isNaN(n) || n < 0)) {
+          return res.status(400).send('Invalid crop rectangle');
+        }
+
+        // 1) Look up the image’s GridFS metadata
+        const meta = await FileMetadata.findOne({
+          fileName: { $regex: new RegExp(`^${bundle}\\.(jpg|jpeg|png)$`, 'i') }
+        });
+        if (!meta) {
+          return res.status(404).send('Image metadata not found');
+        }
+
+        // 2) Download the full image from GridFS into a temporary file
+        const { name: tmpImagePath, removeCallback } = tmp.fileSync({ postfix: path.extname(meta.fileName) });
+        await new Promise((resolve, reject) => {
+          const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+          bucket.openDownloadStream(new ObjectId(meta.gridFSRef))
+            .pipe(fs.createWriteStream(tmpImagePath))
+            .on('error', err => reject(err))
+            .on('finish', () => resolve());
+        });
+
+        // 3) Invoke FFmpeg to crop out exactly (w × h) at (x,y), outputting PNG to stdout
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="${bundle}_${x}_${y}_${w}x${h}.png"`
+        );
+
+        ffmpeg(tmpImagePath)
+          .outputOptions([
+            `-vf crop=${w}:${h}:${x}:${y}`,  // crop filter: width:height:left:top
+            '-f image2pipe',                 // use the image2pipe muxer
+            '-vcodec png'                    // encode with the PNG codec
+          ])
+          .on('start', cmdline => {
+            console.log('FFmpeg (image‐crop) command:', cmdline);
+          })
+          .on('error', (err, stdout, stderr) => {
+            console.error('FFmpeg error while cropping image:', err.message);
+            console.error('FFmpeg stderr:', stderr);
+            // If headers not yet sent, respond with a 500
+            if (!res.headersSent) {
+              res.status(500).send('Server error while cropping image');
+            }
+            try { removeCallback(); } catch (_) { /* ignore */ }
+          })
+          .on('end', () => {
+            console.log(`Finished cropping ${bundle} @ [${x},${y},${w}x${h}].png`);
+            try { removeCallback(); } catch (_) { /* ignore */ }
+          })
+          .pipe(res, { end: true });  // stream the resulting PNG back to the client
+
+      } catch (err) {
+        console.error('Error in /api/export/imageSegment:', err);
+        if (!res.headersSent) {
+          res.status(500).send('Server error');
+        }
+      }
+    });
 
 
 

@@ -334,7 +334,40 @@ let EmuWebAppComponent = {
 		  				ng-click="$ctrl.MetadataButtonClick();">
 					<i class="material-icons">star</i>Add metadata
 				</button>
-	
+
+
+				<!-- The downlaod annot.json for the wav/video -------------------------------------------------------------------------------------------->
+				<div ng-show="$ctrl.LoadedMetaDataService.getCurBndlName()
+							&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
+					<button 
+						class="emuwebapp-mini-btn left" 
+						id="downloadAnnotation" 
+						ng-click="$ctrl.downloadAnnotationBtnClick();">
+						<i class="material-icons">save</i>annotJSON
+					</button>
+				</div>	
+
+
+				<!-- The downlaod annot.json for images ---------------------------------------------------------------------------------------------->
+				<div ng-controller="ImageController as imgCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay">
+					<button
+						class="emuwebapp-mini-btn left"
+						id="downloadAnnotationImg"
+						ng-click="imgCtrl.downloadAnnotationBtnClick()">
+						<i class="material-icons">save</i> annotJSONImg
+					</button>
+				</div>
+
+				<!--The downlaod annot.json for pdfs---------------------------------------------------------------------------------------------->
+				<div ng-controller="PdfController as pdfCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay">
+					<button
+						class="emuwebapp-mini-btn left"
+						id="downloadAnnotationPdf"
+						ng-click="pdfCtrl.downloadAnnotationBtnClick()">
+						<i class="material-icons">save</i> annotJSONPdf
+					</button>
+				</div>
+
 			
 				<!-- Linguistic Annotation Dropdown (PDF mode only) ------------------------------------------------------------------------------------------------------->
 				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl" style="display: inline-block; float: left; margin-left: 5px;">
@@ -607,7 +640,8 @@ let EmuWebAppComponent = {
 							ng-show="imgCtrl.showAnnotationWindow"
     						highlight="imgCtrl.toggleHighlight(annotation)"
 							delete-ann="imgCtrl.deleteAnnotation(annotation)"
-							export="imgCtrl.exportAnnotations()">
+							export="imgCtrl.exportAnnotations()"
+							save-crop="imgCtrl.saveCroppedSegmentForImage(annotation)">
 					</floating-image-annotation-window>
 
 				</div>
@@ -2298,7 +2332,9 @@ let EmuWebAppComponent = {
 		  
 
 		private logOutBtnClick(){
+			this.AppStateService.resetToInitState();
     		this.$location.path('../../views/login.html');
+
 		}
 
 		// In your main controller (or the controller that opens the modal)
@@ -2387,7 +2423,14 @@ let EmuWebAppComponent = {
 			  .catch(err => console.error('Error fetching files:', err));
 		}
 
-
+		private downloadAnnotationBtnClick() {
+			console.log("the download _annot.json button has been clicked");
+			if (this.ViewStateService.getPermission('downloadAnnotationBtnClick')) {
+				if(this.ValidationService.validateJSO('emuwebappConfigSchema', this.DataService.getData())) {
+					this.ModalService.open('views/export.html', this.LoadedMetaDataService.getCurBndl().name + '_annot.json', angular.toJson(this.DataService.getData(), true));
+				}
+			}
+		};
 		  
 		private chooseAdminsBtnClick(): void {
 			this.$http.get('http://localhost:3019/files')
@@ -2621,14 +2664,14 @@ let EmuWebAppComponent = {
 			const recordingNameClick = this.LoadedMetaDataService.getCurBndlName();
 			if (this.ViewStateService.curState === this.ViewStateService.states.nonAudioDisplay) {
 				// Open PDF-specific metadata modal
-				this.ModalService.open('views/PdfMetadataButton.component.html', recordingNameClick);
+				this.ModalService.open('views/PdfMetadataButton.html', recordingNameClick);
 			}else if (this.ViewStateService.curState === this.ViewStateService.states.JpegDisplay){
 				// Open image-specific metadata modal
-				this.ModalService.open('views/ImgMetadataButton.component.html', recordingNameClick);
+				this.ModalService.open('views/ImgMetadataButton.html', recordingNameClick);
 			}
 			else{
 				// Open the modal and pass the recording name
-				this.ModalService.open('views/MetadataButton.component.html', recordingNameClick);
+				this.ModalService.open('views/MetadataButton.html', recordingNameClick);
 			}
 		};
 

@@ -3,34 +3,24 @@
     {
       "items": [
         {
-          "id": 4,
-          "sampleStart": 3614,
-          "sampleDur": 11608,
+          "id": 1,
+          "sampleStart": 3749,
+          "sampleDur": 11157,
           "labels": [
             {
-              "name": "Level 1",
-              "value": "amongst her "
-            }
-          ]
-        },
-        {
-          "id": 2,
-          "sampleStart": 42641,
-          "sampleDur": 10118,
-          "labels": [
-            {
-              "name": "Level 1",
-              "value": "beautiful"
+              "name": "levelNr0",
+              "value": "amongst her"
             }
           ]
         }
       ],
-      "name": "Level 1",
+      "name": "levelNr0",
       "type": "SEGMENT"
     }
   ],
   "links": [],
   "sampleRate": 20000,
+  "pdfAnnotations": [],
   "imageAnnotations": [],
-  "pdfAnnotations": []
+  "videoAnnotations": []
 }

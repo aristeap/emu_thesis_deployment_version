@@ -61,15 +61,17 @@ class DragnDropService{
 	///////////////////
 	// drag n drop data
 	public setData(bundles) {
-		  console.log("inside drag-n-drop.service.ts-> setData");
+		console.log("inside drag-n-drop.service.ts-> setData");
 		let count = 0;
 		bundles.forEach((bundle, i) => {
 		  // bundle[1] is { file: File, extension: 'WAV'/'PDF'/'JPEG'/'JPG' }
 		  const fileObj = bundle[1];
 		  if (fileObj && fileObj.extension) {
+		  	console.log("inside drag-n-drop.service.ts-> setData inside the condition loop");
 			const ext = fileObj.extension.toUpperCase();
 			// Store the raw File under the correct type:
 			if (ext === 'WAV') {
+			  console.log("inside drag-n-drop.service.ts-> setData wav part");
 			  this.setDragnDropData(bundle[0], i, 'wav', fileObj.file);
 			} else if (ext === 'PDF') {
 				// console.log("The ext is PDF");
@@ -84,7 +86,8 @@ class DragnDropService{
 		  }
 		  // If there’s an annotation, store it:
 		  if (bundle[2] !== undefined) {
-			this.setDragnDropData(bundle[0], i, 'annotation', bundle[2]);
+			console.log("inside drag-n-drop.service.ts-> setData for the _annot.json");
+			this.setDragnDropData(bundle[0], i, 'annotation', bundle[2].file);
 		  }
 		  count = i;
 		});
@@ -105,7 +108,7 @@ class DragnDropService{
 		} else {
 		  return false;
 		}
-	  }
+	}
 	  
 	
 	public resetToInitState() {
@@ -199,235 +202,398 @@ class DragnDropService{
 	
 
 	public convertDragnDropData(bundles, i) {
-		//  console.log("drag-n-drop.service.ts-> convertDragnDropData");
+  		console.log("▶ convertDragnDropData: entered with index", i, "of", bundles.length);
 		var defer = this.$q.defer();
 		// If we have more bundles to process...
 		if (bundles.length > i) {
-		  var data = this.drandropBundles[i];
-		  var reader: any = new FileReader();
-		  var reader2: any = new FileReader();
-		  var res;
+			var data = this.drandropBundles[i];
+			console.log(` data++++++++++++++++++++++++++?++ =`, data);
+
+			var reader: any = new FileReader();
+			var reader2: any = new FileReader();
+			var res;
 		  
-		  // If the bundle contains a WAV file, process it as before-----------------------------------------------------------------
-		  if (data.wav !== undefined) {
-			reader.readAsArrayBuffer(data.wav);
-			reader.onloadend = (evt) => {
-			  if (evt.target.readyState === FileReader.DONE) {
-				res = this.BrowserDetectorService.isBrowser.Firefox() 
-					  ? evt.target.result 
-					  : evt.currentTarget.result;
-				const bufferClone = res.slice(0);
-				this.WavParserService.parseWavAudioBuf(res).then((audioBuffer) => {
-				  if (!this.DragnDropDataService.convertedBundles[i]) {
-					this.DragnDropDataService.convertedBundles[i] = {};
-				  }
-				  this.DragnDropDataService.convertedBundles[i].mediaFile = {
-					encoding: 'BASE64',
-					data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
-				  };
-				  this.DragnDropDataService.convertedBundles[i].ssffFiles = [];
-				  this.SoundHandlerService.audioBuffer = audioBuffer;
-				  var bundleName = data.wav.name.substr(0, data.wav.name.lastIndexOf('.'));
-				  if (data.annotation === undefined) {
-					this.DragnDropDataService.convertedBundles[i].annotation = {
-					  levels: [],
-					  links: [],
-					  sampleRate: audioBuffer.sampleRate,
-					  annotates: bundleName,
-					  name: bundleName,
-					  pdfAnnotations: [],
-					  imageAnnotations: [],
-					  videoAnnotations: []
-					};
-					this.convertDragnDropData(bundles, i + 1).then(() => {
-					  delete this.drandropBundles;
-					  this.drandropBundles = [];
-					  defer.resolve();
-					});
-				  } else {
-					if (data.annotation.type === 'textgrid') {
-					  reader2.readAsText(data.annotation.file);
-					  reader2.onloadend = (evt2) => {
-						if (evt2.target.readyState === FileReader.DONE) {
-						  this.TextGridParserService.asyncParseTextGrid(
-							evt2.currentTarget.result,
-							data.wav.name,
-							bundleName
-						  ).then((parseResult) => {
-							this.DragnDropDataService.convertedBundles[i].annotation = parseResult;
-							this.convertDragnDropData(bundles, i + 1).then(() => {
-							  defer.resolve();
-							});
-						  }, (errMess) => {
-							this.ModalService.open('views/error.html', 'Error parsing TextGrid file: ' + errMess.status.message)
-							  .then(() => {
-								defer.reject();
-							  });
-						  });
-						}
-					  };
-					} else if (data.annotation.type === 'annotation') {
-					  reader2.readAsText(data.annotation.file);
-					  reader2.onloadend = (evt2) => {
-						if (evt2.target.readyState === FileReader.DONE) {
-						  this.DragnDropDataService.convertedBundles[i].annotation =
-							angular.fromJson(evt2.currentTarget.result);
-						  this.convertDragnDropData(bundles, i + 1).then(() => {
-							defer.resolve();
-						  });
-						}
-					  };
-					}
-				  }
-				}, (errMess) => {
-				  this.ModalService.open('views/error.html', 'Error parsing wav file: ' + errMess.status.message)
-					.then(() => {
-					  defer.reject();
-					});
-				});
-			  }
-			};
-		  } 
-		  // If the bundle contains a PDF file, process it without WAV parsing-------------------------------------------------------
-		  else if (data.pdf !== undefined) {
-			console.log("the file is propably pdf");
-			reader.readAsArrayBuffer(data.pdf);
-			reader.onloadend = (evt) => {
-			  if (evt.target.readyState === FileReader.DONE) {
-				var resPdf = evt.target.result;
-				const bufferClone = resPdf.slice(0);
-				if (!this.DragnDropDataService.convertedBundles[i]) {
-				  this.DragnDropDataService.convertedBundles[i] = {};
-				}
-				this.DragnDropDataService.convertedBundles[i].mediaFile = {
-				  encoding: 'BASE64',
-				  type: 'PDF',
-				  data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
-				};
-				var bundleName = data.pdf.name.substr(0, data.pdf.name.lastIndexOf('.'));
-				// For PDFs, we simply create an empty annotation placeholder
-				this.DragnDropDataService.convertedBundles[i].annotation = {
-				  levels: [],
-				  links: [],
-				  sampleRate: null,
-				  annotates: bundleName,
-				  name: bundleName,
-				  pdfAnnotations: [],
-				  imageAnnotations: [],
-				  videoAnnotations: []
-				};
-				this.convertDragnDropData(bundles, i + 1).then(() => {
-				  delete this.drandropBundles;
-				  this.drandropBundles = [];
-				  defer.resolve();
-				});
-			  }
-			};
-		  } 
-		  // If the bundle contains an image (JPEG/JPG), process it similarly-------------------------------------------------------
-		  else if (data.img !== undefined) {
-			console.log("the file is propably JPEG/JPG");
+		  	// If the bundle contains a WAV file, process it as before-----------------------------------------------------------------
+		  	if (data.wav !== undefined) {
+				console.log(`  [bundle ${i}] Found WAV file:`, data.wav.name);
+				console.log(`  [bundle ${i}] → Starting readAsArrayBuffer for WAV`);
 
-			reader.readAsArrayBuffer(data.img);
-			reader.onloadend = (evt) => {
-			  if (evt.target.readyState === FileReader.DONE) {
-				var resImg = evt.target.result;
-				const bufferClone = resImg.slice(0);
-				if (!this.DragnDropDataService.convertedBundles[i]) {
-				  this.DragnDropDataService.convertedBundles[i] = {};
-				}
-				this.DragnDropDataService.convertedBundles[i].mediaFile = {
-				  encoding: 'BASE64',
-				  type: 'IMG',
-				  data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
-				};
-
-				// Insert a debug log here:
-				// console.log("Converted JPEG bundle at index", i, ":", this.DragnDropDataService.convertedBundles[i].mediaFile);
-
-				var bundleName = data.img.name.substr(0, data.img.name.lastIndexOf('.'));
-				// Create an empty annotation placeholder for images
-				this.DragnDropDataService.convertedBundles[i].annotation = {
-				  levels: [],
-				  links: [],
-				  sampleRate: null,
-				  annotates: bundleName,
-				  name: bundleName,
-				  pdfAnnotations: [],
-				  imageAnnotations: [],
-				  videoAnnotations: []
-				};
-				this.convertDragnDropData(bundles, i + 1).then(() => {
-				  delete this.drandropBundles;
-				  this.drandropBundles = [];
-				  defer.resolve();
-				});
-			  }
-			};
-		  }
-
-			// If the bundle contains a video (MP4), process it similarly-----------------------------------------------------
-			else if (data.video !== undefined) {
-				reader.readAsArrayBuffer(data.video);
+				reader.readAsArrayBuffer(data.wav);
 				reader.onloadend = (evt) => {
-				  if (evt.target.readyState === FileReader.DONE) {
-					var resVideo = evt.target.result;
-					const bufferClone = resVideo.slice(0);
-					if (!this.DragnDropDataService.convertedBundles[i]) {
-					  this.DragnDropDataService.convertedBundles[i] = {};
-					}
-			  
-					// Store the video data (for display) as base64
-					this.DragnDropDataService.convertedBundles[i].mediaFile = {
-					  encoding: 'BASE64',
-					  type: 'VIDEO',
-					  data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
-					};
-			  
-					// Create an empty annotation placeholder for videos
-					const bundleName = data.video.name.substr(0, data.video.name.lastIndexOf('.'));
-					this.DragnDropDataService.convertedBundles[i].annotation = {
-					  levels: [],
-					  links: [],
-					  sampleRate: null,  // We'll set this after decoding the audio
-					  annotates: bundleName,
-					  name: bundleName,
-					  pdfAnnotations: [],
-					  imageAnnotations: [],
-					  videoAnnotations: []
-					};
-			  
-					// Decode the audio track via VideoParserService
-					this.VideoParserService.parseVideoAudioBuf(bufferClone)
-					.then((decodedAudioBuffer) => {
-					  // Store the decoded AudioBuffer in SoundHandlerService
-					  this.SoundHandlerService.audioBuffer = decodedAudioBuffer;
-					  // Update annotation sampleRate from the AudioBuffer
-					  this.DragnDropDataService.convertedBundles[i].annotation.sampleRate = decodedAudioBuffer.sampleRate;
-			  
-					  // Do NOT try to draw the waveform here — let the VideoController do it
-					  // once the user actually views the video display.
-			  
-					  // Continue processing the next bundle
-					  this.convertDragnDropData(bundles, i + 1).then(() => {
-						delete this.drandropBundles;
-						this.drandropBundles = [];
-						defer.resolve();
-					  });
-					}, (error) => {
-					  console.error("Error decoding video audio:", error);
-					  this.ModalService.open('views/error.html', 'Error decoding video audio track: ' + error);
-					  defer.reject(error);
+					if (evt.target.readyState === FileReader.DONE) {
+					res = this.BrowserDetectorService.isBrowser.Firefox() 
+							? evt.target.result 
+							: evt.currentTarget.result;
+					console.log(`  [bundle ${i}] ↪ WAV ArrayBuffer loaded (byteLength =`, (res as ArrayBuffer).byteLength, ")");
+
+					const bufferClone = res.slice(0);
+								console.log(`  [bundle ${i}] → Calling WavParserService.parseWavAudioBuf…`);
+
+					this.WavParserService.parseWavAudioBuf(res).then((audioBuffer) => {
+										console.log(`  [bundle ${i}] ↪ WavParserService returned AudioBuffer (sampleRate =`, audioBuffer.sampleRate, ")");
+
+						if (!this.DragnDropDataService.convertedBundles[i]) {
+						this.DragnDropDataService.convertedBundles[i] = {};
+						}
+						this.DragnDropDataService.convertedBundles[i].mediaFile = {
+						encoding: 'BASE64',
+						data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
+						};
+						this.DragnDropDataService.convertedBundles[i].ssffFiles = [];
+						this.SoundHandlerService.audioBuffer = audioBuffer;
+						var bundleName = data.wav.name.substr(0, data.wav.name.lastIndexOf('.'));
+						if (data.annotation === undefined) {
+						console.log(`  [bundle ${i}] No annotation file found; creating empty annotation placeholder.`);
+						this.DragnDropDataService.convertedBundles[i].annotation = {
+							levels: [],
+							links: [],
+							sampleRate: audioBuffer.sampleRate,
+							annotates: bundleName,
+							name: bundleName,
+							pdfAnnotations: [],
+							imageAnnotations: [],
+							videoAnnotations: []
+						};
+						this.convertDragnDropData(bundles, i + 1).then(() => {
+							delete this.drandropBundles;
+							this.drandropBundles = [];
+							defer.resolve();
+						});
+						} else {
+						if (data.annotation.type === 'textgrid') {
+												console.log(`  [bundle ${i}] Found TextGrid annotation:`, data.annotation.file.name);
+
+							reader2.readAsText(data.annotation.file);
+											console.log(`  [bundle ${i}] → Starting readAsText for TextGrid`);
+
+							reader2.onloadend = (evt2) => {
+							if (evt2.target.readyState === FileReader.DONE) {
+														console.log(`  [bundle ${i}] ↪ TextGrid text loaded (length =`, (evt2.currentTarget.result as string).length, ")");
+
+								this.TextGridParserService.asyncParseTextGrid(
+								evt2.currentTarget.result,
+								data.wav.name,
+								bundleName
+								).then((parseResult) => {
+															console.log(`  [bundle ${i}] ↪ Parsed TextGrid result:`, parseResult);
+
+								this.DragnDropDataService.convertedBundles[i].annotation = parseResult;
+															console.log(`  [bundle ${i}] → Recursing to next bundle after TextGrid parse.`);
+
+								this.convertDragnDropData(bundles, i + 1).then(() => {
+									defer.resolve();
+								});
+								}, (errMess) => {
+								this.ModalService.open('views/error.html', 'Error parsing TextGrid file: ' + errMess.status.message)
+									.then(() => {
+									defer.reject();
+									});
+								});
+							}
+							};
+							//JSON annotation branch
+						} else if (data.annotation !== undefined) {
+							console.log(`  [bundle ${i}] Found JSON annotation:`, data.annotation.name);
+							reader2.readAsText(data.annotation);
+							console.log(`  [bundle ${i}] → Starting readAsText for JSON annotation`);
+							reader2.onloadend = (evt2) => {
+								if (evt2.target.readyState === FileReader.DONE) {
+								console.log(`  [bundle ${i}] ↪ JSON raw text (first 100 chars):`, (evt2.currentTarget.result as string).substring(0,100));
+								try {
+									const parsed = angular.fromJson(evt2.currentTarget.result as string);
+									console.log(`  [bundle ${i}] ↪ Parsed annotation JSON:`, parsed);
+									this.DragnDropDataService.convertedBundles[i].annotation = parsed;
+								} catch(err) {
+									console.error(`  [bundle ${i}] ✖ Failed to parse JSON:`, err);
+									// fallback to empty‐annotation placeholder if desired…
+									this.DragnDropDataService.convertedBundles[i].annotation = { levels: [], links: [], sampleRate: null, annotates: bundleName, name: bundleName, pdfAnnotations: [], imageAnnotations: [], videoAnnotations: [] };
+								}
+								console.log(`  [bundle ${i}] → Recursing to next bundle after JSON parse.`);
+								this.convertDragnDropData(bundles, i + 1).then(() => defer.resolve());
+								}
+							};
+						}
+						}
+					}, (errMess) => {
+						this.ModalService.open('views/error.html', 'Error parsing wav file: ' + errMess.status.message)
+						.then(() => {
+							defer.reject();
+						});
 					});
-				  }
+					}
+				};
+			} 
+			// If the bundle contains a PDF file, process it without WAV parsing-------------------------------------------------------
+			// ── If the bundle contains a PDF file, process it (and parse JSON if present) ──
+			else if (data.pdf !== undefined) {
+				console.log(`[bundle ${i}] PDF‐branch: loading ${data.pdf.name}`);
+				reader.readAsArrayBuffer(data.pdf);
+
+				reader.onloadend = (evt) => {
+					if ((evt.target as FileReader).readyState === FileReader.DONE) {
+						const resPdf: ArrayBuffer = (evt.target as FileReader).result as ArrayBuffer;
+						const bufferClone = resPdf.slice(0);
+						if (!this.DragnDropDataService.convertedBundles[i]) {
+							this.DragnDropDataService.convertedBundles[i] = {};
+						}
+
+						// 1) Store the PDF as base64 so that the viewer can display it later:
+						this.DragnDropDataService.convertedBundles[i].mediaFile = {
+							encoding: 'BASE64',
+							type: 'PDF',
+							data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone)
+						};
+
+						const bundleName = data.pdf.name.substr(0, data.pdf.name.lastIndexOf('.'));
+
+						// 2) If there is NO companion annotation JSON → give an “empty placeholder”:
+						if (data.annotation === undefined) {
+								this.DragnDropDataService.convertedBundles[i].annotation = {
+								levels: [],
+								links: [],
+								sampleRate: null,
+								annotates: bundleName,
+								name: bundleName,
+								pdfAnnotations: [],
+								imageAnnotations: [],
+								videoAnnotations: []
+							};
+
+							// Now continue to the next bundle
+							this.convertDragnDropData(bundles, i + 1).then(() => {
+								delete this.drandropBundles;
+								this.drandropBundles = [];
+								defer.resolve();
+							});
+						}
+						// 3) Otherwise there *is* a companion `_annot.json` → read it immediately:
+						else {
+							console.log(`  [bundle ${i}] Found companion _annot.json:`, data.annotation.name);
+
+							// Start reading JSON as text:
+							reader2.readAsText(data.annotation);  
+							console.log(`  [bundle ${i}] → Starting readAsText for JSON annotation`);
+
+							reader2.onloadend = (evt2) => {
+								if ((evt2.target as FileReader).readyState === FileReader.DONE) {
+									// Log the raw JSON text for debugging:
+									console.log(
+									`  [bundle ${i}] Raw JSON text loaded:\n`,
+									(evt2.target as FileReader).result
+									);
+
+									// Parse it into a JS object:
+									this.DragnDropDataService.convertedBundles[i].annotation =
+									angular.fromJson((evt2.target as FileReader).result as string);
+
+									console.log(
+									`  [bundle ${i}] Parsed annotation object:\n`,
+									this.DragnDropDataService.convertedBundles[i].annotation
+									);
+
+									// Now continue processing the next bundle:
+									this.convertDragnDropData(bundles, i + 1).then(() => {
+										delete this.drandropBundles;
+										this.drandropBundles = [];
+										defer.resolve();
+									});
+								}
+							};
+								reader2.onerror = (err) => {
+								console.error(`  [bundle ${i}] Error reading JSON:`, err);
+								defer.reject(err);
+							};
+						}
+					}
+				}; // end reader.onloadend for PDF
+			}
+			// ── If the bundle contains an image (JPEG/JPG), process it ──
+			else if (data.img !== undefined) {
+				console.log(`[bundle ${i}] Detected image file:`, data.img.name);
+
+				// 1) Read the image into a Base64 “mediaFile” field:
+				reader.readAsArrayBuffer(data.img);
+				reader.onloadend = (evt) => {
+					if (evt.target!.readyState === FileReader.DONE) {
+						const resImg = (evt.target as FileReader).result as ArrayBuffer;
+						const bufferClone = resImg.slice(0);
+
+						// Ensure convertedBundles[i] exists:
+						if (!this.DragnDropDataService.convertedBundles[i]) {
+							this.DragnDropDataService.convertedBundles[i] = {};
+						}
+
+						// Store image data:
+						this.DragnDropDataService.convertedBundles[i].mediaFile = {
+							encoding: "BASE64",
+							type: "IMG",
+							data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone),
+						};
+
+						// 2) Now decide if we truly have a “*_annot.json” companion:
+						if (data.annotation instanceof File) {
+							console.log(`[bundle ${i}] Found JSON annotation for image:`, data.annotation.name);
+
+							const reader2 = new FileReader();
+							console.log(`[bundle ${i}] → Starting readAsText for JSON annotation:`, data.annotation.name);
+							reader2.readAsText(data.annotation);
+
+							reader2.onloadend = (evt2) => {
+								if ((evt2.target as FileReader).readyState === FileReader.DONE) {
+									const rawText = (evt2.target as any).result;
+									console.log(`[bundle ${i}] ↪ Raw JSON text loaded:\n`, rawText);
+
+									// Parse the JSON text into a JS object:
+									const parsed = angular.fromJson(rawText);
+									console.log(`[bundle ${i}] ↪ Parsed image annotation object =`, parsed);
+
+									// Attach it directly into the convertedBundles annotation slot:
+									this.DragnDropDataService.convertedBundles[i].annotation = parsed;
+
+									// Move on to the next bundle:
+									this.convertDragnDropData(bundles, i + 1).then(() => {
+									delete this.drandropBundles;
+									this.drandropBundles = [];
+									defer.resolve();
+									});
+								}
+							};
+						} else {
+							// No JSON companion → create an empty placeholder exactly as before:
+							const bundleName = data.img.name.substr(0, data.img.name.lastIndexOf("."));
+							this.DragnDropDataService.convertedBundles[i].annotation = {
+							levels: [],
+							links: [],
+							sampleRate: null,
+							annotates: bundleName,
+							name: bundleName,
+							pdfAnnotations: [],
+							imageAnnotations: [],
+							videoAnnotations: [],
+							};
+
+							// And continue immediately to the next bundle:
+							this.convertDragnDropData(bundles, i + 1).then(() => {
+							delete this.drandropBundles;
+							this.drandropBundles = [];
+							defer.resolve();
+							});
+						}
+					}
 				};
 			}
-		  // If no recognized file type is found, skip to the next bundle.
-		  else {
-			this.convertDragnDropData(bundles, i + 1).then(() => {
-			  defer.resolve();
-			});
-		  }
+			else if (data.video !== undefined) {
+				console.log(`[bundle ${i}] Detected video file:`, data.video.name);
+
+				// 1) Read the video into a Base64 “mediaFile” field:
+				reader.readAsArrayBuffer(data.video);
+				reader.onloadend = (evt) => {
+					if ((evt.target as FileReader).readyState === FileReader.DONE) {
+						const resVideo = (evt.target as FileReader).result as ArrayBuffer;
+						const bufferClone = resVideo.slice(0);
+
+						// Ensure convertedBundles[i] exists:
+						if (!this.DragnDropDataService.convertedBundles[i]) {
+							this.DragnDropDataService.convertedBundles[i] = {};
+						}
+
+						// Store the video data (for display) as base64
+						this.DragnDropDataService.convertedBundles[i].mediaFile = {
+							encoding: "BASE64",
+							type: "VIDEO",
+							data: this.BinaryDataManipHelperService.arrayBufferToBase64(bufferClone),
+						};
+
+						// 2) Create a placeholder annotation object (sampleRate to be updated after audio decoding)
+						const bundleName = data.video.name.substr(0, data.video.name.lastIndexOf("."));
+						this.DragnDropDataService.convertedBundles[i].annotation = {
+							levels: [],
+							links: [],
+							sampleRate: null,
+							annotates: bundleName,
+							name: bundleName,
+							pdfAnnotations: [],
+							imageAnnotations: [],
+							videoAnnotations: [],
+						};
+
+						// 3) Now check if there’s a JSON annotation companion:
+						if (data.annotation instanceof File) {
+							console.log(`[bundle ${i}] Found JSON annotation for video:`, data.annotation.name);
+
+							const reader2 = new FileReader();
+							console.log(`[bundle ${i}] → Starting readAsText for JSON annotation:`, data.annotation.name);
+							reader2.readAsText(data.annotation);
+
+							reader2.onloadend = (evt2) => {
+								if ((evt2.target as FileReader).readyState === FileReader.DONE) {
+									const rawText = (evt2.target as any).result;
+									console.log(`[bundle ${i}] ↪ Raw JSON text loaded:\n`, rawText);
+
+									// Parse the JSON text into a JS object:
+									const parsed = angular.fromJson(rawText);
+									console.log(`[bundle ${i}] ↪ Parsed video annotation object =`, parsed);
+
+									// Attach it directly into the convertedBundles annotation slot:
+									this.DragnDropDataService.convertedBundles[i].annotation = parsed;
+								}
+
+								// 4) Decode the audio track after reading JSON (or if no JSON, proceed here)
+								this.VideoParserService.parseVideoAudioBuf(bufferClone)
+									.then((decodedAudioBuffer) => {
+										// Store the decoded AudioBuffer in SoundHandlerService
+										this.SoundHandlerService.audioBuffer = decodedAudioBuffer;
+										// Update annotation sampleRate from the AudioBuffer
+										this.DragnDropDataService.convertedBundles[i].annotation.sampleRate =
+											decodedAudioBuffer.sampleRate;
+
+										// Continue processing the next bundle
+										this.convertDragnDropData(bundles, i + 1).then(() => {
+											delete this.drandropBundles;
+											this.drandropBundles = [];
+											defer.resolve();
+										});
+									})
+									.catch((error) => {
+									console.error("Error decoding video audio:", error);
+									this.ModalService
+										.open("views/error.html", "Error decoding video audio track: " + error)
+										.then(() => {
+										defer.reject(error);
+										});
+									});
+							};
+						} else {
+							// No JSON companion → directly decode the audio track
+							this.VideoParserService.parseVideoAudioBuf(bufferClone)
+							.then((decodedAudioBuffer) => {
+								this.SoundHandlerService.audioBuffer = decodedAudioBuffer;
+								this.DragnDropDataService.convertedBundles[i].annotation.sampleRate =
+								decodedAudioBuffer.sampleRate;
+
+								this.convertDragnDropData(bundles, i + 1).then(() => {
+								delete this.drandropBundles;
+								this.drandropBundles = [];
+								defer.resolve();
+								});
+							})
+							.catch((error) => {
+								console.error("Error decoding video audio:", error);
+								this.ModalService
+								.open("views/error.html", "Error decoding video audio track: " + error)
+								.then(() => {
+									defer.reject(error);
+								});
+							});
+						}
+					}
+				};
+			} else {
+					// If no recognized file type is found, skip to the next bundle.
+					this.convertDragnDropData(bundles, i + 1).then(() => {
+						defer.resolve();
+					});
+				}
 		} else {
 		  // No more bundles to process
 		  defer.resolve();

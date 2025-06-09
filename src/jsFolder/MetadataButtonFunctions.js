@@ -11,10 +11,13 @@
         var isActorFormLoading = false;
         var isLanguageFormLoading = false;
 
-        // localStorage.removeItem('metadataSaved');
-        // localStorage.removeItem('savedMetadata');
-        console.log("metadataSaved = ",localStorage.getItem('metadataSaved'), " savedMetadata = ",localStorage.getItem('savedMetadata'));
 
+        // console.log("metadataSaved = ",localStorage.getItem('metadataSaved'), " savedMetadata = ",localStorage.getItem('savedMetadata'));
+
+        function currentFileName() {
+          const span = document.querySelector('#recordingName span');
+          return span ? span.textContent.trim() : '';
+        }
 
         // Function to toggle visibility of additional items (Actors and Content)
         function toggleAdditionalItems() {
@@ -67,6 +70,111 @@
             } else {
                 console.error("currentItem is null for formType:", mappedFormType);
             }
+
+            // ── Before rendering the new form, reconstruct any saved actors/languages if we're on "recording" ──
+            if (mappedFormType === 'recording') {
+              const name = currentFileName();
+              const savedFlagKey = `metadataSaved_${name}`;
+              const savedDataKey = `savedMetadata_${name}`;
+              let savedMetadata = {};
+              if (localStorage.getItem(savedFlagKey) === 'true') {
+                try {
+                  savedMetadata = JSON.parse(localStorage.getItem(savedDataKey)) || {};
+                } catch {
+                  savedMetadata = {};
+                }
+              }
+
+              // Re‐build actor menu items:
+              if (Array.isArray(savedMetadata.actors)) {
+                console.log("inside the actors metadata saved--------------");
+                // Reset counter and remove any existing <li class="actor-item"> nodes:
+                actorCount = 0;
+                document.querySelectorAll('.actor-item').forEach(el => el.remove());
+                const actorsList = document.getElementById('actor');
+                savedMetadata.actors.forEach((actorData, idx) => {
+                  const i = idx + 1;
+                  actorCount = i;
+                  const actorItem = document.createElement('li');
+                  actorItem.id = `actor${i}`;
+                  metadata.actors[actorItem.id] = actorData;
+                  actorItem.classList.add('form-switch', 'actor-item');
+                  actorItem.dataset.formType = 'actor';
+                  actorItem.dataset.id = `actor${i}`;
+
+                  const diamondIcon = document.createElement('i');
+                  diamondIcon.classList.add('bi', 'bi-suit-diamond-fill');
+                  const actorNameSpan = document.createElement('span');
+                  actorNameSpan.textContent = actorData.full_name || `Actor ${i}`;
+                  actorNameSpan.classList.add('actor-name-span');
+
+                  actorItem.appendChild(diamondIcon);
+                  actorItem.appendChild(actorNameSpan);
+
+                  // When clicked, show that actor’s form and populate from storage
+                  actorItem.onclick = ((currentActorCount) => {
+                    return function () {
+                      highlightActiveItem(actorItem);
+                      showActorForm(currentActorCount);
+                      populateFromStorage(
+                        'actor',
+                        savedMetadata.actors[currentActorCount - 1],
+                        `actor${currentActorCount}`
+                      );
+                      populateForm('actor', `actor${currentActorCount}`);
+                    };
+                  })(i);
+
+                  actorsList.appendChild(actorItem);
+                });
+              }
+
+              // Re‐build language menu items:
+              if (Array.isArray(savedMetadata.languages)) {
+                console.log("inside the languages metadata saved--------------");
+                languageCount = 0;
+                document.querySelectorAll('.language-item').forEach(el => el.remove());
+                // “toggleContent” is the <li> for the Content heading; new languages append to its parent
+                const languagesParent = document.getElementById('toggleContent').parentNode;
+                savedMetadata.languages.forEach((langData, idx) => {
+                  const i = idx + 1;
+                  languageCount = i;
+                  const languageItem = document.createElement('li');
+                  languageItem.id = `language${i}`;
+                  metadata.languages[languageItem.id] = langData;
+                  languageItem.classList.add('form-switch', 'language-item');
+                  languageItem.dataset.formType = 'language';
+                  languageItem.dataset.id = `language${i}`;
+
+                  const diamondIcon = document.createElement('i');
+                  diamondIcon.classList.add('bi', 'bi-suit-diamond-fill');
+                  const languageNameSpan = document.createElement('span');
+                  languageNameSpan.textContent = langData.lang_name || `Language ${i}`;
+                  languageNameSpan.classList.add('language-name-span');
+
+                  languageItem.appendChild(diamondIcon);
+                  languageItem.appendChild(languageNameSpan);
+
+                  // When clicked, show that language’s form and populate from storage
+                  languageItem.onclick = ((currentLanguageCount) => {
+                    return function () {
+                      highlightActiveItem(languageItem);
+                      showLanguageForm(currentLanguageCount);
+                      populateFromStorage(
+                        'language',
+                        savedMetadata.languages[currentLanguageCount - 1],
+                        `language${currentLanguageCount}`
+                      );
+                      populateForm('language', `language${currentLanguageCount}`);
+                    };
+                  })(i);
+
+                  languagesParent.appendChild(languageItem);
+                });
+              }
+            }
+  
+
 
             // Generate form content based on formType
             if (mappedFormType === 'recording') {
@@ -126,14 +234,17 @@
 
             scope.$apply(); // Trigger AngularJS digest cycle to reflect changes
 
-            if (localStorage.getItem('metadataSaved') === 'true') {
-              //console.log("inside the loadForm()->metadataSaved=true");
-              const savedMetadata = JSON.parse(localStorage.getItem('savedMetadata'));
+            const name = currentFileName();
+            const savedFlagKey = `metadataSaved_${name}`;
+            const savedDataKey = `savedMetadata_${name}`;
+
+            if (localStorage.getItem(savedFlagKey) === 'true') {
+              const savedMetadata = JSON.parse(localStorage.getItem(savedDataKey));
               if (savedMetadata && savedMetadata[mappedFormType]) {
-                  populateFromStorage(mappedFormType, savedMetadata[mappedFormType]);
+                populateFromStorage(mappedFormType, savedMetadata[mappedFormType]);
               }
-              
-          }
+            }
+
 
             populateForm(mappedFormType);
         }
@@ -175,13 +286,27 @@
               highlightActiveItem(actorItem); // Highlight the clicked actor
               showActorForm(currentActorCount); // Show the actor form when clicked
 
-              if (localStorage.getItem('metadataSaved') === 'true') {
-                const savedMetadata = JSON.parse(localStorage.getItem('savedMetadata'));
-                if (savedMetadata && savedMetadata.actors && savedMetadata.actors[currentActorCount - 1]) {
-                  populateFromStorage('actor', savedMetadata.actors[currentActorCount - 1], `actor${currentActorCount}`);
-                } 
+              const name = currentFileName();
+              const savedFlagKey = `metadataSaved_${name}`;
+              const savedDataKey = `savedMetadata_${name}`;
+
+              // new: pull only this file’s saved data from localStorage
+              if (localStorage.getItem(savedFlagKey) === 'true') {
+                const savedMetadata = JSON.parse(localStorage.getItem(savedDataKey));
+                if (
+                  savedMetadata &&
+                  Array.isArray(savedMetadata.actors) &&
+                  savedMetadata.actors[currentActorCount - 1]
+                ) {
+                  populateFromStorage(
+                    'actor',
+                    savedMetadata.actors[currentActorCount - 1],
+                    `actor${currentActorCount}`
+                  );
+                }
               }
-              populateForm("actor", `actor${currentActorCount}`); // Populate the form with saved data
+              populateForm("actor", `actor${currentActorCount}`);
+
             };
           })(actorCount);
 
@@ -318,13 +443,25 @@
               highlightActiveItem(languageItem); // Highlight the clicked language
               showLanguageForm(currentLanguageCount); // Show the language form when clicked
 
-              if (localStorage.getItem('metadataSaved') === 'true') {
-                const savedMetadata = JSON.parse(localStorage.getItem('savedMetadata'));
-                if (savedMetadata && savedMetadata.languages && savedMetadata.languages[currentLanguageCount - 1]) {
-                  populateFromStorage('language', savedMetadata.languages[currentLanguageCount - 1], `language${currentLanguageCount}`);
-                } 
-              }
-              populateForm("language", `language${currentLanguageCount}`); // Populate the form with saved data
+              const name = currentFileName();
+              const savedFlagKey = `metadataSaved_${name}`;
+              const savedDataKey = `savedMetadata_${name}`;
+
+              if (localStorage.getItem(savedFlagKey) === 'true') {
+                  const savedMetadata = JSON.parse(localStorage.getItem(savedDataKey));
+                  if (
+                    savedMetadata &&
+                    Array.isArray(savedMetadata.languages) &&
+                    savedMetadata.languages[currentLanguageCount - 1]
+                  ) {
+                    populateFromStorage(
+                      'language',
+                      savedMetadata.languages[currentLanguageCount - 1],
+                      `language${currentLanguageCount}`
+                    );
+                  }
+                }
+                populateForm("language", `language${currentLanguageCount}`);
             };
           })(languageCount);
 
@@ -575,123 +712,159 @@
         }
 
 
-        // Save button code: Transfers all the metadata to the database and locks the forms
-          document.getElementById("emuwebapp-modal-save").addEventListener("click", function () {
-            // Show confirmation popup
-            const confirmation = confirm(
-              "If you click Save, the data will be stored permanently in the database.Do you want to proceed? \n\nIf you want to temporarily save data, use the Save temporarily button."
-            );
+        //save all button:
+        document.getElementById("emuwebapp-modal-save").addEventListener("click", function () {
+          // 1) Ask for confirmation
+          const confirmation = confirm(
+            "If you click Save, the data will be stored permanently in the database.\n\n" +
+            "If you want to temporarily save data, use the Save temporarily button."
+          );
+          if (!confirmation) return;
 
-            if (!confirmation) {
-              // User clicked cancel
-              return;
-            }
+          console.log("Saving all metadata permanently to the database...");
 
-            console.log("Saving all metadata permanently to the database...");
+          // 2) First, pull any live fields into metadata (in case the user typed but never clicked 'Save temporarily'):
 
-            // Gather data from all active forms dynamically
-            const forms = document.querySelectorAll(".metadata-form");
-            console.log("Found forms: ",forms);
-            forms.forEach((form) => {
-              const formType = form.id.replace("-form", ""); // Get the form type (e.g., "recording", "actor", "content", "language")
-              const formData = new FormData(form);
-              
-
-              // Update the metadata object with form data
-              if (formType === "recording") {
-                metadata.recording = {}; // Clear existing data for recording
-                for (const [key, value] of formData.entries()) {
-                  metadata.recording[key] = value; // Store recording data
-                }
-              } else if (formType === "content") {
-                metadata.content = {}; // Clear existing data for content
-                for (const [key, value] of formData.entries()) {
-                  metadata.content[key] = value; // Store content data
-                }
-              } else if (formType === "actor") {
-                const actorId = form.dataset.actorId; // Unique ID for the actor form
-                if (actorId) {
-                  metadata.actors[actorId] = {}; // Clear existing data for this actor
-                  for (const [key, value] of formData.entries()) {
-                    metadata.actors[actorId][key] = value; // Store actor data
-                  }
-                }
-              } else if (formType === "language") {
-                const languageId = form.dataset.languageId; // Unique ID for the language form
-                if (languageId) {
-                  metadata.languages[languageId] = {}; // Clear existing data for this language
-                  for (const [key, value] of formData.entries()) {
-                    metadata.languages[languageId][key] = value; // Store language data
-                  }
-                }
-              }
+          // ── Recording form ──
+          const recForm = document.querySelector("#recording-form");
+          if (recForm) {
+            // overwrite metadata.recording with whatever is in the form now
+            metadata.recording = {};
+            new FormData(recForm).forEach((value, key) => {
+              metadata.recording[key] = value;
             });
+          }
 
-            // Consolidate the metadata object
-            const consolidatedMetadata = {
-              recording: metadata.recording,
-              content: metadata.content,
-              actors: Object.values(metadata.actors), // Convert actors object to an array
-              languages: Object.values(metadata.languages), // Convert languages object to an array
-            };
+          // ── Content form ──
+          const contForm = document.querySelector("#content-form");
+          if (contForm) {
+            metadata.content = {};
+            new FormData(contForm).forEach((value, key) => {
+              metadata.content[key] = value;
+            });
+          }
 
-            // Send metadata to the server
-            fetch("http://localhost:3019/save-metadata", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(consolidatedMetadata),
+          // ── Actor form ──
+          const actorFormElem = document.querySelector("#actor-form");
+          if (actorFormElem) {
+            const actorId = actorFormElem.dataset.actorId; // e.g. "actor2"
+            metadata.actors[actorId] = {};
+            new FormData(actorFormElem).forEach((value, key) => {
+              metadata.actors[actorId][key] = value;
+            });
+          }
+
+          // ── Language form ──
+          const langFormElem = document.querySelector("#language-form");
+          if (langFormElem) {
+            const languageId = langFormElem.dataset.languageId; // e.g. "language1"
+            metadata.languages[languageId] = {};
+            new FormData(langFormElem).forEach((value, key) => {
+              metadata.languages[languageId][key] = value;
+            });
+          }
+
+          // 3) Now read whatever was already saved in localStorage for this file, so we don’t wipe out missing sections:
+          const name = currentFileName();
+          const savedDataKey = `savedMetadata_${name}`;
+          const savedFlagKey = `metadataSaved_${name}`;
+
+          let existing = {};
+          try {
+            existing = JSON.parse(localStorage.getItem(savedDataKey)) || {};
+          } catch {
+            existing = {};
+          }
+
+          // 4) Choose recording/content/actors/languages either from metadata or from existing in localStorage:
+          const recObj = Object.keys(metadata.recording).length
+            ? metadata.recording
+            : (existing.recording || {});
+
+          const contObj = Object.keys(metadata.content).length
+            ? metadata.content
+            : (existing.content || {});
+
+          const actorsArr = Object.values(metadata.actors).length
+            ? Object.values(metadata.actors)
+            : (Array.isArray(existing.actors) ? existing.actors : []);
+
+          const langsArr = Object.values(metadata.languages).length
+            ? Object.values(metadata.languages)
+            : (Array.isArray(existing.languages) ? existing.languages : []);
+
+          // 5) Build the final consolidated object
+          const consolidatedMetadata = {
+            recording: recObj,
+            content: contObj,
+            actors: actorsArr,
+            languages: langsArr
+          };
+
+          // 6) Send to server
+          fetch("http://localhost:3019/save-metadata", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(consolidatedMetadata)
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
             })
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-              })
-              .then((data) => {
-                alert("All metadata have been saved successfully!");
-                //console.log("consolidatedMetadata: ",consolidatedMetadata);
-                localStorage.setItem('savedMetadata', JSON.stringify(consolidatedMetadata));
-                //console.log("localStorage.getItem('savedMetadata') : ",localStorage.getItem('savedMetadata'));
-                localStorage.setItem('metadataSaved', 'true');
+            .then(data => {
+              alert("All metadata have been saved successfully!");
 
-                console.log("Server response:", data);
-              })
-              .catch((error) => {
-                console.error("Error saving metadata:", error);
-                alert("An error occurred while saving metadata.");
-              });
-          });
+              // 7) Store back into localStorage under this file’s key
+              localStorage.setItem(savedDataKey, JSON.stringify(consolidatedMetadata));
+              localStorage.setItem(savedFlagKey, "true");
+              console.log("Server response:", data);
+            })
+            .catch(error => {
+              console.error("Error saving metadata:", error);
+              alert("An error occurred while saving metadata.");
+            });
+        });
 
 
-        //Cancel button code, it will delete all the metadata we have written to the forms-----------------------------------------------
+        // Cancel button: clear all metadata for this file, reset forms, remove actor/language items
         document.getElementById("MetaCancelBtn").addEventListener("click", function () {
           console.log("Cancel button...");
-          
-          localStorage.removeItem('metadataSaved');
-          localStorage.removeItem('savedMetadata');
-          console.log("metadataSaved = ",localStorage.getItem('metadataSaved'), " savedMetadata = ",localStorage.getItem('savedMetadata'));
 
-          // Clear metadata object
+          // 1) Remove this file’s saved entries from localStorage
+          const name = currentFileName();
+          localStorage.removeItem(`metadataSaved_${name}`);
+          localStorage.removeItem(`savedMetadata_${name}`);
+
+          // 2) Clear in‐memory metadata object
           metadata.recording = {};
-          metadata.content = {};
-          metadata.actors = {};
+          metadata.content   = {};
+          metadata.actors    = {};
           metadata.languages = {};
 
-          // Reset all forms
+          // 3) Reset any live forms
           const forms = document.querySelectorAll(".metadata-form");
           forms.forEach((form) => form.reset());
 
-          // Reset actor and language names in the UI
+          // 4) Remove all dynamically added actor <li> elements
+          document.querySelectorAll(".actor-item").forEach((el) => el.remove());
+          actorCount = 0;  // reset actor counter
+
+          // 5) Remove all dynamically added language <li> elements
+          document.querySelectorAll(".language-item").forEach((el) => el.remove());
+          languageCount = 0;  // reset language counter
+
+          // 6) Reset the visible “Actor #” and “Language #” labels
+          //    (if any remain, though we’ve removed all .actor-item/.language-item above)
           document.querySelectorAll(".actor-item span").forEach((span, index) => {
             span.textContent = `Actor ${index + 1}`;
           });
-
           document.querySelectorAll(".language-item span").forEach((span, index) => {
             span.textContent = `Language ${index + 1}`;
           });
 
           alert("All data cleared successfully!");
         });
+
 

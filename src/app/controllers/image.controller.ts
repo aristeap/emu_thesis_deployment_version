@@ -1,9 +1,11 @@
 import * as angular from 'angular';
+declare function saveAs(blob: Blob, filename: string): void;
+
 
 angular.module('emuwebApp')
 .controller('ImageController', [
-  '$scope', '$rootScope', 'DragnDropDataService', 'ImageStateService', 'LinguisticService', 'AnnotationService','LoadedMetaDataService','ViewStateService','DataService',
-  function($scope, $rootScope, DragnDropDataService, ImageStateService, LinguisticService, AnnotationService, LoadedMetaDataService, ViewStateService, DataService) {
+  '$scope', '$rootScope', 'DragnDropDataService', 'ImageStateService', 'LinguisticService', 'AnnotationService','LoadedMetaDataService','ViewStateService','DataService','ModalService','ValidationService',
+  function($scope, $rootScope, DragnDropDataService, ImageStateService, LinguisticService, AnnotationService, LoadedMetaDataService, ViewStateService, DataService,ModalService, ValidationService) {
     var vm = this;
 
     // Injected services
@@ -22,6 +24,40 @@ angular.module('emuwebApp')
 
     // Controls the visibility of the annotation window
     vm.showAnnotationWindow = false;
+
+    vm.downloadAnnotationBtnClick = function() {
+        // 1) Pull the raw “annotation” array from DataService
+        const allData = DataService.getData() || {};
+        // Make sure it’s at least an array (or empty array if nothing yet).
+        const imageAnnotations = Array.isArray(allData.imageAnnotations)
+          ? allData.imageAnnotations
+          : [];
+
+        // 2) Wrap it in the same top‐level object that your schema expects.
+        //    If your schema wants { imageAnnotations: [...] }, do that. Otherwise,
+        //    adjust to match whatever shape “annotationFileSchema” requires.
+        const payload = { imageAnnotations: imageAnnotations };
+
+        // 3) Validate using the same JSON schema you use for PDF/video
+        const valid = ValidationService.validateJSO('annotationFileSchema', payload);
+        if (valid !== true) {
+          // optionally show an error or just bail
+          console.warn('Cannot download: JSON did not pass schema validation', valid);
+          return;
+        }
+
+        // 4) Finally, open the modal exactly as the PDF version does:
+        const bundleName = LoadedMetaDataService.getCurBndl().name || 'image';
+        const filename = bundleName + '_annot.json';
+
+        ModalService.open(
+          'views/export.html',
+          filename,
+          // pretty‐print the JSON so that the user sees it in the modal
+          angular.toJson(payload, true)
+        );
+      };
+
 
     // Set annotation mode and broadcast the change (similar to PDF controller)
     vm.selectAnnotation = function(mode) {
@@ -171,7 +207,90 @@ angular.module('emuwebApp')
       }
     };
     
+
+    // ───────────────────────────────────────────────────────────────
+    // ★ NEW METHOD: saveCroppedSegmentForImage ★
+    // Called when the user clicks the “save” icon in the annotation table.
+    vm.saveCroppedSegmentForImage = function(annotation) {
+      console.log("inside the saveCroppedSegmentForImage------------");
+      // 1) Find the <img> element that is displaying our Base64 image.
+      const imgEl = document.getElementById('selectableImage') as HTMLImageElement;
+      if (!imgEl) {
+        console.warn("Could not find selectableImage <img> in DOM.");
+        return;
+      }
+
+      // 2) Compute the displayed width & height of the image.
+      //    (Because the user may have zoomed, the <img> style.width/height reflect that scale.)
+      const displayWidth  = imgEl.clientWidth;
+      const displayHeight = imgEl.clientHeight;
+
+      // 3) Create an off‐screen canvas the same size as the displayed image.
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width  = displayWidth;
+      tempCanvas.height = displayHeight;
+      const ctx = tempCanvas.getContext('2d');
+      if (!ctx) {
+        console.warn("Could not get 2D context on temporary canvas.");
+        return;
+      }
+
+      // 4) Draw the entire displayed image onto the off‐screen canvas.
+      //    Using drawImage(imgEl, 0, 0, displayWidth, displayHeight).
+      //    This captures exactly what the user sees at the current zoom level.
+      ctx.drawImage(imgEl, 0, 0, displayWidth, displayHeight);
+
+      // 5) Extract the annotated rectangle from tempCanvas →
+      //    These coordinates are in “display‐pixel” space.  annotation.bbox came from the
+      //    selection overlay, so its top/left/width/height already match the <img>’s displayed size.
+      const { top, left, width, height } = annotation.bbox as {
+        top: number;
+        left: number;
+        width: number;
+        height: number;
+      };
+
+      // 6) Create a second canvas just big enough for the crop rectangle:
+      const cropCanvas = document.createElement('canvas');
+      cropCanvas.width  = width;
+      cropCanvas.height = height;
+      const cropCtx = cropCanvas.getContext('2d');
+      if (!cropCtx) {
+        console.warn("Could not get 2D context on crop canvas.");
+        return;
+      }
+
+      // 7) Copy pixel data from the large “tempCanvas” into the smaller “cropCanvas”:
+      cropCtx.drawImage(
+        tempCanvas,
+        left, top,         // source x, y
+        width, height,     // source w, h
+        0,    0,           // dest x, y
+        width, height      // dest w, h
+      );
+
+      // 8) Convert the cropped region to a Blob and trigger a download:
+      //    We’ll choose PNG here (lossless).  If you prefer JPEG, change 'image/png' → 'image/jpeg'.
+      cropCanvas.toBlob(blob => {
+        if (!blob) {
+          console.warn("Could not convert crop to Blob.");
+          return;
+        }
+
+        // Build a sensible file name, e.g. "<bundle>_<boxLabel>.png"
+        const bundleName = DragnDropDataService.convertedBundles[
+          DragnDropDataService.getDefaultSession()
+        ].name || 'cropped-image';
+        const safeLabel = annotation.word.replace(/\s+/g, '_'); // e.g. “box_3”
+        const filename  = `${bundleName}_${safeLabel}.png`;
+
+        // Finally, trigger FileSaver’s saveAs(...) on that blob:
+        saveAs(blob, filename);
+      }, 'image/png');
+    };
+    // ───────────────────────────────────────────────────────────────
     
+
     // Update the local currentMode when LinguisticService.mode changes.
     $scope.$on('linguisticModeChanged', function(e, mode) {
       vm.currentMode = mode;
@@ -213,11 +332,14 @@ angular.module('emuwebApp')
     
     function init() {
 
-      // console.log("inside the init() of the image.controller.ts, before i call the getCur of the loaded-metadata");
-
-      // drag‑n‑drop
+      // drag-n-drop
       const idx = DragnDropDataService.getDefaultSession();
-      const ddBndl  = DragnDropDataService.convertedBundles[idx];
+      const ddBndl = DragnDropDataService.convertedBundles[idx];
+      
+      // ── Guard: if no bundle or no mediaFile yet, do nothing and return ──
+      if (!ddBndl || !ddBndl.mediaFile) {
+            return;
+      }
       
       // 1) rehydrate your annotations array from DataService
       vm.annotations = DataService.getData().imageAnnotations || [];

@@ -258,7 +258,10 @@
                         <h3 class="results-list" ng-if="vm.resultsAnnotationsImg">
                             <ul>
                                 <li ng-repeat="item in vm.resultsAnnotationsImg">
-                                    {{ item.bundleName }}
+                                     {{ item.bundleName }} – “{{ item.word }}” on page {{ item.page }}
+                                    <button ng-click="vm.saveCroppedSegmentForImage(item)">
+                                        <i class="material-icons" title="download the cropped image">save</i>
+                                    </button>
                                 </li>
                             </ul>
                         </h3>

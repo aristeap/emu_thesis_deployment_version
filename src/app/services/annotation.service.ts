@@ -1,7 +1,7 @@
 import * as angular from 'angular';
 
 angular.module('emuwebApp')
-.service('AnnotationService', ['$rootScope', function($rootScope){
+.service('AnnotationService', ['$rootScope', 'DataService', function($rootScope, DataService){
   const self = this;
   // Shared array of annotations.
   self.annotations = [];
@@ -64,6 +64,14 @@ angular.module('emuwebApp')
     console.log("Current annotations:", self.annotations);
 
     $rootScope.$broadcast('annotationChanged');
+
+    //what do the ... dots do:  “spreads” all of the properties of currentData into this new object
+    //if we were to write only the : ...currentData : it would produce a shallow copy
+    const currentData = DataService.getData() || {};
+      DataService.setData({
+        ...currentData,
+        pdfAnnotations: self.annotations.slice()
+      });
 
   };
 
