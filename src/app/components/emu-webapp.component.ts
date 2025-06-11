@@ -147,6 +147,7 @@ let EmuWebAppComponent = {
 				</div>
 
 				<!-- SETTINGS, SEARCH, and CLEAR buttons (always enabled for PDFs AND jpeg) -->
+				<!--
 				<button class="emuwebapp-mini-btn left" 
 						id="spectSettingsBtn" 
 						ng-show="
@@ -157,6 +158,7 @@ let EmuWebAppComponent = {
 						ng-click="$ctrl.settingsBtnClick();">
 					<i class="material-icons">settings</i> settings
 				</button>
+				-->
 
 				<button class="emuwebapp-mini-btn left" 
 						id="saveEverythingBtn" 
@@ -272,18 +274,6 @@ let EmuWebAppComponent = {
        	 				ng-click="$ctrl.signUpAdminsBtnClick()">
 							Sign up admins
 				</button>
-
-				<!-- a simple log out button,visible to everyone. It will redirect to the login.html page----------------------->
-				<button class="emuwebapp-mini-btn left" 
-						id="logOutButton" 
-        				ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded
-							|| $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
-          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
-		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
-							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay "	
-       	 				ng-click="$ctrl.logOutBtnClick()">
-							Log out
-				</button>
 				
 				<button class="emuwebapp-mini-btn left" 
 						id="showHierarchy" 
@@ -291,12 +281,6 @@ let EmuWebAppComponent = {
 						ng-disabled="!$ctrl.ViewStateService.getPermission('showHierarchyBtnClick')" 
 						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.showHierarchy">
 					<i class="material-icons" style="transform: rotate(180deg)">details</i>hierarchy
-				</button>
-		
-				<button class="emuwebapp-mini-btn left" 
- 						ng-show="$ctrl.ConfigProviderService.vals.activeButtons.search && ($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay)"						
-						ng-click="$ctrl.searchBtnClick();">
-					<i class="material-icons">search</i>search
 				</button>
 
 				<button class="emuwebapp-mini-btn left" 
@@ -493,19 +477,19 @@ let EmuWebAppComponent = {
 					<button class="emuwebapp-mini-btn left" 
 						id="showPdfTable" 
 						ng-show="$ctrl.canOnlyViewTable "
-   					 	ng-click="pdfCtrl.showAnnotationTable = !pdfCtrl.showAnnotationTable"
+   					 	ng-click="$ctrl.pdfTableVisible = !$ctrl.pdfTableVisible"
 						 style="
 							height: 30px;
 							line-height: 40px;
 							min-width: 160px;
 							font-size: 13px;
 						">
-						{{ pdfCtrl.showAnnotationTable ? 'Hide' : 'Show' }} saved annotations
+						{{ $ctrl.pdfTableVisible  ? 'Hide' : 'Show' }} saved annotations
 					</button>
 
-					<!-- If you want the floating window to appear when user picks a mode -->
-					<floating-annotation-window annotations="pdfCtrl.annotations" ng-show="pdfCtrl.showAnnotationTable"  highlight="pdfCtrl.toggleHighlight(word, pdfId)"
-						 delete-ann="pdfCtrl.deleteAnnotation(ann)" export="pdfCtrl.exportAnnotations()">
+					<!-- If you want the floating window to appear when user picks a mode-->
+					<floating-annotation-window annotations="pdfCtrl.annotations" ng-show="$ctrl.pdfTableVisible"  highlight="pdfCtrl.toggleHighlight(word, pdfId)"
+						 delete-ann="pdfCtrl.deleteAnnotation(ann)" export="pdfCtrl.exportAnnotations()" class="pdf-annotations">
 					</floating-annotation-window>
 
 				</div>		
@@ -624,32 +608,50 @@ let EmuWebAppComponent = {
 
 					<button class="emuwebapp-mini-btn left" 
 						id="showImageTable" 
-						ng-show="$ctrl.canOnlyViewTable "
-   					 	ng-click="imgCtrl.showAnnotationWindow = !imgCtrl.showAnnotationWindow"
+						ng-show="$ctrl.canOnlyViewTable"
+   					 	ng-click="$ctrl.imageTableVisible = !$ctrl.imageTableVisible"
 						 style="
 							height: 30px;
 							line-height: 40px;
 							min-width: 160px;
 							font-size: 13px;
 						">
-						{{ imgCtrl.showAnnotationWindow ? 'Hide' : 'Show' }} saved annotations
+						{{ $ctrl.imageTableVisible ? 'Hide' : 'Show' }} saved annotations
 					</button>
 
 					<!-- Floating annotation window for image annotations -->
 					<floating-image-annotation-window annotations="imgCtrl.annotations"
-							ng-show="imgCtrl.showAnnotationWindow"
+							ng-show="$ctrl.imageTableVisible"
     						highlight="imgCtrl.toggleHighlight(annotation)"
 							delete-ann="imgCtrl.deleteAnnotation(annotation)"
 							export="imgCtrl.exportAnnotations()"
-							save-crop="imgCtrl.saveCroppedSegmentForImage(annotation)">
-					</floating-image-annotation-window>
+							save-crop="imgCtrl.saveCroppedSegmentForImage(annotation)"
+							class="img-annotations">
+					</floating-image-annotation-window>	
 
 				</div>
 
+				<!-- Profile button ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+				<button class="emuwebapp-button-icon"
+						id="userProfileBtn"
+						style="background: black;"
+						ng-click="$ctrl.userProfileClick()">
+					<img src="assets/user-profile.png" class="_35px" alt="Profile" />
+				</button>
 				
+				<!-- Profile drop down ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+				<div class="profile-dropdown" 
+						ng-if="$ctrl.profileMenuOpen" 
+						ng-click="$event.stopPropagation()">
+					<ul>
+						<li><button ng-click="$ctrl.openSettings()"><i class="material-icons" style="font-size:18px;">settings</i> Settings</button></li>
+						<li><button ng-click="$ctrl.logOutBtnClick()"><i class="material-icons" style="font-size:18px;">exit_to_app</i> Log Out</button></li>
+					</ul>
+				</div>
+
+
 				<button class="emuwebapp-button-icon" 
 						id="aboutBtn" 
-						style="float: right;" 
 						ng-click="$ctrl.aboutBtnClick();">
 					<img src="assets/EMU-webAppEmu.svg" class="_35px" />
 				</button>
@@ -658,6 +660,9 @@ let EmuWebAppComponent = {
 			<!-- top menu bar end -->
 
 
+
+
+	
 
 			<!-- vertical split layout that contains top and bottom pane -->
 			<div class="emuwebapp-canvas" ng-if="$ctrl.user.role !== 'EY'">
@@ -1157,6 +1162,9 @@ let EmuWebAppComponent = {
 		private canOpen : boolean;
 		private openMyResFiles: boolean;
 		private canOnlyViewTable : boolean;
+		private profileMenuOpen: boolean = false;
+		public pdfTableVisible: boolean = false;
+		public imageTableVisible: boolean = true;
 		private ViewStateService;
         private HistoryService;
         private IoHandlerService;
@@ -1454,6 +1462,13 @@ let EmuWebAppComponent = {
         };
         
 		$onInit = function() {
+			
+			// if this page load was a full refresh, kick back to login
+			const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;    //This uses the Performance API to get an array of all navigation entries, which describe how the page was loaded, and then we grab the first entry
+			if (nav && nav.type === 'reload') {						//if the refresh has been hit, then go to the login.html
+    			this.$location.path('../../views/login.html');
+				return;
+			}
 			this._inited = true;
 			
 			// Automatically connect to the WebSocket server
@@ -2813,6 +2828,14 @@ let EmuWebAppComponent = {
 			return(localStorage.getItem('showHierarchyPathCanvas') == 'true')
 		};
 
+		// Called from profile button click
+		public userProfileClick(): void {
+			this.toggleProfileMenu();
+		}
+
+		private toggleProfileMenu() {
+			this.profileMenuOpen = !this.profileMenuOpen;
+		}
 
 
 		//  // Add these NEW methods here
