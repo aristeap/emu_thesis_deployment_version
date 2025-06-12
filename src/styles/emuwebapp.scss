@@ -10,6 +10,7 @@
     ###################################
 */
 
+        
 .emuwebapp * {
   text-rendering: optimizeLegibility;
   @extend .emuwebapp-font-small;
@@ -120,6 +121,8 @@
           max-width: 40%; /* or whatever width you like */
           z-index: 5;    /* sit above the canvas */
         }
+
+
 
       }
 
@@ -263,8 +266,6 @@
   font-feature-settings: 'liga';
 }
 
-#linguisticAnnotationDropdown + .emuwebapp-dropdown-menu,
-#linguisticAnnotationDropdown + ul.emuwebapp-dropdown-menu,
 .linguistic-annotation-menu {
   overflow: visible !important;
 
@@ -273,6 +274,7 @@
     overflow: visible !important;
   }
 }
+
 
 .textLayer {
   position: absolute;
@@ -292,4 +294,29 @@
     background: highlight;
     color: highlighttext;
   }
+}
+
+
+.linguistic-dropdown-container {
+    /* we’ll position this relative to later */
+    position: relative;
+    display: inline-block;
+
+  }
+
+.linguistic-dropdown-container
+  .emuwebapp-dropdown-menu.linguistic-annotation-menu {
+  position: absolute;
+  top: 100%;              /* right below the button */
+  left: 0;                /* aligned to its left edge */
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 500px;           /* or whatever fixed width you need */
+  z-index: 9999;
+  white-space: nowrap;
+  overflow: visible;
 }

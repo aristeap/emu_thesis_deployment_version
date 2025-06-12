@@ -12,9 +12,15 @@ let BundleListSideBarComponent = {
 	<div>
 		<h3>
 			<!-- αυτό είναι για το search bundle filter -->
-			<div>
-				<input type="text" ng-model="$ctrl.filterText" placeholder="&#x1f50d; Bundle Filter" ng-focus="$ctrl.ViewStateService.setcursorInTextField(true)" ng-blur="$ctrl.ViewStateService.setcursorInTextField(false)" class="emuwebapp-filter"/>
+			<div class="bundle-filter-button-wrapper">
+				<button
+					class="emuwebapp-mini-btn left bundle-filter-btn"
+					ng-click="$ctrl.onSearchDatabase()">
+					<i class="material-icons">search</i>
+					Search database
+				</button>
 			</div>
+
 		</h3>
 		<my-drop-zone ng-if="$ctrl.ViewStateService.showDropZone && $ctrl.open"></my-drop-zone>
 		<div id="emuwebapp-bundleListContainer" class="emuwebapp-bundle-container" ng-if="!$ctrl.ViewStateService.showDropZone">
@@ -112,6 +118,7 @@ controller: [
 	'$element', 
 	'$animate', 
 	'$scope',
+	'$rootScope',
 	'ViewStateService', 
 	'HistoryService', 
 	'LoadedMetaDataService', 
@@ -123,6 +130,7 @@ controller: [
 	private $element;
 	private $animate;
 	private $scope;
+	private $rootScope;
 	private ViewStateService;
 	private HistoryService;
 	private LoadedMetaDataService;
@@ -141,6 +149,7 @@ controller: [
 		$element, 
 		$animate, 
 		$scope,
+		$rootScope,
 		ViewStateService, 
 		HistoryService, 
 		LoadedMetaDataService, 
@@ -151,6 +160,7 @@ controller: [
 		this.$element = $element;
 		this.$animate = $animate;
 		this.$scope = $scope;
+		this.$rootScope = $rootScope;
 		this.ViewStateService = ViewStateService;
 		this.HistoryService = HistoryService;
 		this.LoadedMetaDataService = LoadedMetaDataService;
@@ -322,6 +332,12 @@ controller: [
 		var curBndl = this.LoadedMetaDataService.getCurBndl();
 		return (bndl.name === curBndl.name && bndl.session === curBndl.session);
 	};
+
+	private onSearchDatabase() {
+		// delegate up to your main component
+		this.ViewStateService.setcursorInTextField(false);
+		this.$rootScope.$broadcast('openDatabaseSearch');
+	}
 
 }]
 

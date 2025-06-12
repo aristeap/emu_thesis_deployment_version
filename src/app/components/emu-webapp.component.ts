@@ -160,45 +160,6 @@ let EmuWebAppComponent = {
 				</button>
 				-->
 
-				<button class="emuwebapp-mini-btn left" 
-						id="saveEverythingBtn" 
-						ng-show="
-							$ctrl.isPrivileged &&
-          					($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
-          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
-		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
-							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"							
-						ng-click="$ctrl.saveEverythingBtnClick();">
-					<i class="material-icons">save</i> save changes
-				</button>
-
-				<!--<div class="emuwebapp-nav-wrap" ng-show="$ctrl.ConfigProviderService.vals.activeButtons.openDemoDB  && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded">
-					<ul class="emuwebapp-dropdown-container">
-						<li class="left">
-							<button type="button" 
-									class="emuwebapp-mini-btn full" 
-									id="demoDB" 
-									ng-mouseover="$ctrl.dropdown = true" 
-									ng-mouseleave="$ctrl.dropdown = false" 
-									ng-click="$ctrl.dropdown = !$ctrl.dropdown" 
-									ng-disabled="!$ctrl.ViewStateService.getPermission('openDemoBtnDBclick')">
-								open demo <span id="emuwebapp-dropdown-arrow"></span>
-							</button>
-							<ul class="emuwebapp-dropdown-menu" 
-								ng-mouseover="$ctrl.dropdown = true" 
-								ng-mouseleave="$ctrl.dropdown = false" 
-								ng-init="$ctrl.dropdown = false" 
-								ng-show="$ctrl.dropdown">
-								<li class="divider"></li>
-								<li ng-repeat="curDB in $ctrl.ConfigProviderService.vals.demoDBs" 
-									ng-click="$ctrl.openDemoDBbtnClick(curDB);" 
-									id="demo{{$index}}">
-									{{curDB}}
-								</li>
-							</ul>
-						</li>
-					</ul>
-				</div>	-->
 
 				<!-- NEW: the button that will add files to the database---------------------------------->
 				<!-- Το activeButtons.connect θα πρεπει να ΑΛΛΑΞΕΙ, θελουμε να εμφανιζεται μονο στον developer (κατι με τα permissions οταν φτιαξω τους διαφορετικους χρηστες της βασης) -->
@@ -283,78 +244,9 @@ let EmuWebAppComponent = {
 					<i class="material-icons" style="transform: rotate(180deg)">details</i>hierarchy
 				</button>
 
-				<button class="emuwebapp-mini-btn left" 
- 						ng-show="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"						
-						ng-click="$ctrl.searchDatabaseBtnClick();"
-						style="
-							height: 30px;
-							line-height: 40px;
-							min-width: 190px;
-							font-size: 11px;
-						">
-					<i class="material-icons">search</i>search through the database
-				</button>
-				
-				<button class="emuwebapp-mini-btn left" 
-						id="clear" 
-						ng-show="
-          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
-          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
-		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
-							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"							
-						ng-click="$ctrl.clearBtnClick();">
-					<i class="material-icons">clear_all</i>clear
-				</button>
-				
-				<!-- Add metadata button -->
-				<button class="emuwebapp-mini-btn left" 
-						id="MetadataButton" 
- 						ng-show="
-							$ctrl.canEditAnnot &&
-          					($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
-          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
-		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
-							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"						
-		  				ng-click="$ctrl.MetadataButtonClick();">
-					<i class="material-icons">star</i>Add metadata
-				</button>
-
-
-				<!-- The downlaod annot.json for the wav/video -------------------------------------------------------------------------------------------->
-				<div ng-show="$ctrl.LoadedMetaDataService.getCurBndlName()
-							&& $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay">
-					<button 
-						class="emuwebapp-mini-btn left" 
-						id="downloadAnnotation" 
-						ng-click="$ctrl.downloadAnnotationBtnClick();">
-						<i class="material-icons">save</i>annotJSON
-					</button>
-				</div>	
-
-
-				<!-- The downlaod annot.json for images ---------------------------------------------------------------------------------------------->
-				<div ng-controller="ImageController as imgCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay">
-					<button
-						class="emuwebapp-mini-btn left"
-						id="downloadAnnotationImg"
-						ng-click="imgCtrl.downloadAnnotationBtnClick()">
-						<i class="material-icons">save</i> annotJSONImg
-					</button>
-				</div>
-
-				<!--The downlaod annot.json for pdfs---------------------------------------------------------------------------------------------->
-				<div ng-controller="PdfController as pdfCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay">
-					<button
-						class="emuwebapp-mini-btn left"
-						id="downloadAnnotationPdf"
-						ng-click="pdfCtrl.downloadAnnotationBtnClick()">
-						<i class="material-icons">save</i> annotJSONPdf
-					</button>
-				</div>
-
 			
 				<!-- Linguistic Annotation Dropdown (PDF mode only) ------------------------------------------------------------------------------------------------------->
-				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay" ng-controller="PdfController as pdfCtrl"class="linguistic-dropdown-container" style="display: inline-block; margin-left: 5px;">
 					<div ng-if="$ctrl.canEditAnnot">
 						<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
 							<li style="list-style: none;">
@@ -369,32 +261,17 @@ let EmuWebAppComponent = {
 											/* Optionally override the default border or background if needed */
 										"
 										ng-click="pdfCtrl.dropdownLinguistic = !pdfCtrl.dropdownLinguistic">
-									linguistic annotation
+									<i class="material-icons">edit</i>linguistic annotation
 									<span id="emuwebapp-dropdown-arrow"></span>
 
 								</button>
 
 								<!-- The dropdown menu -->
-								<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="pdfCtrl.dropdownLinguistic = false" ng-show="pdfCtrl.dropdownLinguistic"
-									style="
-									position: absolute;
-									top: 40px;        /* slightly below the 40px-tall button */
-									left: 780px;          /* align with the button’s left edge */
-									background: #fff;
-									border-radius: 4px;
-									box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-									margin: 0;
-									padding: 0;
-									list-style: none;
-									width: 600px; /* match or exceed button width */
-									z-index: 9999;    /* ensure it appears on top */
-									white-space: nowrap;    /* prevents line breaks like 'part-of-\n speech' */	
-									overflow: visible; /* ensures no clipping inside the <ul> itself */
-									">
+								<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="pdfCtrl.dropdownLinguistic = false" ng-show="pdfCtrl.dropdownLinguistic">
 									
 									<!-- Part of speech -->
 									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
-										ng-click="pdfCtrl.selectLinguistic('part-of-speech'); pdfCtrl.dropdownLinguistic = false;">
+										ng-click="pdfCtrl.selectLinguistic('part-of-speech'); pdfCtrl.dropdownLinguistic = false">
 										<span style="font-size: 15px;">part-of-speech</span>
 										
 										<!-- Icons side-by-side in the same container -->
@@ -477,7 +354,7 @@ let EmuWebAppComponent = {
 					<button class="emuwebapp-mini-btn left" 
 						id="showPdfTable" 
 						ng-show="$ctrl.canOnlyViewTable "
-   					 	ng-click="$ctrl.pdfTableVisible = !$ctrl.pdfTableVisible"
+   					 	ng-click="$ctrl.pdfTableVisible = !$ctrl.pdfTableVisible; pdfCtrl.showAnnotationTable = $ctrl.pdfTableVisible"
 						 style="
 							height: 30px;
 							line-height: 40px;
@@ -488,7 +365,7 @@ let EmuWebAppComponent = {
 					</button>
 
 					<!-- If you want the floating window to appear when user picks a mode-->
-					<floating-annotation-window annotations="pdfCtrl.annotations" ng-show="$ctrl.pdfTableVisible"  highlight="pdfCtrl.toggleHighlight(word, pdfId)"
+					<floating-annotation-window annotations="pdfCtrl.annotations" ng-show="$ctrl.pdfTableVisible || pdfCtrl.showAnnotationTable"  highlight="pdfCtrl.toggleHighlight(word, pdfId)"
 						 delete-ann="pdfCtrl.deleteAnnotation(ann)" export="pdfCtrl.exportAnnotations()" class="pdf-annotations">
 					</floating-annotation-window>
 
@@ -496,7 +373,7 @@ let EmuWebAppComponent = {
 				
 				
 				<!-- Add Annotation Dropdown (JPEG mode only) ----------------------------------------------------------------------------------------->
-				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" style="display: inline-block; float: left; margin-left: 5px;">
+				<div ng-if="($ctrl.canEditAnnot || $ctrl.canOnlyViewTable) && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay" ng-controller="ImageController as imgCtrl" class="linguistic-dropdown-container" style="display: inline-block; margin-left: 5px;">
 					<div ng-if="$ctrl.canEditAnnot">
 						<ul style="display: inline-block; margin: 0; padding: 0;" ng-click="$event.stopPropagation()">
 							<li style="list-style: none;">
@@ -510,28 +387,13 @@ let EmuWebAppComponent = {
 											cursor: pointer;
 										"
 										ng-click="imgCtrl.dropdownAnnotation = !imgCtrl.dropdownAnnotation">
-									add annotation
+									<i class="material-icons">edit</i>add annotation
 									<span id="emuwebapp-dropdown-arrow"></span>
 								</button>
 
 								<!-- The dropdown menu -->
-								<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="imgCtrl.dropdownAnnotation = false"
-									ng-show="imgCtrl.dropdownAnnotation"
-									style="
-										position: absolute;
-										top: 40px;          /* slightly below the 40px-tall button */
-										left: 780px;        /* align with the button’s left edge (adjust if needed) */
-										background: #fff;
-										border-radius: 4px;
-										box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-										margin: 0;
-										padding: 0;
-										list-style: none;
-										width: 600px;       /* match or exceed button width */
-										z-index: 9999;      /* ensure it appears on top */
-										white-space: nowrap;
-										overflow: visible;
-									">
+								<ul class="emuwebapp-dropdown-menu linguistic-annotation-menu" ng-init="imgCtrl.dropdownAnnotation = false" ng-show="imgCtrl.dropdownAnnotation">
+									
 									<!-- New item: Equivalent from english alphabet -->
 									<li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; font-size: 15px; cursor: pointer;"
 										ng-click="imgCtrl.selectAnnotation('equivalent-from-english'); imgCtrl.dropdownAnnotation = false;">
@@ -609,7 +471,7 @@ let EmuWebAppComponent = {
 					<button class="emuwebapp-mini-btn left" 
 						id="showImageTable" 
 						ng-show="$ctrl.canOnlyViewTable"
-   					 	ng-click="$ctrl.imageTableVisible = !$ctrl.imageTableVisible"
+   					 	ng-click="$ctrl.imageTableVisible = !$ctrl.imageTableVisible; imgCtrl.showAnnotationWindow = $ctrl.imageTableVisible "
 						 style="
 							height: 30px;
 							line-height: 40px;
@@ -621,7 +483,7 @@ let EmuWebAppComponent = {
 
 					<!-- Floating annotation window for image annotations -->
 					<floating-image-annotation-window annotations="imgCtrl.annotations"
-							ng-show="$ctrl.imageTableVisible"
+							ng-show="$ctrl.imageTableVisible || imgCtrl.showAnnotationWindow "
     						highlight="imgCtrl.toggleHighlight(annotation)"
 							delete-ann="imgCtrl.deleteAnnotation(annotation)"
 							export="imgCtrl.exportAnnotations()"
@@ -631,10 +493,86 @@ let EmuWebAppComponent = {
 
 				</div>
 
+				<!-- Add metadata button -->
+				<button class="emuwebapp-mini-btn left" 
+						id="MetadataButton" 
+ 						ng-show="
+							$ctrl.canEditAnnot &&
+          					($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"						
+		  				ng-click="$ctrl.MetadataButtonClick();">
+					<i class="material-icons">add</i>Add metadata
+				</button>
+
+				<!-- Save button + dropdown trigger ******************************************************************************-->
+				<button class="emuwebapp-button-icon"
+						ng-show="($ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay)"
+						id="saveBtn"
+						style="position: absolute; top: 0; right: 100px; background: transparent;"
+						ng-click="$ctrl.saveHasBeenClicked()">
+				<i class="material-icons" style="font-size:35px;">save</i>
+				</button>
+
+				<!-- Save dropdown menu -->
+				<div class="profile-dropdown" ng-if="$ctrl.saveMenuOpen" ng-click="$event.stopPropagation()">
+					<ul>
+						<li>
+							<button ng-show="$ctrl.isPrivileged && $ctrl.fetchedFile" ng-click="$ctrl.saveEverythingBtnClick()">
+								<i class="material-icons" style="font-size:17px;">save</i>save changes to database 
+							</button>
+						</li>
+
+						<!--save _annot.json: for wav/video -->
+						<li>
+							<button ng-show="$ctrl.LoadedMetaDataService.getCurBndlName() && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.nonAudioDisplay && $ctrl.ViewStateService.curState !== $ctrl.ViewStateService.states.JpegDisplay" 
+										ng-click="$ctrl.downloadAnnotationBtnClick();">
+								<i class="material-icons" style="font-size:17px;">save</i>save annot.json 
+							</button>	
+						</li>
+
+						<!--save _annot.json: for images -->
+						<li>
+							<button ng-controller="ImageController as imgCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay"
+								ng-click="imgCtrl.downloadAnnotationBtnClick();">
+								<i class="material-icons" style="font-size:17px;">save</i>save annot.json 
+							</button>	
+						</li>
+
+						<!--save _annot.json: for pdf -->
+							<li>
+								<button ng-controller="PdfController as pdfCtrl" ng-if="$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay"
+									ng-click="pdfCtrl.downloadAnnotationBtnClick();">									
+									<i class="material-icons" style="font-size:17px;">save</i>save annot.json 
+								</button>
+							</li>
+
+						<!-- add any other save‐options here -->
+					</ul>
+				</div>
+
+
+
+				<button class="emuwebapp-button-icon"
+						id="clear" 
+						style="position: absolute; top: 0px; right: 60px; background: transparent;"
+						ng-show="
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.labeling ||
+          					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.nonAudioDisplay || 
+		  					$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.JpegDisplay || 
+							$ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.videoDisplay"							
+						ng-click="$ctrl.clearBtnClick();">
+					<i class="material-icons" style="font-size:35px;">delete</i>
+				</button>	
+
 				<!-- Profile button ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 				<button class="emuwebapp-button-icon"
 						id="userProfileBtn"
-						style="background: black;"
+						style="position: absolute; top: 0px; right: 0.5px; background: black;"
 						ng-click="$ctrl.userProfileClick()">
 					<img src="assets/user-profile.png" class="_35px" alt="Profile" />
 				</button>
@@ -649,12 +587,6 @@ let EmuWebAppComponent = {
 					</ul>
 				</div>
 
-
-				<button class="emuwebapp-button-icon" 
-						id="aboutBtn" 
-						ng-click="$ctrl.aboutBtnClick();">
-					<img src="assets/EMU-webAppEmu.svg" class="_35px" />
-				</button>
 
 			</div>
 			<!-- top menu bar end -->
@@ -1165,6 +1097,7 @@ let EmuWebAppComponent = {
 		private profileMenuOpen: boolean = false;
 		public pdfTableVisible: boolean = false;
 		public imageTableVisible: boolean = true;
+		public saveMenuOpen: boolean = false;
 		private ViewStateService;
         private HistoryService;
         private IoHandlerService;
@@ -1198,6 +1131,7 @@ let EmuWebAppComponent = {
         private dropdown;
 		private dropdownPhonetic;
 		private dropdownOrthographic;
+		private dropdownSaveButton;
 
 		// private xTmp;
 		// private yTmp;
@@ -1208,6 +1142,8 @@ let EmuWebAppComponent = {
 		public user: IUser | null = null;
 		public	isPrivileged: any;
 		public	isSimpleDrag: any;
+		public dragedFile: any;
+		public fetchedFile:any;
 
 
 		// // Add these NEW properties here
@@ -1278,6 +1214,7 @@ let EmuWebAppComponent = {
 
 				this.dropdownPhonetic = false;
 				this.dropdownOrthographic = false;
+				this.dropdownSaveButton = false;
 
             	// init vars
 		        this.connectBtnLabel = 'connect';
@@ -1318,11 +1255,16 @@ let EmuWebAppComponent = {
 
 						// recompute exactly the same flags you had before
 						const isPrivileged = !!u && (u.role==='administrator' || u.role==='researcher');
+						const dragedFile = !!u && origin==='drag-n-droped';
+						const fetchedFile = !!u && origin==='fetched-from-database';
 						const isSimpleDrag = !!u && u.role==='simple' && origin==='drag-n-droped';
 						const isSimpleFetch = !!u && u.role==='simple' && origin==='fetched-from-database';
 
+
 						this.isPrivileged   = isPrivileged;               // ← add this
 						this.canEditAnnot    = isPrivileged || isSimpleDrag;
+						this.dragedFile 	= dragedFile;
+						this.fetchedFile 	= fetchedFile;
 						this.canOpen         = !!u && (u.role==='EY' || u.role==='simple');
 						this.canAdd          = !!u && u.role==='EY';
 						this.canChooseAdmins = !!u && u.role==='EY';
@@ -1331,7 +1273,8 @@ let EmuWebAppComponent = {
 						this.canOnlyViewTable =  isSimpleFetch;
 
 						console.log(
-							'isPrivileged',				this.isPrivileged,				
+							'isPrivileged',				this.isPrivileged,	
+							'dragedFile',				this.dragedFile,
 							'flags → canEditAnnot:',   	this.canEditAnnot,
 							'canOpen:',                 this.canOpen,
 							'canAdd:',                  this.canAdd,
@@ -1442,6 +1385,12 @@ let EmuWebAppComponent = {
                     });
                 });
             });
+
+			//so we could trigger the search through database button from the bundlelist sidebar component
+			this.$scope.$on('openDatabaseSearch', () => {
+			this.searchDatabaseBtnClick();
+			});
+
         };
         
         $onChanges = function (changes) {
@@ -1463,12 +1412,14 @@ let EmuWebAppComponent = {
         
 		$onInit = function() {
 			
-			// if this page load was a full refresh, kick back to login
-			const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;    //This uses the Performance API to get an array of all navigation entries, which describe how the page was loaded, and then we grab the first entry
-			if (nav && nav.type === 'reload') {						//if the refresh has been hit, then go to the login.html
-    			this.$location.path('../../views/login.html');
+			// if this page load was a full refresh, kick back to login   
+			//This uses the Performance API to get an array of all navigation entries, which describe how the page was loaded, and then we grab the last entry,the reload entry, if it is the last one (the last thing that happened)
+			if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+				this.AppStateService.resetToInitState();
+				this.$location.path('../../views/login.html');
 				return;
 			}
+
 			this._inited = true;
 			
 			// Automatically connect to the WebSocket server
@@ -2835,6 +2786,15 @@ let EmuWebAppComponent = {
 
 		private toggleProfileMenu() {
 			this.profileMenuOpen = !this.profileMenuOpen;
+		}
+
+
+		public saveHasBeenClicked() : void {
+			this.toggleSaveMenu() ;
+		}
+
+		private toggleSaveMenu(){
+			this.saveMenuOpen = !this.saveMenuOpen; 
 		}
 
 

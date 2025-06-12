@@ -1,73 +1,10 @@
 {
   "levels": [],
   "links": [],
-  "sampleRate": 20000,
-  "pdfAnnotations": [
-    {
-      "word": "weigh",
-      "pos": "verb",
-      "ner": "",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-0",
-      "page": 1,
-      "sentence": "A dozen and a half billionaires from across the world weigh in on the president’s newly  proposed “gold card” visa."
-    },
-    {
-      "word": "Trump",
-      "pos": "",
-      "ner": "last name",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-11",
-      "page": 1,
-      "sentence": "By   Forbes Wealth Team     On Tuesday,   Donald Trump announced a plan to sell $5 million “gold card” visas that offer  permanent residency and work authorization in the U.S."
-    },
-    {
-      "word": "good",
-      "pos": "",
-      "ner": "",
-      "sa": "positive",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-15",
-      "page": 1,
-      "sentence": "And if you  add up the numbers, they’re pretty good."
-    },
-    {
-      "word": "United States",
-      "pos": "",
-      "ner": "location",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-0",
-      "page": 2,
-      "sentence": "card holders “won’t have to pay any tax on income outside of the United States,” potentially  giving them   a huge tax break   not afforded to other visa holders or even U.S."
-    },
-    {
-      "word": "billionaire",
-      "pos": "adjective",
-      "ner": "",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-32",
-      "page": 1,
-      "sentence": "“If you’re a billionaire, you don’t need it,” says one Canadian billionaire."
-    }
-  ],
-  "imageAnnotations": []
+  "sampleRate": null,
+  "annotates": "forbes_pdf",
+  "name": "forbes_pdf",
+  "pdfAnnotations": [],
+  "imageAnnotations": [],
+  "videoAnnotations": []
 }

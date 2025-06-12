@@ -28,6 +28,7 @@ angular.module('emuwebApp')
       vm.linguisticMode = mode;
       $rootScope.$broadcast('linguisticModeChanged', mode);
       vm.showAnnotationTable = true;
+      console.log("vm.showAnnotationTable : -----------------",vm.showAnnotationTable);
     };
 
     // Toggle highlight for a specific annotation instance (using its pdfId)
