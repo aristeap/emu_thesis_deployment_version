@@ -4,72 +4,43 @@
   "sampleRate": 20000,
   "pdfAnnotations": [
     {
-      "word": "box 6",
-      "pos": "",
-      "ner": "",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "V",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": null,
-      "bbox": {
-        "top": 87,
-        "left": 222,
-        "width": 72,
-        "height": 78
-      }
-    },
-    {
-      "word": "box 7",
-      "pos": "",
-      "ner": "",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "moon",
-      "moPhrase": "",
-      "pdfId": null,
-      "bbox": {
-        "top": 95,
-        "left": 72,
-        "width": 50,
-        "height": 52
-      }
-    },
-    {
-      "word": "box 8",
-      "pos": "",
+      "word": "show",
+      "pos": "verb",
       "ner": "",
       "sa": "",
       "comment": "",
       "engAlpha": "",
       "moSymbol": "",
-      "moPhrase": "under the moon",
-      "pdfId": null,
-      "bbox": {
-        "top": 95,
-        "left": 71,
-        "width": 63,
-        "height": 76
-      }
+      "moPhrase": "",
+      "pdfId": "pdfword-0",
+      "page": 2,
+      "sentence": "Statistics show that while routine administrative jobs declined by 15% in recent years, AI-related roles increased by 20%."
     },
     {
-      "word": "box 9",
-      "pos": "",
+      "word": "poses",
+      "pos": "verb",
       "ner": "",
       "sa": "",
-      "comment": "what is this thing",
+      "comment": "",
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": null,
-      "bbox": {
-        "top": 48,
-        "left": 510,
-        "width": 55,
-        "height": 131
-      }
+      "pdfId": "pdfword-3",
+      "page": 2,
+      "sentence": "However, this technological shift poses challenges."
+    },
+    {
+      "word": "careers",
+      "pos": "",
+      "ner": "",
+      "sa": "positive",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-7",
+      "page": 2,
+      "sentence": "Embracing AI can lead to economic growth and novel careers, but society must address the displacement it causes to ensure a balanced and inclusive future."
     }
   ],
   "imageAnnotations": [
@@ -183,20 +154,6 @@
         "left": 71,
         "width": 63,
         "height": 76
-      }
-    },
-    {
-      "word": "box 9",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "comment": "what is this thing",
-      "pdfId": null,
-      "bbox": {
-        "top": 48,
-        "left": 510,
-        "width": 55,
-        "height": 131
       }
     }
   ],

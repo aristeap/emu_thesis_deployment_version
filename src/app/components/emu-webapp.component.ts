@@ -178,6 +178,14 @@ let EmuWebAppComponent = {
 							Open from database
 				</button>
 	
+				<!-- NEW: the button that will allow the EY to view the list of database files and delete one of them---------------------------------->
+				<button class="emuwebapp-mini-btn left" 
+						id="openFromDatabaseButtonEY" 
+						ng-show="$ctrl.canAdd && $ctrl.ViewStateService.curState === $ctrl.ViewStateService.states.noDBorFilesloaded"
+						ng-click="$ctrl.openFromDatabaseBtnClick()">
+							View database files and delete
+				</button>
+
 				<!-- NEW: button that will show up only FOR THE ADMINS. It will show only their assigned files--------------------------->
 				<button class="emuwebapp-mini-btn left" 
 						id="openFromDatabaseButtonForAdmins" 
@@ -1096,7 +1104,7 @@ let EmuWebAppComponent = {
 		private canOnlyViewTable : boolean;
 		private profileMenuOpen: boolean = false;
 		public pdfTableVisible: boolean = false;
-		public imageTableVisible: boolean = true;
+		public imageTableVisible: boolean = false;
 		public saveMenuOpen: boolean = false;
 		private ViewStateService;
         private HistoryService;
@@ -1265,8 +1273,8 @@ let EmuWebAppComponent = {
 						this.canEditAnnot    = isPrivileged || isSimpleDrag;
 						this.dragedFile 	= dragedFile;
 						this.fetchedFile 	= fetchedFile;
-						this.canOpen         = !!u && (u.role==='EY' || u.role==='simple');
-						this.canAdd          = !!u && u.role==='EY';
+						this.canOpen         = !!u && (u.role==='EY' || u.role==='simple' || u.role==='programmer') && !(u.role==='EY' || u.role === 'programmer');
+						this.canAdd          = !!u && (u.role==='EY' || u.role==='programmer') ;
 						this.canChooseAdmins = !!u && u.role==='EY';
 						this.openMyFiles     = !!u && u.role==='administrator';
 						this.openMyResFiles  = !!u && u.role==='researcher';
@@ -2262,7 +2270,6 @@ let EmuWebAppComponent = {
 						transformRequest: angular.identity
 					}).then((response: any) => {
 						console.log('File uploaded successfully', response.data);
-						console.log('ARE YOU SEEING ME');
 					}).catch((error: any) => {
 						console.error('Error uploading file', error);
 					});

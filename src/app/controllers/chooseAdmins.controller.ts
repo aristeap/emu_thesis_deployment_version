@@ -45,7 +45,7 @@ class ChooseAdminsCtrl {
   }
 
   cancel() {
-    this.ModalService.dismiss();
+    this.ModalService.close();
   }
 
   //when the user clicks the '+' icon we will append another blank row

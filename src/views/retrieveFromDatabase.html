@@ -27,7 +27,7 @@
     </div>
     <div class="emuwebapp-modal-footer">
         <button ng-click="vm.cancel()" id="modalCancelBtn" class="emuwebapp-mini-btn">Cancel</button>
-        <button ng-click="vm.fetchSelected()" class="emuwebapp-mini-btn">Fetch</button>
+        <button ng-show="vm.canOpen" ng-click="vm.fetchSelected()" class="emuwebapp-mini-btn">Fetch</button>
         <button ng-show="vm.canDelete" ng-click="vm.deleteSelected()" class="emuwebapp-mini-btn">Delete from database</button>
     </div>
   </div>

@@ -4,7 +4,60 @@
   "sampleRate": null,
   "annotates": "forbes_pdf",
   "name": "forbes_pdf",
-  "pdfAnnotations": [],
+  "pdfAnnotations": [
+    {
+      "word": "weigh",
+      "pos": "verb",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0",
+      "page": 1,
+      "sentence": "A dozen and a half billionaires from across the world weigh in on the president’s newly proposed “gold card” visa."
+    },
+    {
+      "word": "Donald",
+      "pos": "",
+      "ner": "first name",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-6",
+      "page": 1,
+      "sentence": "By Forbes Wealth Team On Tuesday, Donald Trump announced a plan to sell $5 million “gold card” visas that offer permanent residency and work authorization in the U.S."
+    },
+    {
+      "word": "Oval",
+      "pos": "",
+      "ner": "organization",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-8",
+      "page": 1,
+      "sentence": "“Wealthy people will be coming into our country by buying this card,” Trump told reporters in the Oval Office."
+    },
+    {
+      "word": "successful",
+      "pos": "",
+      "ner": "",
+      "sa": "positive",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-10",
+      "page": 1,
+      "sentence": "“They’ll be wealthy and they’ll be successful.” Trump floated the plan, which he says will begin in two weeks , as a way to reduce the federal deficit."
+    }
+  ],
   "imageAnnotations": [],
   "videoAnnotations": []
 }

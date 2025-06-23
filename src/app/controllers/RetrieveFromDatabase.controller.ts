@@ -21,12 +21,14 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
     vm.selectedFile = null;
     vm.searchTerm = '';
     vm.canDelete ;
+    vm.canOpen ;
 
-
+    
 
     const u: IUser|null  = AuthService.getUser();
     this.user = u;
-    vm.canDelete = !!u && u.role === 'EY' ;
+    vm.canDelete = !!u && (u.role === 'EY' || u.role === 'programmer') ;
+    vm.canOpen = !!u && (u.role === 'researcher' || u.role === 'administrator' || u.role === 'simple');
 
     
 

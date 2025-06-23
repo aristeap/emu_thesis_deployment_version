@@ -3,34 +3,6 @@
     {
       "items": [
         {
-          "id": 1,
-          "sampleStart": 6476,
-          "sampleDur": 4016,
-          "labels": [
-            {
-              "name": "Phonetic",
-              "value": "sjkdhaidj"
-            }
-          ]
-        },
-        {
-          "id": 5,
-          "sampleStart": 27577,
-          "sampleDur": 6827,
-          "labels": [
-            {
-              "name": "Phonetic",
-              "value": "ha, ha , ha"
-            }
-          ]
-        }
-      ],
-      "name": "Phonetic",
-      "type": "SEGMENT"
-    },
-    {
-      "items": [
-        {
           "id": 3,
           "samplePoint": 8743.274173806609,
           "labels": [
@@ -46,17 +18,6 @@
     },
     {
       "items": [
-        {
-          "id": 6,
-          "sampleStart": 24593,
-          "sampleDur": 3607,
-          "labels": [
-            {
-              "name": "William level",
-              "value": "jciok"
-            }
-          ]
-        },
         {
           "id": 7,
           "sampleStart": 39952,
@@ -81,7 +42,7 @@
           "labels": [
             {
               "name": "Kate",
-              "value": "there is a true"
+              "value": "there is a tr-"
             }
           ]
         },
@@ -93,6 +54,17 @@
             {
               "name": "Kate",
               "value": "true romantic"
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "sampleStart": 26168,
+          "sampleDur": 5144,
+          "labels": [
+            {
+              "name": "Kate",
+              "value": "in there"
             }
           ]
         }

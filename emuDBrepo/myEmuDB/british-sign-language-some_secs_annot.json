@@ -38,11 +38,118 @@
       ],
       "name": "Gestures",
       "type": "SEGMENT"
+    },
+    {
+      "items": [
+        {
+          "id": 16,
+          "sampleStart": 145857,
+          "sampleDur": 188079,
+          "labels": [
+            {
+              "name": "EmbodiedActionsNr0",
+              "value": "Lean Forward"
+            }
+          ]
+        }
+      ],
+      "name": "EmbodiedActionsNr0",
+      "type": "SEGMENT",
+      "role": "embodied"
     }
   ],
   "links": [],
   "sampleRate": 44100,
-  "pdfAnnotations": [],
+  "pdfAnnotations": [
+    {
+      "word": "weigh",
+      "pos": "verb",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-0",
+      "page": 1,
+      "sentence": "A dozen and a half billionaires from across the world weigh in on the president’s newly proposed “gold card” visa."
+    },
+    {
+      "word": "Donald",
+      "pos": "",
+      "ner": "first name",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-6",
+      "page": 1,
+      "sentence": "By Forbes Wealth Team On Tuesday, Donald Trump announced a plan to sell $5 million “gold card” visas that offer permanent residency and work authorization in the U.S."
+    },
+    {
+      "word": "Oval",
+      "pos": "",
+      "ner": "organization",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-8",
+      "page": 1,
+      "sentence": "“Wealthy people will be coming into our country by buying this card,” Trump told reporters in the Oval Office."
+    },
+    {
+      "word": "successful",
+      "pos": "",
+      "ner": "",
+      "sa": "positive",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": "pdfword-10",
+      "page": 1,
+      "sentence": "“They’ll be wealthy and they’ll be successful.” Trump floated the plan, which he says will begin in two weeks , as a way to reduce the federal deficit."
+    },
+    {
+      "word": "box 4",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "W",
+      "moSymbol": "",
+      "moPhrase": "",
+      "pdfId": null,
+      "page": {
+        "top": 80,
+        "left": 78.5999755859375,
+        "width": 97,
+        "height": 39
+      },
+      "sentence": ""
+    },
+    {
+      "word": "box 5",
+      "pos": "",
+      "ner": "",
+      "sa": "",
+      "comment": "",
+      "engAlpha": "",
+      "moSymbol": "leaf",
+      "moPhrase": "",
+      "pdfId": null,
+      "page": {
+        "top": 11,
+        "left": 281.5999755859375,
+        "width": 44,
+        "height": 74
+      },
+      "sentence": ""
+    }
+  ],
   "imageAnnotations": [],
   "videoAnnotations": []
 }

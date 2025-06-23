@@ -27,7 +27,7 @@ angular.module('emuwebApp')
       scope: {},
       link: function postLink(scope, element) {
         // ————— UI‐text for various drag‐drop states —————
-        scope.dropTextDefault         = 'Drop your files here (.wav/pdf/jpeg/mp4/json) or click to browse. You can drop single file to annotate them or file/_annot.json so you can loaded with its annotations';
+        scope.dropTextDefault         = 'Drop your files here (.wav/pdf/jpeg/mp4/json) or click to browse. You can drop a single file to annotate it or a file + _annot.json so you can it can get loaded along with its annotations';
         scope.dropTextErrorFileType   = 'Error: Unsupported file type. Please drop .wav/.pdf/.jpeg/.mp4 or “_annot.json.”';
         scope.dropTextErrorAPI        = 'Your browser does not support File APIs.';
         scope.dropAllowed             = 'Release to drop file(s).';
