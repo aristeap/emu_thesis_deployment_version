@@ -82,7 +82,7 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
 
     // build bundle object
     const bundle = mapFileToBundle(vm.selectedFile);
-    const dbName = 'myEmuDB';  // ← NEW: your EMU-DB folder name
+    const dbName = 'myEmuDB';  // ← NEW: my EMU-DB folder name
 
 
 

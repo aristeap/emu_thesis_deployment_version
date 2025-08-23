@@ -182,7 +182,7 @@ angular
         }
 
         //Crop the result of the search (for annotations): FOR WAV **************************************************************************************************     
-        // make sure FileSaver.js is loaded: <script src="path/to/FileSaver.min.js"></script>
+        // we need the FileSaver.js that we have loaded in the index.html: <script src="path/to/FileSaver.min.js"></script>
         vm.saveCroppedSegmentForWavAndVideo = item => {
             console.log("the export has been clicked");
             //for the params:
@@ -205,7 +205,7 @@ angular
                 params,
                 responseType: 'arraybuffer'
             })
-            //the saveAs comes from the FileSaver.js library that trigger downloads of in-memory blobs (like the WAV data we get back from $http)
+            //the saveAs comes from the FileSaver.js library that triggers downloads of in-memory blobs (like the WAV data we get back from $http)
             //we download the library, place it in the assets folder and then reference it from the index.html
             .then(resp => {
                 console.log("file.Type: ", item.fileType);

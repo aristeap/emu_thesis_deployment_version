@@ -712,7 +712,7 @@
         }
 
 
-        //save all button:
+        //save all button*****************************************************************************************************************:
         document.getElementById("emuwebapp-modal-save").addEventListener("click", function () {
           // 1) Ask for confirmation
           const confirmation = confirm(
@@ -795,7 +795,7 @@
 
           // 5) Build the final consolidated object
           const consolidatedMetadata = {
-            recording: recObj,
+            recording: recObj, 
             content: contObj,
             actors: actorsArr,
             languages: langsArr

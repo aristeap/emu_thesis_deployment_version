@@ -25,6 +25,21 @@ const upload = multer(); // Initialize multer for parsing multipart form data
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;   //controls how “strong” (and therefore how slow) each hash is—it’s a balance between security and performance.
 
+
+//For deployment purposes------------------------------------------------------------|
+require('dotenv').config();
+//we must create a S3 client that will use the log-in credentials to communicate with the S3 bucket
+//the purpose of this is to replace the gridFs reference and change it to a reference for the S3 bucket
+
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");  //imports all the necessary functions from the AWS SDK.
+const s3Client = new S3Client({
+  region: "us-east-1", // This is the region i chose for the bucket, when i created in the AWS   
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
 // Middleware
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
@@ -227,11 +242,18 @@ app.post('/assign-researchers', async (req, res) => {
 
 
 
-// Connect to MongoDB for main metadata and GridFS
-mongoose.connect('mongodb://127.0.0.1:27017/metadata_db', { useNewUrlParser: true, useUnifiedTopology: true });
+// Connect to MongoDB for main metadata and GridFS --LOCALLY--
+// mongoose.connect('mongodb://127.0.0.1:27017/metadata_db', { useNewUrlParser: true, useUnifiedTopology: true });
+// const db = mongoose.connection;
+//  db.once('open', () => {
+//      console.log('MongoDB connection successful');
+//  });
+
+// Connect to MongoDB for main metadata and GridFS ---FOR DEPLOYMENT--
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
  db.once('open', () => {
-     console.log('MongoDB connection successful');
+   console.log('MongoDB--ONLINE FOR DEPLOYMENT--connected successfully!');
  });
 
 // Schemas and Models
@@ -730,10 +752,6 @@ app.delete('/delete-file/:id', async (req, res) => {
 });
       
     //For the search metadata feature
-    // at top of file:
-    // const Recordings = mongoose.model('Recording', recordingSchema);
-    // (make sure that’s already defined)
-
     app.get('/api/search', async (req, res) => {
       const { fileType, date, location, genre, corpusType, source } = req.query;   //gives the five filters as
 
@@ -744,7 +762,7 @@ app.delete('/delete-file/:id', async (req, res) => {
           // Build a mongoose query for Recordings
           const q = {};
 
-          // 1) date exact match (you can extend to ranges later)
+          // 1) date exact match 
           if (date) {
             // take only the YYYY-MM-DD part
             const [year, month, day] = date.split('-').map(Number);
@@ -826,6 +844,8 @@ app.delete('/delete-file/:id', async (req, res) => {
         return res.status(500).json({ message: 'Server error during search' });
       }
     });
+
+
 
     // helper: read & parse a JSON file
     function loadAnnot(dbName, bundleName) {
@@ -1158,11 +1178,11 @@ app.delete('/delete-file/:id', async (req, res) => {
 
         if (isVideo) {
           // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-          // VIDEO BRANCH (only modify inside here)
+          // VIDEO BRANCH 
           // ───────────────────────────────────────────────
-        console.log(`→ Entering VIDEO branch for ${meta.fileName}`);
+          console.log(`→ Entering VIDEO branch for ${meta.fileName}`);
 
-          // (a) Build a “tmp” path under YOUR application’s ./tmp/ folder:
+          // (a) Build a “tmp” path under our application’s ./tmp/ folder:
           const tmpDir      = path.resolve(__dirname, 'tmp');
           const tmpFilename = `${bundle}_${level}_${itemId}_${Date.now()}.mp4`;
           const tmpVideoPath = path.join(tmpDir, tmpFilename);
@@ -1276,7 +1296,7 @@ app.delete('/delete-file/:id', async (req, res) => {
           // (a) Set headers so the browser knows it’s getting a WAV:
           res.setHeader('Content-Type', 'audio/wav');
           res.setHeader(
-            'Content-Disposition',
+            'Content-Disposition',  
             `attachment; filename="${bundle}_${level}_${itemId}.wav"`
           );
 

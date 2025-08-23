@@ -31,17 +31,6 @@
     {
       "items": [
         {
-          "id": 4,
-          "sampleStart": 59825,
-          "sampleDur": 375331,
-          "labels": [
-            {
-              "name": "Gestures",
-              "value": "Closed Fist"
-            }
-          ]
-        },
-        {
           "id": 6,
           "sampleStart": 524180,
           "sampleDur": 123924,

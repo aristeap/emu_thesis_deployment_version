@@ -42,13 +42,13 @@
     {
       "items": [
         {
-          "id": 16,
+          "id": 17,
           "sampleStart": 145857,
-          "sampleDur": 188079,
+          "sampleDur": 188080,
           "labels": [
             {
               "name": "EmbodiedActionsNr0",
-              "value": "Lean Forward"
+              "value": "Closed Fist"
             }
           ]
         }
@@ -72,36 +72,23 @@
       "moPhrase": "",
       "pdfId": "pdfword-0",
       "page": 1,
-      "sentence": "A dozen and a half billionaires from across the world weigh in on the president’s newly proposed “gold card” visa."
+      "sentence": "A dozen and a half billionaires from across the world weigh in on the president’s newly  proposed “gold card” visa."
     },
     {
-      "word": "Donald",
+      "word": "Trump",
       "pos": "",
-      "ner": "first name",
+      "ner": "last name",
       "sa": "",
       "comment": "",
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": "pdfword-6",
+      "pdfId": "pdfword-11",
       "page": 1,
-      "sentence": "By Forbes Wealth Team On Tuesday, Donald Trump announced a plan to sell $5 million “gold card” visas that offer permanent residency and work authorization in the U.S."
+      "sentence": "By   Forbes Wealth Team     On Tuesday,   Donald Trump announced a plan to sell $5 million “gold card” visas that offer  permanent residency and work authorization in the U.S."
     },
     {
-      "word": "Oval",
-      "pos": "",
-      "ner": "organization",
-      "sa": "",
-      "comment": "",
-      "engAlpha": "",
-      "moSymbol": "",
-      "moPhrase": "",
-      "pdfId": "pdfword-8",
-      "page": 1,
-      "sentence": "“Wealthy people will be coming into our country by buying this card,” Trump told reporters in the Oval Office."
-    },
-    {
-      "word": "successful",
+      "word": "good",
       "pos": "",
       "ner": "",
       "sa": "positive",
@@ -109,45 +96,35 @@
       "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": "pdfword-10",
+      "pdfId": "pdfword-15",
       "page": 1,
-      "sentence": "“They’ll be wealthy and they’ll be successful.” Trump floated the plan, which he says will begin in two weeks , as a way to reduce the federal deficit."
+      "sentence": "And if you  add up the numbers, they’re pretty good."
     },
     {
-      "word": "box 4",
+      "word": "United States",
       "pos": "",
-      "ner": "",
+      "ner": "location",
       "sa": "",
       "comment": "",
-      "engAlpha": "W",
+      "engAlpha": "",
       "moSymbol": "",
       "moPhrase": "",
-      "pdfId": null,
-      "page": {
-        "top": 80,
-        "left": 78.5999755859375,
-        "width": 97,
-        "height": 39
-      },
-      "sentence": ""
+      "pdfId": "pdfword-0",
+      "page": 2,
+      "sentence": "card holders “won’t have to pay any tax on income outside of the United States,” potentially  giving them   a huge tax break   not afforded to other visa holders or even U.S."
     },
     {
-      "word": "box 5",
-      "pos": "",
+      "word": "billionaire",
+      "pos": "adjective",
       "ner": "",
       "sa": "",
       "comment": "",
       "engAlpha": "",
-      "moSymbol": "leaf",
+      "moSymbol": "",
       "moPhrase": "",
-      "pdfId": null,
-      "page": {
-        "top": 11,
-        "left": 281.5999755859375,
-        "width": 44,
-        "height": 74
-      },
-      "sentence": ""
+      "pdfId": "pdfword-32",
+      "page": 1,
+      "sentence": "“If you’re a billionaire, you don’t need it,” says one Canadian billionaire."
     }
   ],
   "imageAnnotations": [],
