@@ -9,7 +9,7 @@ const fileMetadataSchema = new Schema({
   fileType: { type: String, required: true },      // e.g., 'audio', 'video', 'image'
   fileName: { type: String, required: true },
   uploadDate: { type: Date, default: Date.now },
-  gridFSRef: { type: Schema.Types.ObjectId, ref: 'fs.files' },
+  s3Ref: { type: String, required: true }, // NEW: Stores the S3 URL
   //new: who the EY picked to be the administrator of the EY
   adminEmail: {type: String, default:null},
   researcherEmails: [String],    

@@ -50,7 +50,7 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
         mediaFile: {
           encoding: 'GETURL',  // Signal that we need to build a URL and fetch the file
           type: fileMetadata.fileType,  // e.g., "audio"
-          data: fileMetadata.gridFSRef  // The GridFS reference identifier, for example: "67ee78a9468d461fc2735381"
+          data: fileMetadata.s3Ref, // NEW: Use the S3 URL
         },
         annotation: { levels: [], links: [] }
       };
@@ -86,31 +86,14 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
 
 
 
-    // ← NEW: try to load existing annotations from disk
-    $http.get(`http://localhost:3019/emuDB/${dbName}/${bundle.name}_annot.json`)
+    // NEW: Request annotations from the server (which will fetch from S3)
+    const annotURL = `http://localhost:3019/emuDB/${dbName}/${bundle.name}/annot.json`;
+    $http.get(annotURL)
       .then(function(resp) {
         bundle.annotation = resp.data;            // ← NEW: use loaded JSON
         // console.log("--------------------------------------------------------------------");
         console.log("bundle: ",bundle);
         // console.log("bundle.annotation: ",bundle.annotation);
-      })
-      .catch(function() {
-        // ← NEW: if no file or error, start with empty annotation
-        const defaultRate = bundle.mediaFile.type === 'video' ? 44100 : 20000;
-
-        console.log("before it creates a fallback annotation json");
-        const fallback = {
-          levels: [],
-          links: [],
-          sampleRate:  defaultRate,
-          pdfAnnotations: [],
-          imageAnnotations: [],
-          videoAnnotations: []
-        }as any;
-        bundle.annotation = fallback;
-
-        DataService.setData(bundle.annotation);
-
       })
       .finally(function() {
         DataService.setData(bundle.annotation);
@@ -154,10 +137,11 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
     
     
 
+    // NEW: Update the delete function to use the MongoDB _id
     vm.deleteSelected = function() {
       if (vm.selectedFile) {
         if (confirm("Are you sure you want to delete this file?")) {
-          $http.delete('http://localhost:3019/delete-file/' + vm.selectedFile.gridFSRef)
+          $http.delete('http://localhost:3019/delete-file/' + vm.selectedFile._id)
             .then(function(response) {
               console.log("File deleted:", response.data);
               alert("File deleted successfully");

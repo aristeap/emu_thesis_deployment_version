@@ -341,8 +341,10 @@ class DbObjLoadSaveService{
 				// ─── AUDIO / PDF / IMG / VIDEO (GETURL) ────────────────────────────────
 				else if (bundleData.mediaFile.encoding === 'GETURL') {
 
-					// console.log("GETURL branch – fetching GridFS id:", bundleData.mediaFile.data);
+					console.log("GETURL branch – fetching from the S3 bucket ******************************************************:", bundleData.mediaFile.data);
 					const fileId = bundleData.mediaFile.data;
+					console.log("bundleData: ",bundleData);
+					console.log("fileId=",fileId);
 					const downloadUrl = `http://localhost:3019/download-file/${fileId}`;
 
 

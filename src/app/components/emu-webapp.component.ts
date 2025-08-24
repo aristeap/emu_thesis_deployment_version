@@ -1430,20 +1430,7 @@ let EmuWebAppComponent = {
 
 			this._inited = true;
 			
-			// Automatically connect to the WebSocket server
-			const wsUrl = 'ws://localhost:17890'; // This is your actual WebSocket URL.
-			this.IoHandlerService.WebSocketHandlerService.initConnect(wsUrl)
-			  .then((message) => {
-				  console.log("WebSocket connected:", message);
-				  // Optionally, update any connection status flags in your ViewStateService
-			  })
-			  .catch((err) => {
-				  console.error("Failed to connect WebSocket:", err);
-				  this.ModalService.open('views/error.html', 'Could not connect to websocket server: ' + wsUrl)
-					  .then(() => {
-						  this.AppStateService.resetToInitState();
-					  });
-			  });
+			
 		};
 		
 

@@ -48,11 +48,38 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'src/views'))); // For HTML and other assets
 
-// serve EMU-DB files
-app.use(
-  '/emuDB',
-  express.static(path.join(__dirname, 'emuDBrepo'))
-);
+// NEW: Serve EMU-DB annotation files directly from S3
+app.get('/emuDB/:dbName/:bundleName/annot.json', async (req, res) => {
+  const { dbName, bundleName } = req.params;
+  const s3FileKey = `${bundleName}_annot.json`;
+
+  const downloadParams = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: s3FileKey,
+  };
+
+  try {
+    const { Body } = await s3Client.send(new GetObjectCommand(downloadParams));
+    Body.pipe(res);
+  } catch (err) {
+    if (err.name === 'NoSuchKey') {
+      console.warn(`Annotation file not found in S3: ${s3FileKey}`);
+      // Serve a default, empty annotation if one doesn't exist
+      const fallback = {
+        levels: [],
+        links: [],
+        sampleRate: 20000, // You can set a default sample rate here
+        pdfAnnotations: [],
+        imageAnnotations: [],
+        videoAnnotations: []
+      };
+      res.status(200).json(fallback);
+    } else {
+      console.error('Error serving annotation file from S3:', err);
+      res.status(500).send('Error serving annotation file.');
+    }
+  }
+});
 
 const FileMetadata  = require('./FileMetadata');
 
@@ -122,20 +149,28 @@ app.delete('/users/:email', async (req, res) => {
 
 // Save posted annotJSON into EmuDB
 //a “save” endpoint that writes whatever annotation JSON you POST into the right _annot.json file in your Emu DB folder.
-app.post('/api/emuDB/:dbName/:bundleName/annot', (req, res) => {        //This says: “Whenever the server gets a POST to /api/emuDB/<yourDB>/<yourBundle>/annot, run the function inside.”
-  const { dbName, bundleName } = req.params;                  //dbName and bundleName come from the URL you called.
-  const annot = req.body;                                      //annot is the JSON your Angular app sent in the body.
-  const out = path.join(__dirname, 'emuDBrepo', dbName, `${bundleName}_annot.json`);      //Builds the exact filename where we want to save, e.g.
-  fs.writeFile(out, JSON.stringify(annot, null, 2), 'utf8', err => {
-    if (err) {
-      console.error('💥 write error:', err);
-      return res.status(500).json({ success: false, message: err.message });
-    }
+// NEW: Save posted annotJSON to S3
+app.post('/api/emuDB/:dbName/:bundleName/annot', async (req, res) => {
+  const { dbName, bundleName } = req.params;
+  const annot = req.body;
+  const s3FileKey = `${bundleName}_annot.json`;
+  
+  const uploadParams = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: s3FileKey,
+    Body: JSON.stringify(annot, null, 2),
+    ContentType: 'application/json',
+  };
+
+  try {
+    await s3Client.send(new PutObjectCommand(uploadParams));
+    console.log(`Annotation for ${bundleName} saved to S3.`);
     res.json({ success: true });
-  });
+  } catch (err) {
+    console.error('Error saving annotation to S3:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
-
-
 
 
 app.post('/signup', async (req, res) => {
@@ -614,58 +649,68 @@ app.post("/save-img-metadata", async (req, res) => {
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
 // NEW: For storing all the contents of files in the database (along with the FileMetadata.js)
-const { GridFSBucket } = require('mongodb');
+const { GridFSBucket } = require('mongodb');  
 
 // Wait for the MongoDB connection to open
 db.once('open', () => {
-    console.log('Main MongoDB connection successful for GridFS');
+    console.log('Main MongoDB connection successful for S3 bucket');
 
-    // Initialize GridFSBucket
-    const { GridFSBucket } = require('mongodb');
-    const bucket = new GridFSBucket(db.db, { bucketName: 'uploads' });
+    // // Initialize GridFSBucket
+    // const { GridFSBucket } = require('mongodb');
+    // const bucket = new GridFSBucket(db.db, { bucketName: 'uploads' });
 
-    // File upload endpoint: Upload file to GridFS and save technical metadata
-    app.post('/upload-file', upload.single('file'), (req, res) => {
-        const file = req.file;
-        if (!file) return res.status(400).send('No file uploaded.');
+    // NEW: For storing all the contents of files in S3
+    const { Upload } = require("@aws-sdk/lib-storage");
+    const { S3Client } = require("@aws-sdk/client-s3");
+    const { v4: uuidv4 } = require('uuid'); // Used to generate unique IDs for S3 filenames
+
+    // My S3 bucket name from .env
+    const bucketName = process.env.S3_BUCKET_NAME;
+
+    // File upload endpoint: Upload file to S3 and save metadata
+    app.post('/upload-file', upload.single('file'), async (req, res) => {
+      const file = req.file;
+      if (!file) return res.status(400).send('No file uploaded.');
 
 
-        console.log("Original file name:", file.originalname);
-        // Convert the filename using Buffer conversion
-        const fixedName = Buffer.from(file.originalname, 'binary').toString('utf8');
-        console.log("Converted file name:", fixedName);
+      const fileExtension = path.extname(file.originalname);   // Get the file extension (e.g., .wav, .jpg) from the original filename
+      const uniqueId = uuidv4();                      // Generate a unique ID to prevent filename conflicts in S3
+      const s3FileName = `${uniqueId}${fileExtension}`;         // Combine the unique ID and the original extension to create a new, unique S3 filename
 
+      // Parameters for S3 upload
+      const uploadParams = {
+        Bucket: bucketName,
+        Key: s3FileName,              // The unique name of the file in the S3 bucket
+        Body: file.buffer,            // The file content itself
+        ContentType: file.mimetype,   // The file type (e.g., audio/wav)
+      };
 
-        const uploadStream = bucket.openUploadStream(fixedName, {
-          contentType: file.mimetype
+      try {
+        // Perform the S3 upload
+
+        const upload = new Upload({           // Create an instance of the Upload class to handle the upload to S3
+          client: s3Client,
+          params: uploadParams
         });
-    
-        uploadStream.on('error', (err) => {
-          console.error('Error uploading file to GridFS:', err);
-          return res.status(500).send('Error uploading file.');
+
+        // Run the upload operation and wait for it to finish
+        const s3Result = await upload.done();
+
+        // Create a new document in your MongoDB collection to store the file's metadata
+        const FileMetadata = require('./FileMetadata');
+        const fileMetadata = new FileMetadata({
+          fileType: file.mimetype.split('/')[0],          // Extract the main file type (e.g., "audio")
+          fileName: file.originalname,                    // Store the original filename provided by the user
+          s3Ref: s3Result.Location,                       // Save the permanent S3 URL
         });
-    
-        uploadStream.on('finish', async () => {
-          // Now the file has been written and uploadStream.id holds the _id of the stored file.
-          const FileMetadata = require('./FileMetadata');
-          const fileMetadata = new FileMetadata({
-            fileType: file.mimetype.split('/')[0],  // e.g., "audio" from "audio/wav"
-            fileName: fixedName,
-            gridFSRef: uploadStream.id,             // Use the id from the upload stream
-          });
-    
-          try {
-            await fileMetadata.save();
-            console.log('File metadata saved:', fileMetadata);
-            res.send('File uploaded and metadata saved');
-          } catch (saveError) {
-            console.error('Error saving file metadata:', saveError);
-            res.status(500).send('Error saving file metadata.');
-          }
-        });
-    
-        // Write the file buffer into the stream and close it.
-        uploadStream.end(file.buffer);
+
+        await fileMetadata.save();              // Save the metadata document to your MongoDB database
+        console.log('File uploaded to S3 and metadata saved:', fileMetadata);
+        res.status(200).send('File uploaded and metadata saved');
+      } catch (err) {
+        console.error('Error uploading file to S3:', err);
+        res.status(500).send('Error uploading file.');
+      }
     });
     
 
@@ -681,75 +726,107 @@ db.once('open', () => {
         }
     });
 
-    // Endpoint to download/stream a file from GridFS by its ID
-    app.get('/download-file/:id', (req, res) => {
+    // NEW: Endpoint to download/stream a file from S3 by its metadata ID (in the s3Ref)
+    app.get('/download-file/:id',async (req, res) => {
         try {
-            const fileId = new mongoose.Types.ObjectId(req.params.id);
-            bucket.openDownloadStream(fileId)
-                .pipe(res)
-                .on('error', (err) => {
-                    console.error('Error downloading file:', err);
-                    res.status(500).send('Error downloading file');
-                });
+            console.log("INSIDE THE download-file endpoint-------------------------------------");
+            const fileId = req.params.id; // Get the file's unique ID from the URL parameter
+            
+            // Find the metadata document in MongoDB to get the S3 URL
+            const FileMetadata = require('./FileMetadata');
+            const fileMetadata = await FileMetadata.findById(fileId);
+
+            if (!fileMetadata) {
+              return res.status(404).send('File not found in database.');
+            }
+
+            // The S3 URL is a full URL (e.g., https://bucket.s3.region.amazonaws.com/unique-id.wav)
+            // We need to extract just the unique S3 filename (Key) from the end of the URL
+            const s3FileKey = fileMetadata.s3Ref.split('/').pop();
+
+
+            // Prepare S3 download parameters
+            const downloadParams = {
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: s3FileKey,
+            };
+
+            // Get the file object from S3
+            const { Body } = await s3Client.send(new GetObjectCommand(downloadParams));
+            
+            // Set response headers to stream the file back
+            res.setHeader('Content-Type', fileMetadata.fileType);
+            res.setHeader('Content-Disposition', `attachment; filename="${fileMetadata.fileName}"`);
+
+            // Pipe the S3 file stream directly to the response
+            Body.pipe(res);
+
+
         } catch (err) {
-            res.status(400).send('Invalid file id');
+
+          console.error('Error downloading file from S3:', err);
+          res.status(500).send('Error downloading file.');
         }
     });
 
-app.delete('/delete-file/:id', async (req, res) => {
-  try {
-    // 1) Parse the ObjectId from the URL
-    const fileId = new mongoose.Types.ObjectId(req.params.id);
 
-    // 2) Check if the file exists in GridFS
-    const files = await bucket.find({ _id: fileId }).toArray();
-    if (!files || files.length === 0) {
-      console.error('File not found in GridFS for id', fileId.toString());
-      return res.status(404).send('File not found in GridFS.');
-    }
+    // NEW: Endpoint to delete a file from S3 and metadata from MongoDB
+    app.delete('/delete-file/:id', async (req, res) => {
+      try {
+        const fileId = req.params.id; // Get the file's unique ID from the URL parameter
 
-    // 3) Extract the original filename from the files collection
-    //    (MongoDB stores the original filename under files[0].filename by default)
-    const originalFilename = files[0].filename;
-    //    Example: "msajc003.wav"
+        // Find the metadata document to get the S3 URL and original filename
+        const FileMetadata = require('./FileMetadata');
+        const fileMetadata = await FileMetadata.findById(fileId);
 
-    // 4) Delete the file from GridFS
-    await bucket.delete(fileId);
-
-    // 5) Delete metadata record from your Mongoose model
-    const FileMetadata = require('./FileMetadata');
-    await FileMetadata.deleteOne({ gridFSRef: fileId });
-
-    // 6) Build the corresponding "<basename>_annot.json" path and remove it from disk
-    //    Strip off the extension (e.g. ".wav", ".mp4", etc.)
-    const basename = path.basename(originalFilename, path.extname(originalFilename));
-    const annotFilename = `${basename}_annot.json`;
-
-    //    Adjust this to wherever your emuDBrepo lives on disk.
-    //    In this example, we assume the server file is one level under "emuDBrepo/myEmuDB":
-    const annotPath = path.join(__dirname, 'emuDBrepo', 'myEmuDB', annotFilename);
-    
-    fs.unlink(annotPath, (unlinkErr) => {
-      if (unlinkErr) {
-        if (unlinkErr.code === 'ENOENT') {
-          // File did not exist—ignore
-          console.warn(`No annotation file to delete at ${annotPath}`);
-        } else {
-          // Some other I/O error
-          console.error(`Failed to delete annotation file at ${annotPath}:`, unlinkErr);
+        if (!fileMetadata) {
+          return res.status(404).send('File not found in database.');
         }
-      } else {
-        console.log(`Deleted annotation JSON: ${annotPath}`);
+
+        // Extract the S3 file Key (the unique filename) from the S3 URL
+        const s3FileKey = fileMetadata.s3Ref.split('/').pop();
+
+        // Prepare the parameters for the S3 delete command
+        const deleteParams = {
+          Bucket: process.env.S3_BUCKET_NAME, // The name of your S3 bucket
+          Key: s3FileKey, // The unique name of the file in the S3 bucket
+        };
+
+        // Delete the file from the S3 bucket
+        await s3Client.send(new DeleteObjectCommand(deleteParams));
+
+        // Delete the metadata document from your MongoDB database using its ID
+        await FileMetadata.findByIdAndDelete(fileId);
+
+        // NEW: Delete the corresponding annotation JSON from S3
+        const originalFilename = fileMetadata.fileName;
+        const basename = path.basename(originalFilename, path.extname(originalFilename));
+        const annotFilename = `${basename}_annot.json`;
+
+        const deleteAnnotParams = {
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: annotFilename,
+        };
+
+        try {
+          await s3Client.send(new DeleteObjectCommand(deleteAnnotParams));
+          console.log(`Deleted annotation JSON from S3: ${annotFilename}`);
+        }catch (err) {
+          if (err.name === 'NoSuchKey') {
+              console.warn(`No annotation file to delete in S3: ${annotFilename}`);
+          } else {
+            console.error(`Failed to delete annotation file from S3: ${annotFilename}`, err);
+            // You may choose to still return a success message here, as the primary file is deleted.
+          }
+        }
+
+        console.log('File deleted successfully (S3 + metadata + annotation), ID:', fileId);
+        return res.send('File deleted successfully.');
+      } catch (err) {
+        console.error('Error deleting file:', err);
+        return res.status(500).send('Error deleting file.');
       }
     });
-
-    console.log('File deleted successfully (GridFS + metadata + annotation), ID:', fileId.toString());
-    return res.send('File deleted successfully.');
-  } catch (err) {
-    console.error('Error deleting file:', err);
-    return res.status(500).send('Error deleting file.');
-  }
-});
       
     //For the search metadata feature
     app.get('/api/search', async (req, res) => {

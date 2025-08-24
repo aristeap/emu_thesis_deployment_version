@@ -1,18 +1,3 @@
-// video-cutter.js
-// What this script does:
-// 1) Connect to MongoDB, pull each MP4 out of GridFS into ./tmp/.
-// 2) Read every _annot.json in emuDBrepo/myEmuDB, grab each level’s items array.
-// 3) For each item, compute start & duration in seconds.
-// 4) Use ffmpeg to cut exactly that span out of the temp MP4
-//    (precise seek after input, re-encode video, copy audio).
-// 5) Write each slice as clips2/<basename>_<levelName>_<item.id>.mp4.
-// 6) Log progress, skip only truly-out-of-range segments.
-
-const fs = require('fs');
-const path = require('path');
-const ffmpeg = require('fluent-ffmpeg');
-const tmp = require('tmp');
-const { MongoClient, GridFSBucket, ObjectId } = require('mongodb');
 
 // Fetch a file from GridFS by id into outPath
 function fetchFromGridFS(bucket, id, outPath) {
