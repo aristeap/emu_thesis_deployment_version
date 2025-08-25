@@ -145,19 +145,15 @@ app.delete('/users/:email', async (req, res) => {
 });
 
 
-
-
-// Save posted annotJSON into EmuDB
-//a “save” endpoint that writes whatever annotation JSON you POST into the right _annot.json file in your Emu DB folder.
-// NEW: Save posted annotJSON to S3
+// NEW: Save annotJSON to S3
 app.post('/api/emuDB/:dbName/:bundleName/annot', async (req, res) => {
   const { dbName, bundleName } = req.params;
   const annot = req.body;
   const s3FileKey = `${bundleName}_annot.json`;
   
   const uploadParams = {
-    Bucket: process.env.S3_BUCKET_NAME,
-    Key: s3FileKey,
+    Bucket: process.env.S3_BUCKET_NAME,     //so that the code knows where-in which bucket-it would store the annotation folders in
+    Key: s3FileKey,                         //The Key parameter is what uniquely identifies the object within the bucket.
     Body: JSON.stringify(annot, null, 2),
     ContentType: 'application/json',
   };
@@ -661,7 +657,13 @@ db.once('open', () => {
 
     // NEW: For storing all the contents of files in S3
     const { Upload } = require("@aws-sdk/lib-storage");
-    const { S3Client } = require("@aws-sdk/client-s3");
+    const {
+      S3Client,
+      PutObjectCommand,
+      ListObjectsV2Command,
+      GetObjectCommand,
+      DeleteObjectCommand // You may need this for future updates
+    } = require('@aws-sdk/client-s3');
     const { v4: uuidv4 } = require('uuid'); // Used to generate unique IDs for S3 filenames
 
     // My S3 bucket name from .env
@@ -701,8 +703,10 @@ db.once('open', () => {
         const fileMetadata = new FileMetadata({
           fileType: file.mimetype.split('/')[0],          // Extract the main file type (e.g., "audio")
           fileName: file.originalname,                    // Store the original filename provided by the user
-          s3Ref: s3Result.Location,                       // Save the permanent S3 URL
+          s3Ref: s3Result.Key,                       // <-- Corrected: Use s3Result.Key instead of s3Result.Location
         });
+
+        console.log("s3Result.Key:  ",s3Result.Key);
 
         await fileMetadata.save();              // Save the metadata document to your MongoDB database
         console.log('File uploaded to S3 and metadata saved:', fileMetadata);
@@ -729,7 +733,6 @@ db.once('open', () => {
     // NEW: Endpoint to download/stream a file from S3 by its metadata ID (in the s3Ref)
     app.get('/download-file/:id',async (req, res) => {
         try {
-            console.log("INSIDE THE download-file endpoint-------------------------------------");
             const fileId = req.params.id; // Get the file's unique ID from the URL parameter
             
             // Find the metadata document in MongoDB to get the S3 URL
@@ -923,77 +926,105 @@ db.once('open', () => {
     });
 
 
+    //the updated search-annotations endpoint now that we will move from the local version to the cloud one, will follow a different approach
+    //the emuDBrepo folder will be removed so now the code cannot iterate through the directories searching for the correct annotation folder
+    //The plan:
+    //1.Remove File System Operations: Delete all fs references from the code.
+    //2.Retrieve Annotations from S3: Since we cannot directly search the contents of files in S3, we will have to download all the annotation files and then perform the search. We will fetch a list of all annotation files in the S3 bucket and download each one individually. 
+    //3.Perform Search In-Memory: We'll then iterate through the downloaded annotations, searching for matches based on the query parameters.
 
-    // helper: read & parse a JSON file
-    function loadAnnot(dbName, bundleName) {
-      const p = path.join(__dirname, 'emuDBrepo', dbName, `${bundleName}_annot.json`);
-      return JSON.parse(fs.readFileSync(p, 'utf8'));
+    // A helper function to convert a stream to a string
+    function streamToString (stream) {
+      const chunks = [];
+      return new Promise((resolve, reject) => {
+        stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        stream.on('error', (err) => reject(err));
+        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+      });
     }
 
     app.get('/api/search/annotations/recordings', async (req, res) => {
       const { fileType, level, embodiedAction, label } = req.query;
-      if (fileType !== 'wav/video') {
-        return res.status(400).json({ message: 'Only wav/video supported right now' });
-      }
+      
+      console.log("INSIDE THE annotations/recordings endpoint-------------------------------------");
 
       try {
-        const repoPath = path.join(__dirname, 'emuDBrepo');
-        const dbDirs   = fs
-          .readdirSync(repoPath)
-          .filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
-
         const hits = [];
 
-        for (const dbName of dbDirs) {
-          const bundleFiles = fs
-            .readdirSync(path.join(repoPath, dbName))
-            .filter(fn => fn.endsWith('_annot.json'));
+        //1.List all annotation files from S3
+        // ADAPTATION: We can no longer use fs.readdirSync to list files from a local folder.
+        // Instead, we use the S3 SDK to list objects within our S3 bucket.
+        const listParams = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Prefix: '', // This prefix lets us list all objects in the bucket
+        };
 
-          for (const annotFile of bundleFiles) {
-            const bundleName = annotFile.replace('_annot.json', '');
-            const annot      = loadAnnot(dbName, bundleName);
-            const lvls       = annot.levels;
+        // Asynchronously send the ListObjectsV2Command to S3 to get a list of all objects.
+        const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
+        
+        // ADAPTATION: We filter the S3 objects to find only the annotation files (those ending in '_annot.json').
+        const annotKeys = listedObjects.Contents.filter(obj => obj.Key.endsWith('_annot.json')).map(obj => obj.Key);
 
-            for (const l of lvls) {
-              for (const it of l.items) {
-                let match = true;
+        // ADAPTATION: We loop through each annotation file key found in S3. 
+        for (const s3FileKey  of annotKeys) {
+          // ADAPTATION: We cannot read a file directly from the local file system.
+          // We must now use a GetObjectCommand to download the file's content from S3.
+          const getParams = {
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: s3FileKey,
+          };
 
-                if (level) {
-                  match = match && l.name.toLowerCase() === level.toLowerCase();
-                }
 
-                if (match && label) {
+          const { Body } = await s3Client.send(new GetObjectCommand(getParams));
+          console.log("Body::: ",Body);
+          // ADAPTATION: The Body from S3 is a stream, so we use a helper function to
+          // convert it to a string before parsing it as JSON. This replaces fs.readFileSync().
+          const annotString = await streamToString(Body);
+          const annot = JSON.parse(annotString);
+          
+          const bundleName = s3FileKey.replace('_annot.json', '');
+          const lvls = annot.levels;
+
+          // 3. Perform the search in memory
+          for (const l of lvls) {
+            for (const it of l.items) {
+              let match = true;
+
+              if (level) {
+                match = match && l.name.toLowerCase() === level.toLowerCase();
+              }
+
+              if (match && label) {
+                match = it.labels.some(lbl =>
+                  lbl.value.toLowerCase() === label.toLowerCase()
+                );
+              }
+
+              if (match && embodiedAction) {
+                if (l.role !== 'embodied') {
+                  match = false;
+                } else if (embodiedAction === 'nothing') {
+                  match = it.labels.length === 0;
+                } else {
                   match = it.labels.some(lbl =>
-                    lbl.value.toLowerCase() === label.toLowerCase()
+                    lbl.value.toLowerCase() === embodiedAction.toLowerCase()
                   );
                 }
+              }
 
-                if (match && embodiedAction) {
-                  if (l.role !== 'embodied') {
-                    match = false;
-                  } else if (embodiedAction === 'nothing') {
-                    match = it.labels.length === 0;
-                  } else {
-                    match = it.labels.some(lbl =>
-                      lbl.value.toLowerCase() === embodiedAction.toLowerCase()
-                    );
-                  }
-                }
+              if (match) {
+                // 🔍 Lookup fileType from metadata
+                const meta = await FileMetadata.findOne({
+                  fileName: { $regex: new RegExp(`^${bundleName}\\.(wav|mp4)$`, 'i') }
+                });
 
-                if (match) {
-                  // 🔍 Lookup fileType from metadata
-                  const meta = await FileMetadata.findOne({
-                    fileName: { $regex: new RegExp(`^${bundleName}\\.(wav|mp4)$`, 'i') }
-                  });
-
-                  hits.push({
-                    dbName,
-                    bundleName,
-                    level: l.name,
-                    itemId: it.id,
-                    fileType: meta?.fileType || 'audio'  // fallback to 'audio'
-                  });
-                }
+                hits.push({
+                  dbName: 'myEmuDB', // We can hardcode this since all are in one bucket
+                  bundleName,
+                  level: l.name,
+                  itemId: it.id,
+                  fileType: meta?.fileType || 'audio'  // fallback to 'audio'
+                });
               }
             }
           }
@@ -1007,9 +1038,7 @@ db.once('open', () => {
     });
 
 
-
-
-
+    // NEW: Search for PDF annotations in S3
     app.get('/api/search/annotations/pdf', async (req, res) => {
       let { fileType, word = '', comment = '' } = req.query;
       let pos = req.query.pos || [], ner = req.query.ner || [], sa = req.query.sa || [];
@@ -1024,57 +1053,75 @@ db.once('open', () => {
       }
 
       try {
-        const repoPath = path.join(__dirname, 'emuDBrepo');
         const hits = [];
 
-        // iterate over every EMU‐DB folder
-        for (const dbName of fs
-          .readdirSync(repoPath)
-          .filter(d => fs.statSync(path.join(repoPath, d)).isDirectory())
-        ) {
-          // for each bundle in that dbName
-          const bundleFiles = fs
-            .readdirSync(path.join(repoPath, dbName))
-            .filter(fn => fn.endsWith('_annot.json'));
+        // ADAPTATION: Use the AWS S3 SDK to list objects in the bucket.
+        const listParams = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Prefix: '',     //all objects
+        };
 
-          for (const annotFile of bundleFiles) {
-            const bundleName = annotFile.replace('_annot.json', '');
-            const { pdfAnnotations = [] } = loadAnnot(dbName, bundleName);
+        // Asynchronously send the ListObjectsV2Command to S3 to get a list of all objects.
+        const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
 
-            // instead of .some(…), we loop through each annotation record
-            for (const ann of pdfAnnotations) {
-              // check all filters
-              if (word && (!ann.word || ann.word.toLowerCase() !== word.toLowerCase())) {
-                continue;
-              }
-              if (comment && (!ann.comment || !ann.comment.toLowerCase().includes(comment.toLowerCase()))) {
-                continue;
-              }
-              if (pos.length && (!ann.pos || !pos.includes(ann.pos))) {
-                continue;
-              }
-              if (ner.length && (!ann.ner || !ner.includes(ann.ner))) {
-                continue;
-              }
-              if (sa.length && (!ann.sa || !sa.includes(ann.sa))) {
-                continue;
-              }
+        // ADAPTATION: Filter for annotation files that are likely to belong to PDFs.
+        const annotKeys = listedObjects.Contents
+          .filter(obj => obj.Key.endsWith('_annot.json'))
+          .map(obj => obj.Key);
+        
+        
+        // ADAPTATION: Loop through each annotation file key from S3
+        for (const s3FileKey  of annotKeys){
+          
+          const getParams = {
+              Bucket: process.env.S3_BUCKET_NAME,
+              Key: s3FileKey,
+          };
 
-              // If we reach here, this annotation `ann` matches all requested filters.
-              // Push a richer object back to the client.
-              hits.push({
-                dbName,
-                bundleName,
-                word:   ann.word,
-                pos:    ann.pos,
-                ner:    ann.ner,
-                sa:     ann.sa,
-                comment: ann.comment,
-                page:   ann.page,      // <-- the new page field
-                pdfId:  ann.pdfId
-              });
-            }
+          const { Body } = await s3Client.send(new GetObjectCommand(getParams));
+          const annotString = await streamToString(Body);
+          const { pdfAnnotations = [] } = JSON.parse(annotString);
+
+          if (pdfAnnotations.length === 0) {
+                  continue;
           }
+
+          const bundleName = s3FileKey.replace('_annot.json', '');
+
+          // instead of .some(…), we loop through each annotation record
+          for (const ann of pdfAnnotations) {
+            // check all filters
+            if (word && (!ann.word || ann.word.toLowerCase() !== word.toLowerCase())) {
+              continue;
+            }
+            if (comment && (!ann.comment || !ann.comment.toLowerCase().includes(comment.toLowerCase()))) {
+              continue;
+            }
+            if (pos.length && (!ann.pos || !pos.includes(ann.pos))) {
+              continue;
+            }
+            if (ner.length && (!ann.ner || !ner.includes(ann.ner))) {
+              continue;
+            }
+            if (sa.length && (!ann.sa || !sa.includes(ann.sa))) {
+              continue;
+            }
+
+            // If we reach here, this annotation `ann` matches all requested filters.
+            // Push a richer object back to the client.
+            hits.push({
+              dbName: 'myEmuDB',
+              bundleName,
+              word:   ann.word,
+              pos:    ann.pos,
+              ner:    ann.ner,
+              sa:     ann.sa,
+              comment: ann.comment,
+              page:   ann.page,      // <-- the new page field
+              pdfId:  ann.pdfId
+            });
+          }
+          
         }
 
         return res.json({ results: hits });
@@ -1090,28 +1137,37 @@ db.once('open', () => {
     // return unique "moSymbol" and "moPhrase" values found across all imageAnnotations
     app.get('/api/annotations/image/symbolsAndPhrases', async (req, res) => {
       try {
-        const repoPath = path.join(__dirname, 'emuDBrepo');
-        const dbDirs   = fs.readdirSync(repoPath).filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
         const symbols  = new Set();
         const phrases = new Set();
-        // console.log("repoPath: ",repoPath, " dbDirs: ",dbDirs," symbols: ",symbols);
 
-        for (const db of dbDirs) {
-          const files = fs.readdirSync(path.join(repoPath, db)).filter(fn => fn.endsWith('_annot.json'));
-          // console.log("files: ",files);
-          for (const fn of files) {
-            const bundle = loadAnnot(db, fn.replace('_annot.json',''));
-            // console.log("bundle: ",bundle);
-            //console.log("bundle.imageAnnotations: ",bundle.imageAnnotations);
-            (bundle.imageAnnotations || []).forEach(ann => {
-              if (ann.moSymbol) symbols.add(ann.moSymbol);
-              //console.log("ann.moSymbol: ",ann.moSymbol);
+        // ADAPTATION: Use the AWS S3 SDK to list objects in the bucket.
+        const listParams = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Prefix: '',
+        };
+        
+        const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
 
-              if (ann.moPhrase) phrases.add(ann.moPhrase);
-              //console.log("ann.moPhrase: ",ann.moPhrase);
+        // ADAPTATION: Filter for annotation files.
+        const annotKeys = listedObjects.Contents
+          .filter(obj => obj.Key.endsWith('_annot.json'))
+          .map(obj => obj.Key);
 
-            });
-          }
+
+        for (const s3FileKey  of annotKeys) {
+          const getParams = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: s3FileKey,
+          };
+
+          const { Body } = await s3Client.send(new GetObjectCommand(getParams));
+          const annotString = await streamToString(Body);
+          const bundle = JSON.parse(annotString);
+      
+          (bundle.imageAnnotations || []).forEach(ann => {
+            if (ann.moSymbol) symbols.add(ann.moSymbol);
+            if (ann.moPhrase) phrases.add(ann.moPhrase);
+          });
         }
 
         return res.json({ 
@@ -1142,47 +1198,62 @@ db.once('open', () => {
       const value = filters[key].toString().toLowerCase();
 
       try {
-        const repoPath = path.join(__dirname, 'emuDBrepo');
-        const dbDirs   = fs
-          .readdirSync(repoPath)
-          .filter(d => fs.statSync(path.join(repoPath, d)).isDirectory());
-
         const hits = [];
 
-        for (const dbName of dbDirs) {
-          const annotFiles = fs
-            .readdirSync(path.join(repoPath, dbName))
-            .filter(fn => fn.endsWith('_annot.json'));
+        // ADAPTATION: Use the AWS S3 SDK to list objects.
+        const listParams = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Prefix: '',
+        };
+        const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
 
-          for (const fn of annotFiles) {
-            const bundleName = fn.replace('_annot.json', '');
-            const { imageAnnotations = [] } = loadAnnot(dbName, bundleName);
+        // ADAPTATION: Filter for annotation files that are likely to belong to images.
+        const annotKeys = listedObjects.Contents
+          .filter(obj => obj.Key.endsWith('_annot.json'))
+          .map(obj => obj.Key);
 
-            // Loop through every single annotation entry
-            for (const item of imageAnnotations) {
-              let doesMatch = false;
+        // ADAPTATION: Loop through each annotation file key from S3.
+        for (const s3FileKey  of annotKeys) {
+          const getParams = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: s3FileKey,
+          };
 
-              if (key === 'letter' && item.engAlpha) {
-                doesMatch = item.engAlpha.toLowerCase() === value;
-              }
-              else if (key === 'moSymbol' && item.moSymbol) {
-                doesMatch = item.moSymbol.toLowerCase() === value;
-              }
-              else if (key === 'moPhrase' && item.moPhrase) {
-                doesMatch = item.moPhrase.toLowerCase() === value;
-              }
-              else if (key === 'comment' && item.comment) {
-                doesMatch = item.comment.toLowerCase().includes(value);
-              }
+          const { Body } = await s3Client.send(new GetObjectCommand(getParams));
+          const annotString = await streamToString(Body);
+          const { imageAnnotations = [] } = JSON.parse(annotString);
 
-              if (doesMatch) {
-                hits.push({
-                  dbName,
-                  bundleName,
-                  word: item.word,
-                  bbox: item.bbox
-                });
-              }
+          // If the annotation file has no imageAnnotations, skip it.
+          if (imageAnnotations.length === 0) {
+            continue;
+          }
+        
+          const bundleName = s3FileKey.replace('_annot.json', '');
+
+          // Loop through every single annotation entry
+          for (const item of imageAnnotations) {
+            let doesMatch = false;
+
+            if (key === 'letter' && item.engAlpha) {
+              doesMatch = item.engAlpha.toLowerCase() === value;
+            }
+            else if (key === 'moSymbol' && item.moSymbol) {
+              doesMatch = item.moSymbol.toLowerCase() === value;
+            }
+            else if (key === 'moPhrase' && item.moPhrase) {
+              doesMatch = item.moPhrase.toLowerCase() === value;
+            }
+            else if (key === 'comment' && item.comment) {
+              doesMatch = item.comment.toLowerCase().includes(value);
+            }
+
+            if (doesMatch) {
+              hits.push({
+                dbName: 'myEmuDB', // We can hardcode this since all are in one bucket
+                bundleName,
+                word: item.word,
+                bbox: item.bbox
+              });
             }
           }
         }
@@ -1213,12 +1284,25 @@ db.once('open', () => {
           return res.status(400).send('Missing parameters');
         }
 
-        // 1) Load annotations JSON
-        const annotPath = path.join(__dirname, 'emuDBrepo', dbName, `${bundle}_annot.json`);
-        if (!fs.existsSync(annotPath)) {
-          return res.status(404).send('Annotations not found');
+        // ADAPTATION: Load annotations JSON from S3 instead of the local file system.
+        const getAnnotParams = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: `${bundle}_annot.json`, // This is the correct key
+        };
+
+        console.log("getAnnotParams: ",getAnnotParams);
+        let levels, sampleRate;
+
+        try {
+          const { Body } = await s3Client.send(new GetObjectCommand(getAnnotParams));
+          const annotString = await streamToString(Body);
+          const annotData = JSON.parse(annotString);
+          levels = annotData.levels;
+          sampleRate = annotData.sampleRate;
+        } catch (err) {
+          console.error("Error fetching annotation file from S3:", err);
+          return res.status(404).send('Annotations not found in S3');
         }
-        const { levels, sampleRate } = JSON.parse(fs.readFileSync(annotPath, 'utf8'));
 
         // 2) Find the right level & item
         const lvl = levels.find(l => l.name === level);
@@ -1240,7 +1324,7 @@ db.once('open', () => {
           return res.status(500).send('Invalid start/duration');
         }
 
-        // 4) Look up the file’s GridFS _id (match .wav or .mp4)
+        // 4) Look up the file’s S3 reference from the MongoDB metadata
         const meta = await FileMetadata.findOne({
           fileName: { $regex: new RegExp(`^${bundle}\\.(wav|mp4)$`, 'i') }
         });
@@ -1269,17 +1353,28 @@ db.once('open', () => {
             fs.mkdirSync(tmpDir, { recursive: true });
           }
 
-          console.log("tmpVideoPath", tmpVideoPath);
-          console.log(`  Downloading ${meta.fileName} → ${tmpVideoPath}`);
+          // ADAPTATION: Download the video from S3 instead of GridFS.
+          // We will create a local temporary file because FFmpeg needs it.
+          // console.log(`  Downloading ${meta.fileName} from S3 → ${tmpVideoPath}`);
+          console.log("meta.s3Ref: ",meta.s3Ref, "meta.fileName: ",meta.fileName);
+          const s3DownloadParams = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: meta.s3Ref,             //the Key parameter indicate the object's name within the bucket
+          };
+          console.log("s3DownloadParams: ",s3DownloadParams);
 
-          // (b) Download from GridFS into tmpVideoPath
-          await new Promise((resolve, reject) => {
-            const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
-            bucket.openDownloadStream(new ObjectId(meta.gridFSRef))
-              .pipe(fs.createWriteStream(tmpVideoPath))
-              .on('error', reject)
-              .on('finish', resolve);
+          await new Promise(async (resolve, reject) => {
+            try {
+              const { Body } = await s3Client.send(new GetObjectCommand(s3DownloadParams));
+              const fileStream = fs.createWriteStream(tmpVideoPath);
+              Body.pipe(fileStream);
+              fileStream.on('error', reject);
+              fileStream.on('finish', resolve);
+            } catch (err) {
+              reject(err);
+            }
           });
+          console.log("File downloaded successfully from S3.");
 
           // (c) Probe the actual video duration so we can clamp durSec
           let videoDur = Infinity;
@@ -1311,7 +1406,6 @@ db.once('open', () => {
             }
           } catch (probeErr) {
             console.warn(`  Could not ffprobe “${bundle}”: ${probeErr.message}`);
-            // We’ll try anyway—if truly out of range, FFmpeg will error.
           }
 
           // (d) Set response headers so the client knows to expect an MP4
@@ -1376,12 +1470,17 @@ db.once('open', () => {
             'Content-Disposition',  
             `attachment; filename="${bundle}_${level}_${itemId}.wav"`
           );
+          
+          // ADAPTATION: Open an S3 download stream, feed it into FFmpeg, and immediately pipe to `res`.
+          const s3DownloadParams = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: meta.s3Ref, // Use the correct s3Ref from MongoDB, which is now the unique S3 key
+          };
+          
+          const { Body } = await s3Client.send(new GetObjectCommand(s3DownloadParams));
 
-          // (b) Open a GridFS read stream, feed it into FFmpeg, and immediately pipe to `res`
-          const bucket      = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
-          const inputStream = bucket.openDownloadStream(new ObjectId(meta.gridFSRef));
-
-          ffmpeg(inputStream)
+         
+          ffmpeg(Body)
             .inputFormat('wav')
             .outputOptions([
               `-ss ${startSec}`,   // seek after “-i”
@@ -1391,7 +1490,7 @@ db.once('open', () => {
             .on('start', cmd => console.log('FFmpeg (audio) command:', cmd))
             .on('error', err => {
               console.error('FFmpeg error during segment export:', err);
-              if (!res.headersSent) res.status(500).end();
+            if (!res.headersSent) res.status(500).send('FFmpeg audio trim failed');
             })
             .on('end', () => {
               console.log(`Finished exporting ${bundle}_${level}_${itemId}.wav`);
@@ -1408,7 +1507,7 @@ db.once('open', () => {
 
 
     // ----------------------------------------------------------------------------
-    // Single‐segment export endpoint (handles .pdf exports)
+    // ΝEW: Single‐segment export endpoint (handles .pdf exports) from S3
     // ----------------------------------------------------------------------------
     app.get('/api/export/pdfSegment', async (req, res) => {
       try {
@@ -1421,12 +1520,23 @@ db.once('open', () => {
           return res.status(400).send('Invalid page number');
         }
 
-        // 1) Load the annotation JSON
-        const annotPath = path.join(__dirname, 'emuDBrepo', dbName, `${bundle}_annot.json`);
-        if (!fs.existsSync(annotPath)) {
-          return res.status(404).send('Annotations not found');
+        // 1) ADAPTATION: Load the annotation JSON from S3
+        const getAnnotParams = {
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: `${bundle}_annot.json`,
+        };
+        
+        let pdfAnnotations = [];
+
+        try {
+          const { Body } = await s3Client.send(new GetObjectCommand(getAnnotParams));
+          const annotString = await streamToString(Body);
+          const { pdfAnnotations: loadedAnnotations = [] } = JSON.parse(annotString);
+          pdfAnnotations = loadedAnnotations;
+        } catch (err) {
+          console.error("Error fetching annotation file from S3:", err);
+          return res.status(404).send('Annotations not found in S3');
         }
-        const { pdfAnnotations = [] } = JSON.parse(fs.readFileSync(annotPath, 'utf8'));
 
         // 2) Find the exact annotation
         const matches = pdfAnnotations.filter(item => {
@@ -1481,17 +1591,16 @@ db.once('open', () => {
           return res.status(400).send('Missing parameters: need dbName, bundle, top, left, width, height');
         }
 
-        // Parse the parameters into integers:
-        const x = parseInt(left,  10);
-        const y = parseInt(top,   10);
+        const x = parseInt(left, 10);
+        const y = parseInt(top, 10);
         const w = parseInt(width, 10);
-        const h = parseInt(height,10);
+        const h = parseInt(height, 10);
 
         if ([x, y, w, h].some(n => isNaN(n) || n < 0)) {
           return res.status(400).send('Invalid crop rectangle');
         }
 
-        // 1) Look up the image’s GridFS metadata
+        // 1) Look up the image’s metadata
         const meta = await FileMetadata.findOne({
           fileName: { $regex: new RegExp(`^${bundle}\\.(jpg|jpeg|png)$`, 'i') }
         });
@@ -1499,28 +1608,24 @@ db.once('open', () => {
           return res.status(404).send('Image metadata not found');
         }
 
-        // 2) Download the full image from GridFS into a temporary file
-        const { name: tmpImagePath, removeCallback } = tmp.fileSync({ postfix: path.extname(meta.fileName) });
-        await new Promise((resolve, reject) => {
-          const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
-          bucket.openDownloadStream(new ObjectId(meta.gridFSRef))
-            .pipe(fs.createWriteStream(tmpImagePath))
-            .on('error', err => reject(err))
-            .on('finish', () => resolve());
-        });
+        // ADAPTATION: Create an S3 download stream and pipe it directly into FFmpeg
+        const { Body } = await s3Client.send(new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME,
+          Key: meta.s3Ref, 
+        }));
 
-        // 3) Invoke FFmpeg to crop out exactly (w × h) at (x,y), outputting PNG to stdout
         res.setHeader('Content-Type', 'image/png');
         res.setHeader(
           'Content-Disposition',
           `attachment; filename="${bundle}_${x}_${y}_${w}x${h}.png"`
         );
 
-        ffmpeg(tmpImagePath)
+        ffmpeg(Body) // Pipe the S3 stream directly to ffmpeg
+          .inputOptions(['-f image2pipe']) // Tell FFmpeg to expect piped input
           .outputOptions([
-            `-vf crop=${w}:${h}:${x}:${y}`,  // crop filter: width:height:left:top
-            '-f image2pipe',                 // use the image2pipe muxer
-            '-vcodec png'                    // encode with the PNG codec
+            `-vf crop=${w}:${h}:${x}:${y}`,
+            '-f image2pipe',
+            '-vcodec png'
           ])
           .on('start', cmdline => {
             console.log('FFmpeg (image‐crop) command:', cmdline);
@@ -1528,17 +1633,14 @@ db.once('open', () => {
           .on('error', (err, stdout, stderr) => {
             console.error('FFmpeg error while cropping image:', err.message);
             console.error('FFmpeg stderr:', stderr);
-            // If headers not yet sent, respond with a 500
             if (!res.headersSent) {
               res.status(500).send('Server error while cropping image');
             }
-            try { removeCallback(); } catch (_) { /* ignore */ }
           })
           .on('end', () => {
             console.log(`Finished cropping ${bundle} @ [${x},${y},${w}x${h}].png`);
-            try { removeCallback(); } catch (_) { /* ignore */ }
           })
-          .pipe(res, { end: true });  // stream the resulting PNG back to the client
+          .pipe(res, { end: true });
 
       } catch (err) {
         console.error('Error in /api/export/imageSegment:', err);
@@ -1547,7 +1649,6 @@ db.once('open', () => {
         }
       }
     });
-
 
 
 

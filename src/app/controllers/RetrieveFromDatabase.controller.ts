@@ -50,7 +50,7 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
         mediaFile: {
           encoding: 'GETURL',  // Signal that we need to build a URL and fetch the file
           type: fileMetadata.fileType,  // e.g., "audio"
-          data: fileMetadata.s3Ref, // NEW: Use the S3 URL
+          data: fileMetadata._id, // NEW: Use the MongoDB _id instead of the S3 URL
         },
         annotation: { levels: [], links: [] }
       };
@@ -76,63 +76,60 @@ angular.module('emuwebApp').controller('RetrieveFromDatabase', [
     };
 
     vm.fetchSelected = function() {
-    if (!vm.selectedFile) {
-      return alert("Please select a file first!");
-    }
+      if (!vm.selectedFile) {
+        return alert("Please select a file first!");
+      }
 
-    // build bundle object
-    const bundle = mapFileToBundle(vm.selectedFile);
-    const dbName = 'myEmuDB';  // ← NEW: my EMU-DB folder name
+      // build bundle object
+      const bundle = mapFileToBundle(vm.selectedFile);
+      const dbName = 'myEmuDB';  // ← NEW: my EMU-DB folder name
 
 
+      // NEW: Request annotations from the server (which will fetch from S3)
+      const annotURL = `http://localhost:3019/emuDB/${dbName}/${bundle.name}/annot.json`;
+      $http.get(annotURL)
+        .then(function(resp) {
+          bundle.annotation = resp.data;            // ← NEW: use loaded JSON
+          // console.log("--------------------------------------------------------------------");
+        })
+        .finally(function() {
+          DataService.setData(bundle.annotation);
+          $rootScope.$broadcast('annotationChanged');
+          
+          // ← EXISTING: inject into webapp
+          DragnDropDataService.processFetchedBundle(bundle);
+          DragnDropDataService.setDefaultSession(
+            DragnDropDataService.convertedBundles.length - 1
+          );
 
-    // NEW: Request annotations from the server (which will fetch from S3)
-    const annotURL = `http://localhost:3019/emuDB/${dbName}/${bundle.name}/annot.json`;
-    $http.get(annotURL)
-      .then(function(resp) {
-        bundle.annotation = resp.data;            // ← NEW: use loaded JSON
-        // console.log("--------------------------------------------------------------------");
-        console.log("bundle: ",bundle);
-        // console.log("bundle.annotation: ",bundle.annotation);
-      })
-      .finally(function() {
-        DataService.setData(bundle.annotation);
-        $rootScope.$broadcast('annotationChanged');
-        
-        // ← EXISTING: inject into webapp
-        DragnDropDataService.processFetchedBundle(bundle);
-        DragnDropDataService.setDefaultSession(
-          DragnDropDataService.convertedBundles.length - 1
-        );
+          // ← EXISTING: update sidebar
+          let list = LoadedMetaDataService.getBundleList() || [];
+          if (!list.some(b => b.name === bundle.name && b.session === bundle.session)) {
+            list.push({ name: bundle.name, session: bundle.session });
+            LoadedMetaDataService.setBundleList(list);
+          }
 
-        // ← EXISTING: update sidebar
-        let list = LoadedMetaDataService.getBundleList() || [];
-        if (!list.some(b => b.name === bundle.name && b.session === bundle.session)) {
-          list.push({ name: bundle.name, session: bundle.session });
-          LoadedMetaDataService.setBundleList(list);
-        }
+          ViewStateService.showDropZone = false;
 
-        ViewStateService.showDropZone = false;
+          // ← EXISTING: auto-load media
+          if (bundle.mediaFile.type === 'audio') {
+            DragnDropService.handleLocalFiles();
+          }
+          else if (bundle.mediaFile.type === 'video') {
+            DbObjLoadSaveService
+              .loadBundle(bundle, '')
+              .then(() => {
+                DragnDropService.handleLocalFiles();
+              })
+              .catch(err => {
+                console.error("Failed to auto-load fetched bundle:", err);
+              });
+          }
 
-        // ← EXISTING: auto-load media
-        if (bundle.mediaFile.type === 'audio') {
-          DragnDropService.handleLocalFiles();
-        }
-        else if (bundle.mediaFile.type === 'video') {
-          DbObjLoadSaveService
-            .loadBundle(bundle, '')
-            .then(() => {
-              DragnDropService.handleLocalFiles();
-            })
-            .catch(err => {
-              console.error("Failed to auto-load fetched bundle:", err);
-            });
-        }
-
-        // ← EXISTING: close modal
-        ModalService.close(vm.selectedFile);
-      });
-  };
+          // ← EXISTING: close modal
+          ModalService.close(vm.selectedFile);
+        });
+    };
 
     
     

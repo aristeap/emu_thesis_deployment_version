@@ -2268,27 +2268,27 @@ let EmuWebAppComponent = {
 		};
 
 
-		private mapFileToBundle(fileMetadata: any) {
-			return {
-			  name: fileMetadata.fileName,
-			  session: "DB", // default or computed session value
-			  mediaFile: {
-				encoding: 'GETURL',
-				type: fileMetadata.fileType,
-				data: fileMetadata.gridFSRef
-			  },
-			  annotation: {
-				levels: [],
-				links: [],
-				sampleRate: null,
-				annotates: fileMetadata.fileName,
-				name: fileMetadata.fileName,
-				pdfAnnotations: [],
-				imageAnnotations: [],
-				videoAnnotations: []
-			  }
-			};
-		  }
+		// private mapFileToBundle(fileMetadata: any) {
+		// 	return {
+		// 	  name: fileMetadata.fileName,
+		// 	  session: "DB", // default or computed session value
+		// 	  mediaFile: {
+		// 		encoding: 'GETURL',
+		// 		type: fileMetadata.fileType,
+		// 		data: fileMetadata.gridFSRef
+		// 	  },
+		// 	  annotation: {
+		// 		levels: [],
+		// 		links: [],
+		// 		sampleRate: null,
+		// 		annotates: fileMetadata.fileName,
+		// 		name: fileMetadata.fileName,
+		// 		pdfAnnotations: [],
+		// 		imageAnnotations: [],
+		// 		videoAnnotations: []
+		// 	  }
+		// 	};
+		//   }
 		  
 
 		private logOutBtnClick(){
