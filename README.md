@@ -16,7 +16,7 @@ The users that want to use the application would have to sign up and login:
 
 They can upload a variety of data types including audio (.wav), video (.mp4), pdf and images. For each data type they can add the following annotations.
 
-▪️ For **audio** files: 
+🔷 For **audio** files: 
 * phonetic and orthographic transcriptions where they can add levels, drag-n-choose a section of the waveform and add a label to it
 * add metadata ·informations about the recording, the speakers, the recording conditions, etc. They can also download the metadata form in IMDI form
 
@@ -24,14 +24,14 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 ![A GIF demonstrating the wav 1](assets/simple_user_wav2.gif)
 
 
-▪️ For **video** files:
+🔷 For **video** files:
 * the same annotations as the wav files, with the addition of an annotation-table (that can be downloaded)
 * add metadata
 
 ![A GIF demonstrating the wav 1](assets/simpleUser_video1.gif)
 
 
-▪️ For **pdf** files:
+🔷 For **pdf** files:
 * navigate the pages and mark words in the pdf
 * linguistic annotations where the user can choose to study a word or a phrase by it's part-of-speech, named-entity-recognition, sentiment-analysis and other comments
 * annotation table that can be downloaded
@@ -42,7 +42,7 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 ![A GIF demonstrating the wav 1](assets/simpleUser_pdf3.gif)
 
 
-▪️ For **image** files, the application has been adapted to support the annotation of non-english languages and dialects:
+🔷 For **image** files, the application has been adapted to support the annotation of non-english languages and dialects:
 * annotations like equivalent-from-english-alphabet, meaning-of-symbol, meaning-of-phrase, other comments
 * annotation table that can be downloaded 
 * add metadata
@@ -51,12 +51,12 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 ![A GIF demonstrating the wav 1](assets/simpleUser_image2.gif)
 
 
-▪️ General Features:
+🔷 General Features:
 * clear button
 * profile button
 
 
-▪️ Save **_annot.json**:
+🔷 Save **_annot.json**:
 * the user can save the annot.json file, that is a selection of the annotations he added, so in a next session he can upload it along with his file (wav,image,video,pdf). This way he can continue annotating from where he left of and he can save his progress!
 
 ![A GIF demonstrating the wav 1](assets/simpleUser_saveAnnot1.gif)
@@ -69,7 +69,7 @@ The simple users can't save to the database but they can view the files (and the
 ![A GIF demonstrating the wav 1](assets/simpleUser_simpleUser_db2.gif)
 
 
-▪️ Other **assigned users** (that can save to the database):
+🔷 Other **assigned users** (that can save to the database):
 * EY -> can add files to the database, sign-up admins and appoint a file to them. 
 * Admin -> can annotate and edit only their own files, and no other database files. They can also sign-up and choose researchers to help them with the annotation of their assigned files
 * Researcher -> can annotate and edit only their own files
