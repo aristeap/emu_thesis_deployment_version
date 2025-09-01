@@ -15,6 +15,7 @@ const {MongoClient} = require('mongodb');
 const pdfParse = require('pdf-parse');
 
 const app = express();
+const serverless = require('serverless-http');
 const port = 3019;
 
 const multer = require('multer');
@@ -644,16 +645,10 @@ app.post("/save-img-metadata", async (req, res) => {
 
 
 // ----------------------------------------------------------------------------------------------------------------------------------------
-// NEW: For storing all the contents of files in the database (along with the FileMetadata.js)
-const { GridFSBucket } = require('mongodb');  
 
 // Wait for the MongoDB connection to open
 db.once('open', () => {
     console.log('Main MongoDB connection successful for S3 bucket');
-
-    // // Initialize GridFSBucket
-    // const { GridFSBucket } = require('mongodb');
-    // const bucket = new GridFSBucket(db.db, { bucketName: 'uploads' });
 
     // NEW: For storing all the contents of files in S3
     const { Upload } = require("@aws-sdk/lib-storage");
@@ -1661,6 +1656,5 @@ db.once('open', () => {
 });
 
 // Start the server
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+// We no longer start the server. Instead, we export a handler for Lambda.
+module.exports.handler = serverless(app);
