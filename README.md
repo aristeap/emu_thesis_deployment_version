@@ -70,9 +70,9 @@ The simple users can't save to the database but they can view the files (and the
 
 
 🔷 Other **assigned users** (that can save to the database):
-* EY -> can add files to the database, sign-up admins and appoint a file to them. 
-* Admin -> can annotate and edit only their own files, and no other database files. They can also sign-up and choose researchers to help them with the annotation of their assigned files
-* Researcher -> can annotate and edit only their own files
+* **EY** -> can add files to the database, sign-up admins and appoint a file to them. 
+* **Admin** -> can annotate and edit only their own files, and no other database files. They can also sign-up and choose researchers to help them with the annotation of their assigned files
+* **Researcher** -> can annotate and edit only their own files
 
 
 ## Project Structure
@@ -100,7 +100,7 @@ For the deployment to be possible:
 
 
 ## Original EMU-webApp 
-This application was created as my thesis project and it is based on the [EMU-webApp](https://github.com/IPS-LMU/EMU-webApp.git), the web-app of the EMU-sdms system. All credits to the orinal authors: 
+This application was created as my thesis project and it is based on the [EMU-webApp](https://github.com/IPS-LMU/EMU-webApp.git), the web-app of the EMU-sdms system. All credits to the original authors: 
 main  authors: [Raphael Winkelmann](https://github.com/raphywink), [Georg Raess](https://github.com/georgraess), [Markus Jochim](https://github.com/MJochim), [Affiliations](https://www.en.phonetik.uni-muenchen.de/index.html)
 
 🔷 This project significantly extends the base EMU-WebApp by adding several key features. The core enhancements include:
@@ -120,7 +120,7 @@ main  authors: [Raphael Winkelmann](https://github.com/raphywink), [Georg Raess]
 
 
 ## Contact
-I would love to hear any feedback, ideas for additional functionality or any questions you might have 😊! Contact anytime at : 
+I would love to hear any feedback, ideas for additional functionality or any questions you might have 😊! Contact me anytime at : 
 * [aristeapapaspyroy@gmail.com](mailto:aristeapapaspyroy@gmail.com)
 * [Linkedin](https://www.linkedin.com/in/aristea-papaspyrou-8277a02a0/)
 
