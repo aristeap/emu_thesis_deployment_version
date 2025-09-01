@@ -9,13 +9,12 @@ Visit [emu-webapp-expanded](https://emu-webapp-frontend.netlify.app/#!/login)
 
 ## Features - User Guide
 The users that want to use the application would have to sign up and login:
-(--signUp_as_aSimpleUser--)
 
 ![A GIF demonstrating the user sign up and login process](assets/signUp_as_aSimpleUser.gif)
 
 
 They can upload a variety of data types including audio (.wav), video (.mp4), pdf and images. For each data type they can add the following annotations.
-For audio files: 
+-> For **audio** files: 
 * phonetic and orthographic transcriptions where they can add levels, drag-n-choose a section of the waveform and add a label to it
 * add metadata ·informations about the recording, the speakers, the recording conditions, etc. He can also download the metadata form in IMDI form
 
@@ -23,44 +22,52 @@ For audio files:
 ![A GIF demonstrating the wav 1](assets/simple_user_wav2.gif)
 
 
-For video files:
+->For **video** files:
 * the same annotations with the wav files with the addition of the annotation-table (that can be downloaded)
 * add metadata
 
-For pdf files:
+![A GIF demonstrating the wav 1](assets/simpleUser_video1.gif)
+
+
+->For **pdf** files:
 * navigate the pages and mark words in the pdf
 * linguistic annotations where the user can choose to study a word or a phrase by it's part-of-speech, named-entity-recognition, sentiment-analysis and other comments
 * annotation table that can get downloaded
 * add metadata
 
-(--simpleUser_pdf1--)
-(--simpleUser_pdf2--)
-(--simpleUser_pdf3--)
+![A GIF demonstrating the wav 1](assets/simpleUser_pdf1.gif)
+![A GIF demonstrating the wav 1](assets/simpleUser_pdf2.gif)
+![A GIF demonstrating the wav 1](assets/simpleUser_pdf3.gif)
 
-For image files, the application has been adapted to support annotation of non-english languages and dialects:
+
+->For **image** files, the application has been adapted to support annotation of non-english languages and dialects:
 * annotations like equivalent-from-english-alphabet, meaning-of-symbol, meaning-of-phrase, other comments
 * annotation table that can get downloaded 
 * add metadata
 
-(--simpleUser_image1--)
-(--simpleUser_image2--)
+![A GIF demonstrating the wav 1](assets/simpleUser_image1.gif)
+![A GIF demonstrating the wav 1](assets/simpleUser_image2.gif)
 
-General Features:
+
+->General Features:
 * clear button
 * profile button
 
-Save _annot.json:
+
+->Save **_annot.json**:
 * the user can save the annot.json file, that is a selection of the annotations he added, so in a next session he can upload it along with his file (wav,image,video,pdf). This way he can continue annotating from where he left of and he can save his progress!
 
-(--simpleUser_saveAnnot1--)
-(--simpleUser_saveAnnot2--)
+![A GIF demonstrating the wav 1](assets/simpleUser_saveAnnot1.gif)
+![A GIF demonstrating the wav 1](assets/simpleUser_saveAnnot2.gif)
+
 
 The simple users can't save to the database but they can view the files (and their annotations). The can also search through the database and download the results of their search.
 
-(--simpleUser_db--)
+![A GIF demonstrating the wav 1](assets/simpleUser_simpleUser_db1.gif)
+![A GIF demonstrating the wav 1](assets/simpleUser_simpleUser_db2.gif)
 
 
-Other assigned users (that can save to the database):
+Other **assigned users** (that can save to the database):
 * EY -> can add files to the database, sign-up admins and appoint a file to them. 
 * Admin -> can annotate and edit only their own files, and no other database files. They can also sign-up and choose researchers to help them with the annotation of their assigned files
 * Researcher -> can annotate and edit only their own files
