@@ -5,7 +5,7 @@ The EMU-WebApp-expanded is a web-based linguistic database designed to support m
 
 
 ## Quick Start
-Visit [emu-webapp-expanded](https://emu-webapp-frontend.netlify.app/#!/login)
+To use the application visit [emu-webapp-expanded](https://emu-webapp-frontend.netlify.app/#!/login)
 
 
 ## Features - User Guide
@@ -57,7 +57,7 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 
 
 🔷 Save **_annot.json**:
-* the user can save the annot.json file, that is a selection of the annotations he added, so in a next session he can upload it along with his file (wav,image,video,pdf). This way he can continue annotating from where he left of and he can save his progress!
+* the user can save the annot.json file (a file that contains a selection of the annotations he added). This allows them to upload it in a later session along with their original file (e.g., WAV, image, video, or PDF) to resume annotating from where they left off and save their progress!
 
 ![A GIF demonstrating the wav 1](assets/simpleUser_saveAnnot1.gif)
 ![A GIF demonstrating the wav 1](assets/simpleUser_saveAnnot2.gif)
@@ -75,43 +75,40 @@ The simple users can't save to the database but they can view the files (and the
 * Researcher -> can annotate and edit only their own files
 
 
+## Project Structure
+The project is split into three diffeent repositories. 
+
+🔷 [emu_thesis_locally](https://github.com/aristeap/emu_thesis_locally.git)
+* is the original version that i built in my pc and was running with commands i run in the terminal. 
+* it uses angularJs, typescript, javascript and for the database: mongodb, emuDB and technologies like gridFsBucket for the big data 
+
+🔷 [emu-webapp-frontend](https://github.com/aristeap/emu-webapp-frontend.git)
+* is the front-end repository
+
+🔷 [emu-webapp-backend](https://github.com/aristeap/emu-webapp-backend.git)
+* is the back-end repository
+
 
 ## Deployment & Live Demo
-Content: This is where you provide links to your live application. It's a critical section for showing off your work.
-
-Live Application URL: [Link to your Netlify URL]
-
-API URL: [Link to your Render API URL]
-
-Briefly explain that the application is a full-stack deployment, with the frontend hosted on Netlify and the backend on Render.
-
-
-
-## Project Structure
-Content: Explain that the project is split into separate repositories for the frontend and backend to simplify deployment.
-
-Frontend Repository: [Link to your emu-webapp-frontend GitHub repo]
-
-Backend Repository: [Link to your emu-webapp-backend GitHub repo]
-
-
-
-
-## Technologies Used
-
-Content: List the major frameworks, libraries, and tools used for both the frontend and backend.
-
-Frontend: Angular.js (with TypeScript), Webpack, Netlify.
-
-Backend: Node.js, Express, MongoDB (for data storage), GridFS (for file storage), Render.
-
-Deployment: Netlify (Frontend), Render (Backend).
+For the deployment to be possible:
+* **code wise** : i adapted the [emu_thesis_locally](https://github.com/aristeap/emu_thesis_locally.git) by removing any references to local directories (emuDBrepo) and replaced them with references το the S3 AWS bucket. I also replaced all database references the url of the database i set up in Mongodb Atlas. Also i replaced all calls to the localhost
+* **Backend Deployment** : The backend API and server are deployed on **Render**, a Platform as a Service (PaaS) provider. Render manages the server, allowing the backend to run continuously and handle all data processing, including secure communication with the MongoDB Atlas database and the S3-compatible object storage for files.
+* **Frontend Deployment** : The client-side application is hosted on **Netlify**, a serverless platform that efficiently serves the static files (HTML, CSS, JavaScript) from a global Content Delivery Network (CDN). This ensures the application loads quickly for users worldwide.
+* **Third-party wake-up service** : To make sure the application stays active, a free uptime monitoring service was set up to periodically send a request to the backend, preventing it from going to sleep (**Better Stack**) 
 
 
 
 
 ## Original EMU-webApp 
-This application was created as my thesis project and it is based on the EMU-webApp 
+This application was created as my thesis project and it is based on the [EMU-webApp](https://github.com/IPS-LMU/EMU-webApp.git), the web-app of the EMU-sdms system. All credits to the orinal authors: 
+main  authors: [Raphael Winkelmann](https://github.com/raphywink), [Georg Raess](https://github.com/georgraess), [Markus Jochim](https://github.com/MJochim), [Affiliations](https://www.en.phonetik.uni-muenchen.de/index.html)
+
+🔷 This project significantly extends the base EMU-WebApp by adding several key features. The core enhancements include:
+* **Standalone Operation**: The application now operates autonomously, eliminating the need for R code or an R environment. This provides a seamless startup experience and a more familiar, user-friendly interface.
+* **Multimodal File Support**: The system has been expanded to support a wide range of file types beyond just audio, including video, PDF documents, and images. Users can now add annotations to each file type, making it a truly versatile tool.
+* **Advanced Metadata Management**: A comprehensive system was implemented to support the creation, editing, and storage of rich metadata for every file. This allows for detailed organization and categorization of all content.
+* **User Hierarchy and Access Control** : A role-based access model was introduced to manage user permissions. This defines which users can view, comment on, or manage the content and its metadata, ensuring secure and controlled collaboration.
+* **Sophisticated Search Engine** : A powerful search engine was developed that combines both metadata and annotation filters. This flexible system allows users to extract, aggregate, and reproduce specific segments of audio, video, text, or images based on complex queries
 
 
 ## Missing Functionality and more to come...
