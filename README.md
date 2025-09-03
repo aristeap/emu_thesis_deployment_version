@@ -9,7 +9,7 @@ To use the application visit [emu-webapp-expanded](https://emu-webapp-frontend.n
 
 
 ## Features - User Guide
-The users that want to use the application would have to sign up and login:
+The users that want to use the application would have to sign up, login or use the 'continue as guest' option:
 
 ![A GIF demonstrating the user sign up and login process](assets/signUp_as_aSimpleUser.gif)
 
