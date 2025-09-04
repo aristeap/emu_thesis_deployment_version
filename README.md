@@ -18,7 +18,7 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 
 🔷 For **audio** files: 
 * phonetic and orthographic transcriptions where they can add levels, drag-n-choose a section of the waveform and add a label to it
-* add metadata ·informations about the recording, the speakers, the recording conditions, etc. They can also download the metadata form in IMDI form (_currently fixing a bug_)
+* add metadata ·informations about the recording, the speakers, the recording conditions, etc. They can also download the metadata form in IMDI form
 
 ![A GIF demonstrating the wav 1](assets/simple_user_wav1.gif)
 ![A GIF demonstrating the wav 1](assets/simple_user_wav2.gif)
@@ -26,7 +26,7 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 
 🔷 For **video** files:
 * the same annotations as the wav files, with the addition of an annotation-table (that can be downloaded)
-* add metadata (_currently fixing a bug_)
+* add metadata 
 
 ![A GIF demonstrating the wav 1](assets/simpleUser_video1.gif)
 
@@ -35,7 +35,7 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 * navigate the pages and mark words in the pdf
 * linguistic annotations where the user can choose to study a word or a phrase by it's part-of-speech, named-entity-recognition, sentiment-analysis and other comments
 * annotation table that can be downloaded
-* add metadata (_currently fixing a bug_)
+* add metadata 
 
 ![A GIF demonstrating the wav 1](assets/simpleUser_pdf1.gif)
 ![A GIF demonstrating the wav 1](assets/simpleUser_pdf2.gif)
@@ -45,7 +45,7 @@ They can upload a variety of data types including audio (.wav), video (.mp4), pd
 🔷 For **image** files, the application has been adapted to support the annotation of non-english languages and dialects:
 * annotations like equivalent-from-english-alphabet, meaning-of-symbol, meaning-of-phrase, other comments
 * annotation table that can be downloaded 
-* add metadata (_currently fixing a bug_)
+* add metadata 
 
 ![A GIF demonstrating the wav 1](assets/simpleUser_image1.gif)
 ![A GIF demonstrating the wav 1](assets/simpleUser_image2.gif)
