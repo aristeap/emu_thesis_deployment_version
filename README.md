@@ -117,7 +117,6 @@ main  authors: [Raphael Winkelmann](https://github.com/raphywink), [Georg Raess]
 * more choises for edit_profile
 * a choise for 'continue without signing-in' (because the average user might be discouraged to use the app if he sees a sing-up page)  
 * cleanup of the console-logs
-* console error about not finding the scripts for the add_metadata
 
 
 ## Contact
